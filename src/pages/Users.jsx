@@ -12,6 +12,9 @@ const Users = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
   const [totalPages, setTotalPages] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+  const [hasNext, setHasNext] = useState(false)
+  const [hasPrevious, setHasPrevious] = useState(false)
   
   // Filters
   const [searchTerm, setSearchTerm] = useState('')
@@ -33,12 +36,31 @@ const Users = () => {
       setError(null)
       const response = await adminService.getUsers({ page: currentPage, pageSize })
       
-      // Handle different response structures
-      const usersData = response.data?.data || response.data || response || []
-      const totalCount = response.data?.totalCount || response.totalCount || usersData.length
-      
-      setUsers(Array.isArray(usersData) ? usersData : [])
-      setTotalPages(Math.ceil(totalCount / pageSize))
+      // Parse API response structure: { success: true, data: { users: [], pagination: {} } }
+      if (response.success && response.data) {
+        const usersData = response.data.users || []
+        const pagination = response.data.pagination || {}
+        
+        setUsers(Array.isArray(usersData) ? usersData : [])
+        
+        // Update pagination state from API response
+        if (pagination.totalPages) {
+          setTotalPages(pagination.totalPages)
+        }
+        if (pagination.totalCount) {
+          setTotalCount(pagination.totalCount)
+        }
+        if (pagination.hasNext !== undefined) {
+          setHasNext(pagination.hasNext)
+        }
+        if (pagination.hasPrevious !== undefined) {
+          setHasPrevious(pagination.hasPrevious)
+        }
+      } else {
+        // Fallback for different response structures
+        const usersData = response.data?.users || response.data?.data || response.data || response || []
+        setUsers(Array.isArray(usersData) ? usersData : [])
+      }
     } catch (err) {
       console.error('Failed to fetch users:', err)
       setError(err.message || 'Failed to load users')
@@ -229,9 +251,26 @@ const Users = () => {
                         )}
                       </td>
                       <td className="user-status">
-                        <span className={`status-badge ${user.isActive ? 'status-active' : 'status-inactive'}`}>
-                          {user.isActive ? 'Active' : 'Inactive'}
-                        </span>
+                        <div className="status-badges">
+                          <span className={`status-badge ${user.isActive ? 'status-active' : 'status-inactive'}`}>
+                            {user.isActive ? 'Active' : 'Inactive'}
+                          </span>
+                          {user.isBlocked && (
+                            <span className="status-badge status-danger" title="User is blocked">
+                              Blocked
+                            </span>
+                          )}
+                          {user.isBlacklisted && (
+                            <span className="status-badge status-danger" title="User is blacklisted">
+                              Blacklisted
+                            </span>
+                          )}
+                          {!user.isVerified && (
+                            <span className="status-badge status-inactive" title="User not verified">
+                              Unverified
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="user-created">{formatDate(user.createdAt)}</td>
                       <td className="user-actions">
@@ -265,17 +304,17 @@ const Users = () => {
               <button
                 className="btn btn-outline"
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
+                disabled={!hasPrevious && currentPage === 1}
               >
                 Previous
               </button>
               <span className="page-info">
-                Page {currentPage} of {totalPages}
+                Page {currentPage} of {totalPages} ({totalCount} total users)
               </span>
               <button
                 className="btn btn-outline"
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
+                disabled={!hasNext && currentPage === totalPages}
               >
                 Next
               </button>
@@ -320,6 +359,36 @@ const Users = () => {
                     <label>Status:</label>
                     <span className={`status-badge ${selectedUserDetail.isActive ? 'status-active' : 'status-inactive'}`}>
                       {selectedUserDetail.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Verified:</label>
+                    <span className={`status-badge ${selectedUserDetail.isVerified ? 'status-active' : 'status-inactive'}`}>
+                      {selectedUserDetail.isVerified ? 'Yes' : 'No'}
+                    </span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Blocked:</label>
+                    <span className={`status-badge ${selectedUserDetail.isBlocked ? 'status-danger' : 'status-active'}`}>
+                      {selectedUserDetail.isBlocked ? 'Yes' : 'No'}
+                    </span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Blacklisted:</label>
+                    <span className={`status-badge ${selectedUserDetail.isBlacklisted ? 'status-danger' : 'status-active'}`}>
+                      {selectedUserDetail.isBlacklisted ? 'Yes' : 'No'}
+                    </span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Registration Complete:</label>
+                    <span className={`status-badge ${selectedUserDetail.isRegistrationComplete ? 'status-active' : 'status-inactive'}`}>
+                      {selectedUserDetail.isRegistrationComplete ? 'Yes' : 'No'}
+                    </span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Documents Approved:</label>
+                    <span className={`status-badge ${selectedUserDetail.isDocumentsApproved ? 'status-active' : 'status-inactive'}`}>
+                      {selectedUserDetail.isDocumentsApproved ? 'Yes' : 'No'}
                     </span>
                   </div>
                   <div className="detail-item">

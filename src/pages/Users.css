@@ -203,8 +203,21 @@
 }
 
 .status-inactive {
+  background-color: rgba(148, 163, 184, 0.1);
+  color: var(--text-muted);
+}
+
+.status-danger {
   background-color: rgba(239, 68, 68, 0.1);
   color: var(--danger-color);
+  font-weight: 600;
+}
+
+.status-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
 }
 
 .user-created {
