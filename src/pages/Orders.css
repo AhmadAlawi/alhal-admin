@@ -1,0 +1,17 @@
+.orders-page {
+  animation: fadeIn 0.3s ease-in;
+}
+
+.orders-filters {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .orders-filters {
+    flex-direction: column;
+  }
+}
+
