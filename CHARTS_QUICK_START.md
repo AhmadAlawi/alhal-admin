@@ -122,8 +122,8 @@ import marketAnalysisService from '../services/marketAnalysisService';
 // Fetch new data
 const { data } = useMarketData(
   marketAnalysisService.getSupplyDemandTrends,
-  { productId=2: 1, governorate: 'Baghdad', days: 30 },
-  [productId=2, governorate]
+  { productId: 1, governorate: 'Baghdad', days: 30 },
+  [productId, governorate]
 );
 
 // Add chart
@@ -147,7 +147,7 @@ const { data } = useMarketData(
 import marketAnalysisService from './services/marketAnalysisService';
 
 const data = await marketAnalysisService.getPriceTrends({
-  productId=2: 1,
+  productId: 1,
   governorate: 'Baghdad',
   startDate: '2024-01-01',
   endDate: '2024-12-31',

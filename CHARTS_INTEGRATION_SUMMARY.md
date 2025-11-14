@@ -212,7 +212,7 @@ import { usePriceTrends } from '../hooks/useMarketData';
 
 function MyComponent() {
   const { data, loading, error, refetch } = usePriceTrends({
-    productId=2: 1,
+    productId: 1,
     governorate: 'Baghdad',
     startDate: '2024-01-01',
     endDate: '2024-12-31'
@@ -233,7 +233,7 @@ import marketAnalysisService from '../services/marketAnalysisService';
 async function fetchData() {
   try {
     const result = await marketAnalysisService.getPriceTrends({
-      productId=2: 1,
+      productId: 1,
       governorate: 'Baghdad'
     });
     console.log(result);
