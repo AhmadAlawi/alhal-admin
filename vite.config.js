@@ -8,13 +8,25 @@ export default defineConfig(({ mode }) => {
   // Get port from environment variable or use default
   const port = parseInt(env.VITE_PORT || env.PORT || '3000', 10)
   
+  // Get allowed hosts from environment or use defaults
+  const allowedHostsEnv = env.VITE_ALLOWED_HOSTS
+  const allowedHosts = allowedHostsEnv 
+    ? allowedHostsEnv.split(',').map(h => h.trim())
+    : [
+        'adminalhal.awnak.net',
+        'localhost',
+        '.localhost',
+        '127.0.0.1'
+      ]
+  
   return {
     plugins: [react()],
     server: {
       port: port,
       open: true,
       host: true, // Allow external connections (accessible from network)
-      strictPort: false // Try next available port if port is in use
+      strictPort: false, // Try next available port if port is in use
+      allowedHosts: allowedHosts
     }
   }
 })

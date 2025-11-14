@@ -31,6 +31,7 @@ npm install
 ```env
 VITE_API_BASE_URL=https://localhost:7059
 VITE_PORT=3000
+VITE_ALLOWED_HOSTS=adminalhal.awnak.net,localhost,127.0.0.1
 ```
 
 3. Start the development server:
