@@ -1,13 +1,98 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { FiUsers, FiDollarSign, FiShoppingCart, FiTrendingUp, FiRefreshCw, FiPackage, FiActivity, FiGlobe, FiAlertCircle, FiClock } from 'react-icons/fi'
 import StatCard from '../components/StatCard/StatCard'
 import Chart from '../components/Chart/Chart'
 import Table from '../components/Table/Table'
 import { useAutoFillData, useRealTimeData, useMapData } from '../hooks/useDashboardData'
+import { useNotifications } from '../contexts/NotificationContext'
+import authService from '../services/authService'
 import './Dashboard.css'
 
 const Dashboard = () => {
   const [selectedDays, setSelectedDays] = useState(30)
+  const { registerDevice, fcmToken, permission, isInitialized } = useNotifications()
+  
+  // Register device when dashboard loads
+  useEffect(() => {
+    const registerDeviceOnLoad = async () => {
+      try {
+        // Wait for notifications to be initialized
+        if (!isInitialized) {
+          return;
+        }
+
+        // Get userId from auth service or localStorage
+        // For testing, set userId to 5
+        let userId = authService.getUserId();
+        
+        // If userId not found, try to get from API
+        if (!userId && authService.isAuthenticated()) {
+          try {
+            const currentUser = await authService.getCurrentUser();
+            if (currentUser?.userId || currentUser?.data?.userId || currentUser?.data?.id) {
+              userId = currentUser?.userId || currentUser?.data?.userId || currentUser?.data?.id;
+              if (userId) {
+                localStorage.setItem('userId', userId.toString());
+                console.log('User ID stored from API:', userId);
+              }
+            }
+          } catch (error) {
+            console.warn('Could not get current user:', error);
+          }
+        }
+        
+        // Set userId to 5 for testing (override any existing userId)
+        userId = 5;
+        localStorage.setItem('userId', '5');
+        console.log('User ID set to 5 for testing');
+
+        // Register device if we have userId and permission is granted
+        if (userId && permission === 'granted') {
+          // Check if FCM token is available (required for registration)
+          if (!fcmToken) {
+            console.log('Waiting for FCM token...');
+            return;
+          }
+
+          // Check if device is already registered (avoid duplicate registrations)
+          const lastRegistration = localStorage.getItem('deviceRegistrationTime');
+          const lastRegistrationTime = lastRegistration ? parseInt(lastRegistration, 10) : 0;
+          const now = Date.now();
+          const registrationCooldown = 5 * 60 * 1000; // 5 minutes cooldown
+
+          // Only register if not recently registered
+          if (now - lastRegistrationTime > registrationCooldown) {
+            try {
+              await registerDevice(userId);
+              localStorage.setItem('deviceRegistrationTime', now.toString());
+              console.log('Device registered successfully on dashboard load');
+            } catch (error) {
+              console.error('Failed to register device on dashboard load:', error);
+            }
+          } else {
+            console.log('Device registration skipped (recently registered)');
+          }
+        } else if (userId && permission === 'default') {
+          // If permission is not granted yet, don't request automatically
+          // Let user decide to enable notifications through the UI
+          console.log('Notification permission not granted. User can enable notifications from the notification bell icon.');
+        } else if (!userId) {
+          console.warn('User ID not found. Device will not be registered. User may need to log in.');
+        }
+      } catch (error) {
+        console.error('Error in device registration on dashboard load:', error);
+      }
+    };
+
+    // Register device after a short delay to ensure notifications are initialized
+    const timeoutId = setTimeout(() => {
+      registerDeviceOnLoad();
+    }, 1500);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [registerDevice, fcmToken, permission, isInitialized])
   
   // Fetch comprehensive dashboard data
   const { data: dashboardData, loading: dashboardLoading, error: dashboardError } = useAutoFillData({ days: selectedDays })

@@ -315,12 +315,12 @@ Click on any API call and look at the URL
 
 **Before Fix:**
 ```
-Request URL: https://alhal.awnak.net/api/MarketAnalysis/charts/price-trends?productId=null&governorate=null&startDate=2024-10-13&endDate=2024-11-12&groupBy=day
+Request URL: https://localhost:7059/api/MarketAnalysis/charts/price-trends?productId=null&governorate=null&startDate=2024-10-13&endDate=2024-11-12&groupBy=day
 ```
 
 **After Fix:**
 ```
-Request URL: https://alhal.awnak.net/api/MarketAnalysis/charts/price-trends?startDate=2024-10-13&endDate=2024-11-12&groupBy=day
+Request URL: https://localhost:7059/api/MarketAnalysis/charts/price-trends?startDate=2024-10-13&endDate=2024-11-12&groupBy=day
 ```
 
 ---

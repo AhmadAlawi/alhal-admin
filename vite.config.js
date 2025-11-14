@@ -35,6 +35,20 @@ export default defineConfig(({ mode }) => {
       host: true, // Allow external connections (accessible from network)
       strictPort: false, // Try next available port if port is in use
       allowedHosts: allowedHosts
+    },
+    publicDir: 'public',
+    build: {
+      rollupOptions: {
+        output: {
+          // Ensure service worker is copied to build output
+          assetFileNames: (assetInfo) => {
+            if (assetInfo.name === 'firebase-messaging-sw.js') {
+              return 'firebase-messaging-sw.js';
+            }
+            return 'assets/[name]-[hash][extname]';
+          }
+        }
+      }
     }
   }
 })

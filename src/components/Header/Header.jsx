@@ -1,5 +1,6 @@
 import React from 'react'
-import { FiMenu, FiSearch, FiBell, FiMail } from 'react-icons/fi'
+import { FiMenu, FiSearch, FiMail } from 'react-icons/fi'
+import Notifications from '../Notifications/Notifications'
 import './Header.css'
 
 const Header = ({ toggleSidebar }) => {
@@ -20,14 +21,11 @@ const Header = ({ toggleSidebar }) => {
       </div>
 
       <div className="header-right">
-        <button className="icon-btn">
+        <button className="icon-btn" title="Messages">
           <FiMail />
           <span className="badge-dot"></span>
         </button>
-        <button className="icon-btn">
-          <FiBell />
-          <span className="badge-dot"></span>
-        </button>
+        <Notifications />
         <div className="header-user">
           <img 
             src="https://ui-avatars.com/api/?name=Admin+User&background=6366f1&color=fff" 

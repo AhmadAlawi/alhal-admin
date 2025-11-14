@@ -10,6 +10,8 @@ A modern, responsive admin dashboard built with React.js featuring a beautiful d
 - 🧩 **Reusable Components** - Modular component architecture for easy customization
 - 🚀 **Fast Performance** - Built with Vite for lightning-fast development and builds
 - 🎯 **Multiple Pages** - Dashboard, Users, Analytics, Products, Orders, and Settings
+- 🔔 **Push Notifications** - Firebase Cloud Messaging (FCM) for real-time notifications
+- 🔐 **Secure Authentication** - Role-based access control and user management
 
 ## Pages Overview
 
@@ -20,6 +22,20 @@ A modern, responsive admin dashboard built with React.js featuring a beautiful d
 - **Orders** - Order tracking and management
 - **Settings** - Account settings with profile, notifications, security, and preferences
 
+## Firebase Notifications
+
+This app includes Firebase Cloud Messaging (FCM) for push notifications. See [FIREBASE_NOTIFICATIONS_SETUP.md](./FIREBASE_NOTIFICATIONS_SETUP.md) for setup instructions.
+
+### Notification Features
+
+- ✅ Real-time push notifications
+- ✅ Foreground and background message handling
+- ✅ Notification dropdown with unread count
+- ✅ Mark as read/unread
+- ✅ Delete notifications
+- ✅ Permission management
+- ✅ Service worker support
+
 ## Installation
 
 1. Install dependencies:
@@ -29,10 +45,13 @@ npm install
 
 2. Create `.env` file (optional):
 ```env
-VITE_API_BASE_URL=https://alhal.awnak.net
+VITE_API_BASE_URL=https://localhost:7059
 VITE_PORT=3000
 VITE_ALLOWED_HOSTS=adminalhal.awnak.net,localhost,127.0.0.1
 VITE_DISABLE_AUTO_OPEN=true  # Set to true for server/PM2 environments
+
+# Firebase Configuration (for push notifications)
+VITE_FIREBASE_VAPID_KEY=YOUR_VAPID_KEY_HERE  # Get from Firebase Console > Cloud Messaging > Web Push certificates
 ```
 
 3. Start the development server:
