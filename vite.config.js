@@ -19,11 +19,19 @@ export default defineConfig(({ mode }) => {
         '127.0.0.1'
       ]
   
+  // Disable auto-open browser in server/CI environments
+  // Check if running in a headless environment (no display/GUI)
+  const isServerEnvironment = process.env.CI || 
+                              process.env.PM2_HOME || 
+                              !process.stdout.isTTY ||
+                              process.env.SSH_CONNECTION ||
+                              env.VITE_DISABLE_AUTO_OPEN === 'true'
+  
   return {
     plugins: [react()],
     server: {
       port: port,
-      open: true,
+      open: !isServerEnvironment, // Only open browser in local development
       host: true, // Allow external connections (accessible from network)
       strictPort: false, // Try next available port if port is in use
       allowedHosts: allowedHosts

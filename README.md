@@ -32,6 +32,7 @@ npm install
 VITE_API_BASE_URL=https://alhal.awnak.net
 VITE_PORT=3000
 VITE_ALLOWED_HOSTS=adminalhal.awnak.net,localhost,127.0.0.1
+VITE_DISABLE_AUTO_OPEN=true  # Set to true for server/PM2 environments
 ```
 
 3. Start the development server:
@@ -97,6 +98,39 @@ VITE_ALLOWED_HOSTS=adminalhal.awnak.net,yourdomain.com,anotherdomain.com
 ```
 
 Multiple hosts should be comma-separated.
+
+## Server/PM2 Deployment
+
+When running on a server with PM2 or in a headless environment:
+
+### Auto-Open Browser
+The browser auto-open feature is automatically disabled when:
+- Running with PM2 (`PM2_HOME` environment variable is set)
+- Running in CI environments
+- Running via SSH
+- `VITE_DISABLE_AUTO_OPEN=true` is set in `.env`
+
+### PM2 Configuration
+Example PM2 ecosystem file (`ecosystem.config.js`):
+```javascript
+module.exports = {
+  apps: [{
+    name: 'alhal-admin',
+    script: 'npm',
+    args: 'start',
+    cwd: '/www/wwwroot/alhal-admin',
+    env: {
+      NODE_ENV: 'production',
+      VITE_PORT: 4052,
+      VITE_DISABLE_AUTO_OPEN: 'true'
+    }
+  }]
+}
+```
+
+### Common Issues
+- **`Error: spawn xdg-open ENOENT`**: This is fixed automatically when running in server environments. If you still see it, add `VITE_DISABLE_AUTO_OPEN=true` to your `.env` file.
+- **CJS deprecation warning**: This is a harmless warning about Vite's Node API. It doesn't affect functionality.
 
 ## Build for Production
 
