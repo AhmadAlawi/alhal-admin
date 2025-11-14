@@ -79,6 +79,25 @@ npm run start:8080  # Run on port 8080
 - If no port is specified, the server will run on port **3000** (as configured in `vite.config.js`)
 - If port 3000 is in use, Vite will automatically try the next available port
 
+## Allowed Hosts Configuration
+
+Vite blocks requests from unknown hosts for security. To allow specific hosts:
+
+### Default Allowed Hosts
+The following hosts are allowed by default:
+- `adminalhal.awnak.net`
+- `localhost`
+- `.localhost` (all subdomains)
+- `127.0.0.1`
+
+### Custom Allowed Hosts
+Add to your `.env` file:
+```env
+VITE_ALLOWED_HOSTS=adminalhal.awnak.net,yourdomain.com,anotherdomain.com
+```
+
+Multiple hosts should be comma-separated.
+
 ## Build for Production
 
 ```bash
