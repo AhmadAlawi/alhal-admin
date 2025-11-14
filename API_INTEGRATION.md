@@ -54,7 +54,7 @@ const summary = await marketAnalysisService.getDashboardSummary(governorate);
 
 // Price Trends
 const priceTrends = await marketAnalysisService.getPriceTrends({
-  productId=2: 1,
+  productId: 1,
   governorate: 'Baghdad',
   startDate: '2024-01-01',
   endDate: '2024-12-31',
@@ -63,7 +63,7 @@ const priceTrends = await marketAnalysisService.getPriceTrends({
 
 // Volume by Governorate
 const volumeData = await marketAnalysisService.getVolumeByGovernorate({
-  productId=2: 1,
+  productId: 1,
   startDate: '2024-01-01',
   endDate: '2024-12-31'
 });
@@ -78,13 +78,13 @@ const topProducts = await marketAnalysisService.getTopProductsByRevenue({
 
 // Price Comparison by Governorate
 const priceComparison = await marketAnalysisService.getPriceComparisonByGovernorate({
-  productId=2: 1,
+  productId: 1,
   date: '2024-11-12'
 });
 
 // Supply-Demand Trends
 const supplyDemand = await marketAnalysisService.getSupplyDemandTrends({
-  productId=2: 1,
+  productId: 1,
   governorate: 'Baghdad',
   days: 30
 });
@@ -98,7 +98,7 @@ const marketShare = await marketAnalysisService.getMarketShareByProduct({
 
 // Price Volatility
 const volatility = await marketAnalysisService.getPriceVolatility({
-  productId=2: 1,
+  productId: 1,
   governorate: 'Baghdad',
   startDate: '2024-01-01',
   endDate: '2024-12-31',
@@ -173,7 +173,7 @@ await adminService.addProduct({
 
 // Government Prices
 const prices = await adminService.getPrices();
-const priceHistory = await adminService.getPriceHistory(productId=2, {
+const priceHistory = await adminService.getPriceHistory(productId, {
   from: '2024-01-01',
   to: '2024-12-31'
 });
@@ -273,8 +273,8 @@ import marketAnalysisService from './services/marketAnalysisService';
 function MyComponent() {
   const { data, loading, error, refetch } = useMarketData(
     marketAnalysisService.getPriceTrends,
-    { productId=2: 1, governorate: 'Baghdad' },
-    [productId=2, governorate] // dependencies
+    { productId: 1, governorate: 'Baghdad' },
+    [productId, governorate] // dependencies
   );
 
   if (loading) return <div>Loading...</div>;
@@ -298,7 +298,7 @@ const { data, loading, error, refetch } = useDashboardSummary('Baghdad');
 
 // Price Trends
 const { data: trends } = usePriceTrends({
-  productId=2: 1,
+  productId: 1,
   governorate: 'Baghdad',
   startDate: '2024-01-01',
   endDate: '2024-12-31'

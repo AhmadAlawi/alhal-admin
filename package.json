@@ -16,6 +16,10 @@
   },
   "scripts": {
     "dev": "vite",
+    "start": "vite",
+    "start:3000": "vite --port 3000",
+    "start:5173": "vite --port 5173",
+    "start:8080": "vite --port 8080",
     "build": "vite build",
     "preview": "vite preview"
   },

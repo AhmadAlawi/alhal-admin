@@ -68,14 +68,14 @@ useEffect(() => {
       
       // Auto-select first product
       if (response.data && response.data.length > 0) {
-        setSelectedProduct(response.data[0].productId=2)
+        setSelectedProduct(response.data[0].productId)
       }
     } catch (error) {
       console.error('Failed to fetch products:', error)
       // Fallback to demo products
       setProducts([
-        { productId=2: 1, nameEn: 'Wheat', nameAr: 'قمح' },
-        { productId=2: 2, nameEn: 'Rice', nameAr: 'أرز' },
+        { productId: 1, nameEn: 'Wheat', nameAr: 'قمح' },
+        { productId: 2, nameEn: 'Rice', nameAr: 'أرز' },
         // ... more products
       ])
       setSelectedProduct(1)
@@ -93,7 +93,7 @@ useEffect(() => {
 ```javascript
 // Price trends now filtered by product
 const { data: priceTrendsData, loading: priceTrendsLoading } = usePriceTrends({
-  productId=2: selectedProduct,  // ✨ Product filter!
+  productId: selectedProduct,  // ✨ Product filter!
   governorate: selectedGovernorate,
   startDate: dateRange.startDate,
   endDate: dateRange.endDate,
@@ -143,12 +143,12 @@ const { data: priceTrendsData, loading: priceTrendsLoading } = usePriceTrends({
 ### On Page Load
 ```
 GET /api/admin/products
-→ Returns: [{ productId=2: 1, nameEn: "Wheat", nameAr: "قمح" }, ...]
+→ Returns: [{ productId: 1, nameEn: "Wheat", nameAr: "قمح" }, ...]
 ```
 
 ### When Product Selected
 ```
-GET /api/MarketAnalysis/charts/price-trends?productId=2=1&governorate=Baghdad&startDate=...&endDate=...
+GET /api/MarketAnalysis/charts/price-trends?productId=1&governorate=Baghdad&startDate=...&endDate=...
 GET /api/MarketAnalysis/charts/dashboard-summary?governorate=Baghdad
 GET /api/MarketAnalysis/charts/top-products-by-revenue?governorate=Baghdad&...
 ```
@@ -167,7 +167,7 @@ GET /api/MarketAnalysis/charts/top-products-by-revenue?governorate=Baghdad&...
 >
   <option value="">Select Product</option>
   {products.map((product) => (
-    <option key={product.productId=2} value={product.productId=2}>
+    <option key={product.productId} value={product.productId}>
       {product.nameEn || product.name}
     </option>
   ))}
@@ -267,7 +267,7 @@ The product dropdown works seamlessly on all devices:
 If you want to show Arabic names or other properties:
 
 ```javascript
-<option key={product.productId=2} value={product.productId=2}>
+<option key={product.productId} value={product.productId}>
   {product.nameEn} ({product.nameAr}) - {product.category}
 </option>
 ```
@@ -278,7 +278,7 @@ If you want to show Arabic names or other properties:
 // Instead of first product, select specific one
 if (response.data && response.data.length > 0) {
   const defaultProduct = response.data.find(p => p.nameEn === 'Wheat')
-  setSelectedProduct(defaultProduct?.productId=2 || response.data[0].productId=2)
+  setSelectedProduct(defaultProduct?.productId || response.data[0].productId)
 }
 ```
 
@@ -313,7 +313,7 @@ const filteredProducts = products.filter(p =>
 **Check:**
 1. Is a product selected?
 2. Is the product ID valid?
-3. Does the API endpoint accept productId=2 parameter?
+3. Does the API endpoint accept productId parameter?
 
 **Fix:**
 - Select a product from dropdown
@@ -329,8 +329,8 @@ const filteredProducts = products.filter(p =>
 **Fix:**
 ```javascript
 // Update getProductName function
-const getProductName = (productId=2) => {
-  const product = products.find(p => p.productId=2 === productId=2)
+const getProductName = (productId) => {
+  const product = products.find(p => p.productId === productId)
   return product ? (product.nameEn || product.name || product.title) : 'Select Product'
 }
 ```

@@ -27,12 +27,56 @@ A modern, responsive admin dashboard built with React.js featuring a beautiful d
 npm install
 ```
 
-2. Start the development server:
+2. Create `.env` file (optional):
+```env
+VITE_API_BASE_URL=https://localhost:7059
+VITE_PORT=3000
+```
+
+3. Start the development server:
+```bash
+npm start
+```
+or
 ```bash
 npm run dev
 ```
 
-3. Open your browser and navigate to `http://localhost:3000`
+4. Open your browser and navigate to `http://localhost:3000` (or the port you configured)
+
+## Port Configuration
+
+You can control the port the development server runs on in several ways:
+
+### Option 1: Environment Variable (Recommended)
+Create a `.env` file in the root directory:
+```env
+VITE_PORT=3000
+```
+or
+```env
+PORT=3000
+```
+
+### Option 2: Command Line Flag
+```bash
+npm start -- --port 3000
+```
+or
+```bash
+npm run dev -- --port 5173
+```
+
+### Option 3: Predefined Scripts
+```bash
+npm run start:3000  # Run on port 3000
+npm run start:5173  # Run on port 5173
+npm run start:8080  # Run on port 8080
+```
+
+### Default Port
+- If no port is specified, the server will run on port **3000** (as configured in `vite.config.js`)
+- If port 3000 is in use, Vite will automatically try the next available port
 
 ## Build for Production
 
