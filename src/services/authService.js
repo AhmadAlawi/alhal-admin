@@ -12,10 +12,22 @@ export const authService = {
    */
   getCurrentUser: async (token = null) => {
     try {
-      const params = {};
-      if (token) {
-        params.token = token;
+      // Get token from parameter or localStorage
+      const authToken = token || localStorage.getItem('authToken');
+      
+      // API requires token as query parameter - always send it
+      if (!authToken) {
+        console.error('No authentication token available in localStorage');
+        throw new Error('No authentication token available. Please login again.');
       }
+      
+      // Always send token as query parameter (API requirement)
+      const params = {
+        token: authToken
+      };
+      
+      console.log('Getting current user with token (length):', authToken.length);
+      
       return apiClient.get('/api/auth/me', params);
     } catch (error) {
       console.error('Error getting current user:', error);
@@ -34,18 +46,51 @@ export const authService = {
     try {
       const response = await apiClient.post('/api/auth/login', credentials);
       
-      // Store token if provided
-      if (response.token || response.data?.token) {
-        localStorage.setItem('authToken', response.token || response.data.token);
+      // Handle nested response structure: response.data.data.accessToken
+      // Response structure: { success: true, data: { data: { accessToken, userId, ... } } }
+      const responseData = response.data?.data || response.data || response;
+      
+      // Store access token
+      const token = responseData.accessToken || responseData.token || response.accessToken || response.token;
+      if (token) {
+        localStorage.setItem('authToken', token);
+        console.log('Auth token stored');
       }
       
-      // Store user info if provided
-      if (response.user || response.data?.user) {
-        const user = response.user || response.data.user;
-        if (user.userId || user.id) {
-          localStorage.setItem('userId', user.userId || user.id);
-        }
+      // Store refresh token if provided
+      const refreshToken = responseData.refreshToken;
+      if (refreshToken) {
+        localStorage.setItem('refreshToken', refreshToken);
+        console.log('Refresh token stored');
+      }
+      
+      // Store token expiration if provided
+      const expiresAt = responseData.expiresAt;
+      if (expiresAt) {
+        localStorage.setItem('tokenExpiresAt', expiresAt);
+        console.log('Token expiration stored:', expiresAt);
+      }
+      
+      // Store user ID
+      const userId = responseData.userId || responseData.id;
+      if (userId) {
+        localStorage.setItem('userId', userId.toString());
+        console.log('User ID stored:', userId);
+      }
+      
+      // Store user info
+      const user = {
+        userId: userId,
+        fullName: responseData.fullName || responseData.name,
+        email: responseData.email,
+        phone: responseData.phone,
+        roles: responseData.roles || []
+      };
+      
+      // Only store user if we have at least userId
+      if (user.userId) {
         localStorage.setItem('user', JSON.stringify(user));
+        console.log('User data stored:', user);
       }
       
       return response;
@@ -74,9 +119,12 @@ export const authService = {
    */
   logout: () => {
     localStorage.removeItem('authToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('tokenExpiresAt');
     localStorage.removeItem('userId');
     localStorage.removeItem('user');
     localStorage.removeItem('fcmToken');
+    console.log('User logged out - all auth data cleared');
   },
 
   /**
@@ -101,9 +149,7 @@ export const authService = {
       }
     }
 
-    // For testing, return userId 5 if not found
-    // TODO: Remove this in production and return null
-    return 5;
+    return null;
   },
 
   /**

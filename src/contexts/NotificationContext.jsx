@@ -48,7 +48,6 @@ export const NotificationProvider = ({ children }) => {
             console.log('FCM Token retrieved:', token);
             
             // Auto-register device with backend if userId is available
-            // For testing, use userId 5
             let userId = authService.getUserId();
             
             // If userId not found, try to get from API
@@ -64,29 +63,26 @@ export const NotificationProvider = ({ children }) => {
               }
             }
             
-            // Set userId to 5 for testing (override any existing userId)
-            userId = 5;
-            localStorage.setItem('userId', '5');
-            console.log('User ID set to 5 for testing');
-            
-            // Register device with userId 5
-            // Check if device is already registered (avoid duplicate registrations)
-            const lastRegistration = localStorage.getItem('deviceRegistrationTime');
-            const lastRegistrationTime = lastRegistration ? parseInt(lastRegistration, 10) : 0;
-            const now = Date.now();
-            const registrationCooldown = 5 * 60 * 1000; // 5 minutes cooldown
+            // Register device if userId is available
+            if (userId) {
+              // Check if device is already registered (avoid duplicate registrations)
+              const lastRegistration = localStorage.getItem('deviceRegistrationTime');
+              const lastRegistrationTime = lastRegistration ? parseInt(lastRegistration, 10) : 0;
+              const now = Date.now();
+              const registrationCooldown = 5 * 60 * 1000; // 5 minutes cooldown
 
-            // Only register if not recently registered
-            if (now - lastRegistrationTime > registrationCooldown) {
-              try {
-                await notificationService.registerDevice(userId);
-                localStorage.setItem('deviceRegistrationTime', now.toString());
-                console.log('Device auto-registered with backend (userId: 5)');
-              } catch (error) {
-                console.error('Failed to auto-register device:', error);
+              // Only register if not recently registered
+              if (now - lastRegistrationTime > registrationCooldown) {
+                try {
+                  await notificationService.registerDevice(userId);
+                  localStorage.setItem('deviceRegistrationTime', now.toString());
+                  console.log('Device auto-registered with backend (userId:', userId, ')');
+                } catch (error) {
+                  console.error('Failed to auto-register device:', error);
+                }
+              } else {
+                console.log('Device auto-registration skipped (recently registered)');
               }
-            } else {
-              console.log('Device auto-registration skipped (recently registered)');
             }
           }
         }
@@ -123,7 +119,6 @@ export const NotificationProvider = ({ children }) => {
         setPermission('granted');
         
         // Get userId if not provided
-        // For testing, use userId 5
         let targetUserId = userId || authService.getUserId();
         
         // If userId not found, try to get from API
@@ -139,29 +134,26 @@ export const NotificationProvider = ({ children }) => {
           }
         }
         
-        // Set userId to 5 for testing (override any existing userId)
-        targetUserId = 5;
-        localStorage.setItem('userId', '5');
-        console.log('User ID set to 5 for testing');
-        
-        // Register device with userId 5
-        // Check if device is already registered (avoid duplicate registrations)
-        const lastRegistration = localStorage.getItem('deviceRegistrationTime');
-        const lastRegistrationTime = lastRegistration ? parseInt(lastRegistration, 10) : 0;
-        const now = Date.now();
-        const registrationCooldown = 5 * 60 * 1000; // 5 minutes cooldown
+        // Register device if userId is available
+        if (targetUserId) {
+          // Check if device is already registered (avoid duplicate registrations)
+          const lastRegistration = localStorage.getItem('deviceRegistrationTime');
+          const lastRegistrationTime = lastRegistration ? parseInt(lastRegistration, 10) : 0;
+          const now = Date.now();
+          const registrationCooldown = 5 * 60 * 1000; // 5 minutes cooldown
 
-        // Only register if not recently registered
-        if (now - lastRegistrationTime > registrationCooldown) {
-          try {
-            await notificationService.registerDevice(targetUserId);
-            localStorage.setItem('deviceRegistrationTime', now.toString());
-            console.log('Device registered with backend (userId: 5)');
-          } catch (error) {
-            console.error('Failed to register device:', error);
+          // Only register if not recently registered
+          if (now - lastRegistrationTime > registrationCooldown) {
+            try {
+              await notificationService.registerDevice(targetUserId);
+              localStorage.setItem('deviceRegistrationTime', now.toString());
+              console.log('Device registered with backend (userId:', targetUserId, ')');
+            } catch (error) {
+              console.error('Failed to register device:', error);
+            }
+          } else {
+            console.log('Device registration skipped (recently registered)');
           }
-        } else {
-          console.log('Device registration skipped (recently registered)');
         }
         
         return token;

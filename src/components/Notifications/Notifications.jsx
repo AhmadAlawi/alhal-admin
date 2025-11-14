@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FiBell, FiX, FiCheck, FiTrash2, FiRefreshCw } from 'react-icons/fi';
 import { useNotifications } from '../../contexts/NotificationContext';
+import authService from '../../services/authService';
 import './Notifications.css';
 
 const Notifications = () => {
@@ -46,13 +47,17 @@ const Notifications = () => {
 
   // Handle request permission
   const handleRequestPermission = async () => {
-    // For testing, use userId 5
-    const userId = 5;
-    localStorage.setItem('userId', '5');
-    console.log('User ID set to 5 for testing');
+    // Get userId from auth service
+    const userId = authService.getUserId();
     
-    // Request permission and register device with userId 5
-    await requestPermission(userId);
+    if (userId) {
+      // Request permission and register device
+      await requestPermission(userId);
+    } else {
+      // Request permission without userId (device will be registered later when userId is available)
+      await requestPermission();
+      console.warn('User ID not found. Device will be registered when user logs in.');
+    }
   };
 
   // Format timestamp

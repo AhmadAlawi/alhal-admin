@@ -22,7 +22,6 @@ const Dashboard = () => {
         }
 
         // Get userId from auth service or localStorage
-        // For testing, set userId to 5
         let userId = authService.getUserId();
         
         // If userId not found, try to get from API
@@ -40,11 +39,6 @@ const Dashboard = () => {
             console.warn('Could not get current user:', error);
           }
         }
-        
-        // Set userId to 5 for testing (override any existing userId)
-        userId = 5;
-        localStorage.setItem('userId', '5');
-        console.log('User ID set to 5 for testing');
 
         // Register device if we have userId and permission is granted
         if (userId && permission === 'granted') {

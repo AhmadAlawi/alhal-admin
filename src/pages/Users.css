@@ -160,7 +160,7 @@
   font-weight: 500;
 }
 
-.user-email,
+.user-EmailOrPhone,
 .user-phone {
   color: var(--text-secondary);
   font-size: 0.875rem;

@@ -151,54 +151,75 @@ const Products = () => {
       return
     }
     
-    // If file is selected, upload it first (auto-upload on submit)
-    if (selectedFile) {
-      try {
-        setUploading(true)
-        const response = await imageService.uploadImage(selectedFile)
-        if (response.success && response.data && response.data.url) {
-          setFormData(prev => ({...prev, imageUrl: response.data.url}))
-          setImagePreview(response.data.url)
-          setSelectedFile(null)
-        } else {
-          throw new Error('Upload failed: No URL returned')
-        }
-      } catch (err) {
-        console.error('Failed to upload image:', err)
-        alert('Failed to upload image: ' + (err.message || 'Unknown error'))
-        setUploading(false)
-        return
-      } finally {
-        setUploading(false)
-      }
-    }
-    
-    if (!formData.imageUrl) {
-      alert('Please upload an image or enter an image URL')
-      return
-    }
+    let imageUrl = formData.imageUrl // Use existing URL if no file selected
     
     try {
-      // Build request data - only send categoryId and subCategoryId if provided
+      setUploading(true)
+      
+      // Step 1: Upload image first if a file is selected
+      if (selectedFile) {
+        console.log('Step 1: Uploading image...')
+        const uploadResponse = await imageService.uploadImage(selectedFile)
+        console.log('Upload response:', uploadResponse)
+        
+        // Extract image URL from response
+        // Handle different response structures: response.data.url, response.data.data.url, response.url, response.data (string)
+        if (uploadResponse?.data?.url) {
+          imageUrl = uploadResponse.data.url
+        } else if (uploadResponse?.data?.data?.url) {
+          imageUrl = uploadResponse.data.data.url
+        } else if (uploadResponse?.url) {
+          imageUrl = uploadResponse.url
+        } else if (uploadResponse?.data) {
+          // If data is a string (URL), use it directly
+          imageUrl = typeof uploadResponse.data === 'string' ? uploadResponse.data : null
+        }
+        
+        if (!imageUrl) {
+          console.error('Upload response structure:', uploadResponse)
+          throw new Error('Upload failed: No URL found in response. Please check the response structure.')
+        }
+        
+        console.log('Step 1: Image uploaded successfully. URL:', imageUrl)
+      }
+      
+      // Step 2: Validate that we have an image URL
+      if (!imageUrl) {
+        alert('Please upload an image or enter an image URL')
+        setUploading(false)
+        return
+      }
+      
+      // Step 3: Build payload with the image URL from upload response
+      console.log('Step 2: Building payload with image URL:', imageUrl)
       const requestData = {
         nameAr: formData.nameAr,
         nameEn: formData.nameEn,
         categoryId: formData.categoryId,
-        imageUrl: formData.imageUrl,
+        imageUrl: imageUrl, // Use the uploaded image URL
         description: formData.description || null
       }
+      
+      // Add subCategoryId if provided
       if (formData.subCategoryId) {
         requestData.subCategoryId = formData.subCategoryId
       }
       
+      console.log('Step 3: Sending product data with image URL:', requestData)
+      
+      // Step 4: Send the payload with image URL
       await adminService.addProduct(requestData)
+      console.log('Step 4: Product added successfully!')
+      
       alert('Product added successfully!')
       setShowAddModal(false)
       resetForm()
       fetchProducts()
     } catch (err) {
-      console.error('Failed to add product:', err)
+      console.error('Error in handleAddProduct:', err)
       alert('Failed to add product: ' + (err.message || 'Unknown error'))
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -213,40 +234,52 @@ const Products = () => {
       return
     }
     
-    // If file is selected, upload it first (auto-upload on submit)
-    if (selectedFile) {
-      try {
-        setUploading(true)
-        const response = await imageService.uploadImage(selectedFile)
-        if (response.success && response.data && response.data.url) {
-          setFormData(prev => ({...prev, imageUrl: response.data.url}))
-          setImagePreview(response.data.url)
-          setSelectedFile(null)
-        } else {
-          throw new Error('Upload failed: No URL returned')
-        }
-      } catch (err) {
-        console.error('Failed to upload image:', err)
-        alert('Failed to upload image: ' + (err.message || 'Unknown error'))
-        setUploading(false)
-        return
-      } finally {
-        setUploading(false)
-      }
-    }
-    
-    if (!formData.imageUrl) {
-      alert('Please upload an image or enter an image URL')
-      return
-    }
+    let imageUrl = formData.imageUrl // Use existing URL if no new file selected
     
     try {
-      // Build request data - include all fields that should be updated
+      setUploading(true)
+      
+      // Step 1: Upload image first if a new file is selected
+      if (selectedFile) {
+        console.log('Step 1: Uploading new image...')
+        const uploadResponse = await imageService.uploadImage(selectedFile)
+        console.log('Upload response:', uploadResponse)
+        
+        // Extract image URL from response
+        // Handle different response structures: response.data.url, response.data.data.url, response.url, response.data (string)
+        if (uploadResponse?.data?.url) {
+          imageUrl = uploadResponse.data.url
+        } else if (uploadResponse?.data?.data?.url) {
+          imageUrl = uploadResponse.data.data.url
+        } else if (uploadResponse?.url) {
+          imageUrl = uploadResponse.url
+        } else if (uploadResponse?.data) {
+          // If data is a string (URL), use it directly
+          imageUrl = typeof uploadResponse.data === 'string' ? uploadResponse.data : null
+        }
+        
+        if (!imageUrl) {
+          console.error('Upload response structure:', uploadResponse)
+          throw new Error('Upload failed: No URL found in response. Please check the response structure.')
+        }
+        
+        console.log('Step 1: Image uploaded successfully. URL:', imageUrl)
+      }
+      
+      // Step 2: Validate that we have an image URL
+      if (!imageUrl) {
+        alert('Please upload an image or enter an image URL')
+        setUploading(false)
+        return
+      }
+      
+      // Step 3: Build payload with the image URL from upload response
+      console.log('Step 2: Building payload with image URL:', imageUrl)
       const requestData = {
         nameAr: formData.nameAr,
         nameEn: formData.nameEn,
         categoryId: formData.categoryId,
-        imageUrl: formData.imageUrl,
+        imageUrl: imageUrl, // Use the uploaded image URL or existing URL
         isActive: selectedProduct.isActive
       }
       
@@ -256,22 +289,27 @@ const Products = () => {
       }
       
       // SubCategoryId - include it explicitly (can be null to clear it)
-      // If categoryId is set, we should include subCategoryId (even if null)
       if (formData.categoryId) {
         requestData.subCategoryId = formData.subCategoryId !== undefined ? formData.subCategoryId : null
       }
       
-      console.log('Updating product with data:', requestData)
+      console.log('Step 3: Sending product update with image URL:', requestData)
+      
+      // Step 4: Send the payload with image URL
       await adminService.updateProduct(selectedProduct.productId, requestData)
+      console.log('Step 4: Product updated successfully!')
+      
       alert('Product updated successfully!')
       setShowEditModal(false)
       resetForm()
       setSelectedProduct(null)
       fetchProducts()
     } catch (err) {
-      console.error('Failed to update product:', err)
+      console.error('Error in handleEditProduct:', err)
       const errorMessage = err.message || 'Unknown error'
       alert('Failed to update product: ' + errorMessage)
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -723,7 +761,16 @@ const Products = () => {
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary" disabled={uploading}>
-                  {uploading ? 'Uploading...' : <><FiPlus /> Add Product</>}
+                  {uploading ? (
+                    <>
+                      <span className="spinner-small"></span>
+                      {selectedFile ? 'Uploading image...' : 'Adding product...'}
+                    </>
+                  ) : (
+                    <>
+                      <FiPlus /> Add Product
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -888,7 +935,14 @@ const Products = () => {
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary" disabled={uploading}>
-                  {uploading ? 'Uploading...' : <><FiCheck /> Update Product</>}
+                  {uploading ? (
+                    <>
+                      <span className="spinner-small"></span>
+                      {selectedFile ? 'Uploading image...' : 'Updating product...'}
+                    </>
+                  ) : (
+                    <><FiCheck /> Update Product</>
+                  )}
                 </button>
               </div>
             </form>

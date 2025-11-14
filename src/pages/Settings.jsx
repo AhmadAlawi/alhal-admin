@@ -47,8 +47,8 @@ const Settings = () => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Email Address</label>
-                <input type="email" className="form-input" defaultValue="admin@alhal.com" />
+                <label className="form-label">EmailOrPhone Address</label>
+                <input type="EmailOrPhone" className="form-input" defaultValue="admin@alhal.com" />
               </div>
 
               <div className="form-group">
@@ -74,8 +74,8 @@ const Settings = () => {
               
               <div className="settings-item">
                 <div className="settings-item-info">
-                  <h4 className="settings-item-title">Email Notifications</h4>
-                  <p className="settings-item-desc">Receive email updates about your account</p>
+                  <h4 className="settings-item-title">EmailOrPhone Notifications</h4>
+                  <p className="settings-item-desc">Receive EmailOrPhone updates about your account</p>
                 </div>
                 <label className="toggle-switch">
                   <input type="checkbox" defaultChecked />
@@ -96,7 +96,7 @@ const Settings = () => {
 
               <div className="settings-item">
                 <div className="settings-item-info">
-                  <h4 className="settings-item-title">Marketing Emails</h4>
+                  <h4 className="settings-item-title">Marketing EmailOrPhones</h4>
                   <p className="settings-item-desc">Receive promotional offers and news</p>
                 </div>
                 <label className="toggle-switch">

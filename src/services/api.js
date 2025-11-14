@@ -27,9 +27,45 @@ class ApiClient {
     try {
       const response = await fetch(url, config);
       
+      // Handle 401 Unauthorized - token expired or invalid
+      if (response.status === 401) {
+        // Clear auth data
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('tokenExpiresAt');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('user');
+        
+        // Only redirect if not already on login page
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/login';
+        }
+        
+        const error = await response.json().catch(() => ({ message: 'Unauthorized. Please login again.' }));
+        throw new Error(error.message || error.error?.detail || 'Unauthorized. Please login again.');
+      }
+      
+      // Handle 400 Bad Request - validation errors
+      if (response.status === 400) {
+        const error = await response.json().catch(() => ({ message: 'Bad request' }));
+        
+        // Extract error message from error object
+        let errorMessage = error.message || 'Bad request';
+        if (error.error?.detail) {
+          errorMessage = error.error.detail;
+        } else if (error.error?.errors) {
+          // Handle validation errors
+          const validationErrors = Object.values(error.error.errors).flat();
+          errorMessage = validationErrors.join(', ');
+        }
+        
+        throw new Error(errorMessage);
+      }
+      
       if (!response.ok) {
         const error = await response.json().catch(() => ({ message: 'API request failed' }));
-        throw new Error(error.message || 'API request failed');
+        const errorMessage = error.message || error.error?.detail || error.error?.message || 'API request failed';
+        throw new Error(errorMessage);
       }
 
       return await response.json();

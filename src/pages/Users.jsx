@@ -139,7 +139,7 @@ const Users = () => {
     const search = searchTerm.toLowerCase()
     return (
       (user.fullName && user.fullName.toLowerCase().includes(search)) ||
-      (user.email && user.email.toLowerCase().includes(search)) ||
+      (user.EmailOrPhone && user.EmailOrPhone.toLowerCase().includes(search)) ||
       (user.phone && user.phone.toLowerCase().includes(search)) ||
       (user.userId && user.userId.toString().includes(search))
     )
@@ -176,7 +176,7 @@ const Users = () => {
           <FiSearch />
           <input
             type="text"
-            placeholder="Search by name, email, phone, or ID..."
+            placeholder="Search by name, EmailOrPhone, phone, or ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
@@ -215,7 +215,7 @@ const Users = () => {
                 <tr>
                   <th>ID</th>
                   <th>Name</th>
-                  <th>Email</th>
+                  <th>EmailOrPhone</th>
                   <th>Phone</th>
                   <th>Roles</th>
                   <th>Status</th>
@@ -235,7 +235,7 @@ const Users = () => {
                     <tr key={user.userId}>
                       <td className="user-id">#{user.userId}</td>
                       <td className="user-name">{user.fullName || 'N/A'}</td>
-                      <td className="user-email">{user.email || 'N/A'}</td>
+                      <td className="user-EmailOrPhone">{user.EmailOrPhone || 'N/A'}</td>
                       <td className="user-phone">{user.phone || 'N/A'}</td>
                       <td className="user-roles">
                         {user.roles && user.roles.length > 0 ? (
@@ -348,8 +348,8 @@ const Users = () => {
                     <span>{selectedUserDetail.fullName || 'N/A'}</span>
                   </div>
                   <div className="detail-item">
-                    <label>Email:</label>
-                    <span>{selectedUserDetail.email || 'N/A'}</span>
+                    <label>EmailOrPhone:</label>
+                    <span>{selectedUserDetail.EmailOrPhone || 'N/A'}</span>
                   </div>
                   <div className="detail-item">
                     <label>Phone:</label>
