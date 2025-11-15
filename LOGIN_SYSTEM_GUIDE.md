@@ -249,7 +249,7 @@ Authorization: Bearer {token}
 
 ```env
 # API Base URL
-VITE_API_BASE_URL=https://localhost:7059
+VITE_API_BASE_URL=https://alhal.awnak.net
 ```
 
 ### Routes

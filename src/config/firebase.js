@@ -5,13 +5,13 @@ import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 // Firebase configuration
 // You can also use environment variables for security (recommended for production)
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyCw8NHAToyWwIDEczRb8k5hACjdzzc0Xng",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "alhalapp.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "alhalapp",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "alhalapp.firebasestorage.app",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "198760501842",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:198760501842:web:97f8c8a5ec98814be2458b",
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-1P4F3JBL1P"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyAgSRBVMvec3CxML8qf2RrKxGyP43DEWbs",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "rizaq-app-9b13f.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "rizaq-app-9b13f",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "rizaq-app-9b13f.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "685567565249",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:685567565249:web:da7aed7ea8a7f733f5a340",
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-6YFM77D5Y5"
 };
 
 // Initialize Firebase
@@ -43,7 +43,7 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
 // VAPID key for web push notifications
 // Get this from Firebase Console > Project Settings > Cloud Messaging > Web Push certificates
 // This should be set in your .env file for security
-const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY || null;
+const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY || "BKIondeTQMjAtUoK-pca3Z3CEbouq4Lc4Nx_RsN1k2_uksManKN8fmEA_Vc8GMI5A7ZO16keWz7tI18jVMe7oJA";
 
 /**
  * Request notification permission and get FCM token

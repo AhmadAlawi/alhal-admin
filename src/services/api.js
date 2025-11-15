@@ -1,5 +1,5 @@
 // API Configuration and Base Setup
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://localhost:7059';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://alhal.awnak.net';
 
 // API Client with interceptors
 class ApiClient {

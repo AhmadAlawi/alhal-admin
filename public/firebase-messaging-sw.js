@@ -8,13 +8,13 @@ importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-comp
 // Firebase configuration
 // Use the same config as in your firebase.js file
 const firebaseConfig = {
-  apiKey: "AIzaSyCw8NHAToyWwIDEczRb8k5hACjdzzc0Xng",
-  authDomain: "alhalapp.firebaseapp.com",
-  projectId: "alhalapp",
-  storageBucket: "alhalapp.firebasestorage.app",
-  messagingSenderId: "198760501842",
-  appId: "1:198760501842:web:97f8c8a5ec98814be2458b",
-  measurementId: "G-1P4F3JBL1P"
+  apiKey: "AIzaSyAgSRBVMvec3CxML8qf2RrKxGyP43DEWbs",
+  authDomain: "rizaq-app-9b13f.firebaseapp.com",
+  projectId: "rizaq-app-9b13f",
+  storageBucket: "rizaq-app-9b13f.firebasestorage.app",
+  messagingSenderId: "685567565249",
+  appId: "1:685567565249:web:da7aed7ea8a7f733f5a340",
+  measurementId: "G-6YFM77D5Y5"
 };
 
 // Initialize Firebase

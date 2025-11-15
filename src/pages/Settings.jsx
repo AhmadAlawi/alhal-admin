@@ -1,9 +1,20 @@
 import React, { useState } from 'react'
-import { FiUser, FiBell, FiLock, FiGlobe, FiSave } from 'react-icons/fi'
+import { FiUser, FiBell, FiLock, FiGlobe, FiSave, FiCheckCircle, FiXCircle, FiLoader } from 'react-icons/fi'
+import { useNotifications } from '../contexts/NotificationContext'
 import './Settings.css'
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('profile')
+  const { 
+    permission, 
+    fcmToken, 
+    isSupported, 
+    requestPermission,
+    registerDevice
+  } = useNotifications()
+  const [isRegistering, setIsRegistering] = useState(false)
+  const [registrationStatus, setRegistrationStatus] = useState(null) // 'success', 'error', null
+  const [registrationMessage, setRegistrationMessage] = useState('')
 
   const tabs = [
     { id: 'profile', label: 'Profile', icon: <FiUser /> },
@@ -11,6 +22,46 @@ const Settings = () => {
     { id: 'security', label: 'Security', icon: <FiLock /> },
     { id: 'preferences', label: 'Preferences', icon: <FiGlobe /> },
   ]
+
+  const handleRegisterDevice = async () => {
+    setIsRegistering(true)
+    setRegistrationStatus(null)
+    setRegistrationMessage('')
+
+    try {
+      // If permission is not granted, request it first (which will auto-register)
+      if (permission !== 'granted') {
+        const token = await requestPermission()
+        if (token) {
+          setRegistrationStatus('success')
+          setRegistrationMessage('Device registered successfully! You will now receive notifications.')
+        } else {
+          setRegistrationStatus('error')
+          setRegistrationMessage('Failed to get notification permission. Please allow notifications in your browser settings.')
+        }
+      } else {
+        // Permission already granted, just register the device
+        const userId = localStorage.getItem('userId')
+        if (!userId) {
+          setRegistrationStatus('error')
+          setRegistrationMessage('User ID not found. Please log in again.')
+          return
+        }
+
+        await registerDevice(userId)
+        setRegistrationStatus('success')
+        setRegistrationMessage('Device registered successfully!')
+      }
+    } catch (error) {
+      console.error('Error registering device:', error)
+      setRegistrationStatus('error')
+      setRegistrationMessage(error.message || 'Failed to register device. Please try again.')
+    } finally {
+      setIsRegistering(false)
+    }
+  }
+
+  const isDeviceRegistered = fcmToken && permission === 'granted'
 
   return (
     <div className="settings-page">
@@ -103,6 +154,88 @@ const Settings = () => {
                   <input type="checkbox" />
                   <span className="toggle-slider"></span>
                 </label>
+              </div>
+
+              {/* Device Registration Section */}
+              <div className="settings-item" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '1rem' }}>
+                <div className="settings-item-info" style={{ width: '100%' }}>
+                  <h4 className="settings-item-title">Push Notifications</h4>
+                  <p className="settings-item-desc">
+                    Register this device to receive push notifications
+                  </p>
+                  {isDeviceRegistered && (
+                    <div style={{ 
+                      marginTop: '0.5rem', 
+                      padding: '0.5rem', 
+                      backgroundColor: 'rgba(34, 197, 94, 0.1)', 
+                      borderRadius: '0.25rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      fontSize: '0.875rem',
+                      color: 'rgb(34, 197, 94)'
+                    }}>
+                      <FiCheckCircle /> Device registered
+                    </div>
+                  )}
+                  {permission === 'denied' && (
+                    <div style={{ 
+                      marginTop: '0.5rem', 
+                      padding: '0.5rem', 
+                      backgroundColor: 'rgba(239, 68, 68, 0.1)', 
+                      borderRadius: '0.25rem',
+                      fontSize: '0.875rem',
+                      color: 'rgb(239, 68, 68)'
+                    }}>
+                      Notifications are blocked. Please enable them in your browser settings.
+                    </div>
+                  )}
+                  {registrationStatus && (
+                    <div style={{ 
+                      marginTop: '0.5rem', 
+                      padding: '0.5rem', 
+                      backgroundColor: registrationStatus === 'success' 
+                        ? 'rgba(34, 197, 94, 0.1)' 
+                        : 'rgba(239, 68, 68, 0.1)', 
+                      borderRadius: '0.25rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      fontSize: '0.875rem',
+                      color: registrationStatus === 'success' 
+                        ? 'rgb(34, 197, 94)' 
+                        : 'rgb(239, 68, 68)'
+                    }}>
+                      {registrationStatus === 'success' ? <FiCheckCircle /> : <FiXCircle />}
+                      {registrationMessage}
+                    </div>
+                  )}
+                </div>
+                <button 
+                  className="btn btn-primary" 
+                  onClick={handleRegisterDevice}
+                  disabled={isRegistering || !isSupported || permission === 'denied'}
+                  style={{ 
+                    alignSelf: 'flex-start',
+                    opacity: (isRegistering || !isSupported || permission === 'denied') ? 0.6 : 1,
+                    cursor: (isRegistering || !isSupported || permission === 'denied') ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  {isRegistering ? (
+                    <>
+                      <FiLoader style={{ animation: 'spin 1s linear infinite' }} /> Registering...
+                    </>
+                  ) : (
+                    <>
+                      <FiBell /> {isDeviceRegistered ? 'Re-register Device' : 'Register Device for Notifications'}
+                    </>
+                  )}
+                </button>
+                {!isSupported && (
+                  <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+                    Push notifications are not supported in this browser.
+                  </p>
+                )}
               </div>
 
               <button className="btn btn-primary">

@@ -45,7 +45,7 @@ npm install
 
 2. Create `.env` file (optional):
 ```env
-VITE_API_BASE_URL=https://localhost:7059
+VITE_API_BASE_URL=https://alhal.awnak.net
 VITE_PORT=3000
 VITE_ALLOWED_HOSTS=adminalhal.awnak.net,localhost,127.0.0.1
 VITE_DISABLE_AUTO_OPEN=true  # Set to true for server/PM2 environments
