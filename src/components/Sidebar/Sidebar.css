@@ -13,8 +13,19 @@
   overflow-y: auto;
 }
 
+.rtl .sidebar {
+  left: auto;
+  right: 0;
+  border-right: none;
+  border-left: 1px solid var(--border-color);
+}
+
 .sidebar.closed {
   transform: translateX(-100%);
+}
+
+.rtl .sidebar.closed {
+  transform: translateX(100%);
 }
 
 .sidebar-overlay {

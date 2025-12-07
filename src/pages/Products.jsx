@@ -25,7 +25,8 @@ const Products = () => {
     categoryId: null,
     subCategoryId: null,
     imageUrl: '',
-    description: ''
+    description: '',
+    cardColor: '#6366f1' // Default color (primary blue)
   })
   
   // File upload states
@@ -151,6 +152,13 @@ const Products = () => {
       return
     }
     
+    // Validate hex color format
+    const hexColorRegex = /^#[0-9A-Fa-f]{6}$/
+    if (formData.cardColor && !hexColorRegex.test(formData.cardColor)) {
+      alert('Please enter a valid hex color (e.g., #6366f1)')
+      return
+    }
+    
     let imageUrl = formData.imageUrl // Use existing URL if no file selected
     
     try {
@@ -197,7 +205,8 @@ const Products = () => {
         nameEn: formData.nameEn,
         categoryId: formData.categoryId,
         imageUrl: imageUrl, // Use the uploaded image URL
-        description: formData.description || null
+        description: formData.description || null,
+        cardColor: formData.cardColor || '#6366f1'
       }
       
       // Add subCategoryId if provided
@@ -231,6 +240,13 @@ const Products = () => {
     // Validation
     if (!formData.nameAr || !formData.nameEn || !formData.categoryId) {
       alert('Please fill in all required fields (Name and Category are required)')
+      return
+    }
+    
+    // Validate hex color format
+    const hexColorRegex = /^#[0-9A-Fa-f]{6}$/
+    if (formData.cardColor && !hexColorRegex.test(formData.cardColor)) {
+      alert('Please enter a valid hex color (e.g., #6366f1)')
       return
     }
     
@@ -280,7 +296,8 @@ const Products = () => {
         nameEn: formData.nameEn,
         categoryId: formData.categoryId,
         imageUrl: imageUrl, // Use the uploaded image URL or existing URL
-        isActive: selectedProduct.isActive
+        isActive: selectedProduct.isActive,
+        cardColor: formData.cardColor || '#6366f1'
       }
       
       // Optional fields - include description if provided
@@ -359,7 +376,8 @@ const Products = () => {
       categoryId: product.categoryId || product.productCategory?.categoryId || null,
       subCategoryId: product.subCategoryId || product.productSubCategory?.subCategoryId || null,
       imageUrl: imageUrl,
-      description: product.description || ''
+      description: product.description || '',
+      cardColor: product.cardColor || '#6366f1'
     })
     
     // Reset file states
@@ -391,7 +409,8 @@ const Products = () => {
       categoryId: null,
       subCategoryId: null,
       imageUrl: '',
-      description: ''
+      description: '',
+      cardColor: '#6366f1'
     })
     setSelectedFile(null)
     setImagePreview(null)
@@ -756,6 +775,68 @@ const Products = () => {
                   rows="3"
                 />
               </div>
+              
+              {/* Card Color Picker */}
+              <div className="form-group">
+                <label>Card Color (Hex)</label>
+                <div className="color-picker-container">
+                  <div className="color-picker-wrapper">
+                    <input
+                      type="color"
+                      value={formData.cardColor}
+                      onChange={(e) => setFormData({...formData, cardColor: e.target.value})}
+                      className="color-picker-input"
+                      id="card-color-add"
+                    />
+                    <label htmlFor="card-color-add" className="color-picker-label">
+                      <div 
+                        className="color-preview" 
+                        style={{ backgroundColor: formData.cardColor }}
+                      ></div>
+                    </label>
+                  </div>
+                  <input
+                    type="text"
+                    value={formData.cardColor}
+                    onChange={(e) => {
+                      let value = e.target.value.trim()
+                      // Ensure it starts with #
+                      if (value && !value.startsWith('#')) {
+                        value = '#' + value
+                      }
+                      // Validate hex color format (allow partial input)
+                      if (value === '' || value === '#' || /^#[0-9A-Fa-f]{0,6}$/.test(value)) {
+                        setFormData({...formData, cardColor: value || '#6366f1'})
+                      }
+                    }}
+                    onBlur={(e) => {
+                      // Ensure valid 6-digit hex on blur
+                      let value = e.target.value.trim()
+                      if (!value.startsWith('#')) {
+                        value = '#' + value
+                      }
+                      // Pad or truncate to 6 hex digits
+                      if (value.length > 1 && value.length < 7) {
+                        // Pad with zeros or truncate
+                        const hexPart = value.slice(1)
+                        const padded = hexPart.padEnd(6, '0').substring(0, 6)
+                        value = '#' + padded
+                      }
+                      if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
+                        setFormData({...formData, cardColor: value})
+                      } else if (value === '#' || value === '') {
+                        setFormData({...formData, cardColor: '#6366f1'})
+                      }
+                    }}
+                    placeholder="#6366f1"
+                    className="color-hex-input"
+                    pattern="^#[0-9A-Fa-f]{6}$"
+                    maxLength={7}
+                  />
+                </div>
+                <small className="form-help">Select a color or enter hex value (e.g., #6366f1)</small>
+              </div>
+              
               <div className="modal-footer">
                 <button type="button" className="btn btn-outline" onClick={closeModals}>
                   Cancel
@@ -930,6 +1011,68 @@ const Products = () => {
                   rows="3"
                 />
               </div>
+              
+              {/* Card Color Picker */}
+              <div className="form-group">
+                <label>Card Color (Hex)</label>
+                <div className="color-picker-container">
+                  <div className="color-picker-wrapper">
+                    <input
+                      type="color"
+                      value={formData.cardColor}
+                      onChange={(e) => setFormData({...formData, cardColor: e.target.value})}
+                      className="color-picker-input"
+                      id="card-color-edit"
+                    />
+                    <label htmlFor="card-color-edit" className="color-picker-label">
+                      <div 
+                        className="color-preview" 
+                        style={{ backgroundColor: formData.cardColor }}
+                      ></div>
+                    </label>
+                  </div>
+                  <input
+                    type="text"
+                    value={formData.cardColor}
+                    onChange={(e) => {
+                      let value = e.target.value.trim()
+                      // Ensure it starts with #
+                      if (value && !value.startsWith('#')) {
+                        value = '#' + value
+                      }
+                      // Validate hex color format (allow partial input)
+                      if (value === '' || value === '#' || /^#[0-9A-Fa-f]{0,6}$/.test(value)) {
+                        setFormData({...formData, cardColor: value || '#6366f1'})
+                      }
+                    }}
+                    onBlur={(e) => {
+                      // Ensure valid 6-digit hex on blur
+                      let value = e.target.value.trim()
+                      if (!value.startsWith('#')) {
+                        value = '#' + value
+                      }
+                      // Pad or truncate to 6 hex digits
+                      if (value.length > 1 && value.length < 7) {
+                        // Pad with zeros or truncate
+                        const hexPart = value.slice(1)
+                        const padded = hexPart.padEnd(6, '0').substring(0, 6)
+                        value = '#' + padded
+                      }
+                      if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
+                        setFormData({...formData, cardColor: value})
+                      } else if (value === '#' || value === '') {
+                        setFormData({...formData, cardColor: '#6366f1'})
+                      }
+                    }}
+                    placeholder="#6366f1"
+                    className="color-hex-input"
+                    pattern="^#[0-9A-Fa-f]{6}$"
+                    maxLength={7}
+                  />
+                </div>
+                <small className="form-help">Select a color or enter hex value (e.g., #6366f1)</small>
+              </div>
+              
               <div className="modal-footer">
                 <button type="button" className="btn btn-outline" onClick={closeModals}>
                   Cancel

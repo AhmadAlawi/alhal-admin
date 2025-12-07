@@ -1,22 +1,31 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FiMenu, FiSearch, FiMail, FiLogOut, FiUser, FiChevronDown } from 'react-icons/fi'
+import { FiMenu, FiSearch, FiMail, FiLogOut, FiUser, FiChevronDown, FiGlobe } from 'react-icons/fi'
 import Notifications from '../Notifications/Notifications'
 import authService from '../../services/authService'
+import { useLocale } from '../../contexts/LocaleContext'
+import { useTranslation } from '../../hooks/useTranslation'
 import './Header.css'
 
 const Header = ({ toggleSidebar }) => {
   const navigate = useNavigate()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [langMenuOpen, setLangMenuOpen] = useState(false)
   const userMenuRef = useRef(null)
+  const langMenuRef = useRef(null)
+  const { language, changeLanguage } = useLocale()
+  const { t } = useTranslation()
   const user = authService.getUser()
   const userName = user?.fullName || user?.name || user?.email || 'Admin User'
 
-  // Close user menu when clicking outside
+  // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
         setUserMenuOpen(false)
+      }
+      if (langMenuRef.current && !langMenuRef.current.contains(event.target)) {
+        setLangMenuOpen(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -52,13 +61,46 @@ const Header = ({ toggleSidebar }) => {
           <FiSearch className="search-icon" />
           <input 
             type="text" 
-            placeholder="Search..." 
+            placeholder={t('common.search')} 
             className="search-input"
           />
         </div>
       </div>
 
       <div className="header-right">
+        <div className="header-lang-wrapper" ref={langMenuRef}>
+          <button 
+            className="icon-btn" 
+            onClick={() => setLangMenuOpen(!langMenuOpen)}
+            title={t('settings.language')}
+          >
+            <FiGlobe />
+          </button>
+          {langMenuOpen && (
+            <div className="lang-menu">
+              <button 
+                className={`lang-menu-item ${language === 'ar' ? 'active' : ''}`}
+                onClick={() => {
+                  changeLanguage('ar')
+                  setLangMenuOpen(false)
+                }}
+              >
+                <span>العربية</span>
+                {language === 'ar' && <span className="check">✓</span>}
+              </button>
+              <button 
+                className={`lang-menu-item ${language === 'en' ? 'active' : ''}`}
+                onClick={() => {
+                  changeLanguage('en')
+                  setLangMenuOpen(false)
+                }}
+              >
+                <span>English</span>
+                {language === 'en' && <span className="check">✓</span>}
+              </button>
+            </div>
+          )}
+        </div>
         <button className="icon-btn" title="Messages">
           <FiMail />
           <span className="badge-dot"></span>
@@ -111,14 +153,14 @@ const Header = ({ toggleSidebar }) => {
                 }}
               >
                 <FiUser />
-                <span>Profile Settings</span>
+                <span>{t('settings.profile')}</span>
               </button>
               <button 
                 className="user-menu-item user-menu-item-danger"
                 onClick={handleLogout}
               >
                 <FiLogOut />
-                <span>Logout</span>
+                <span>{t('common.logout')}</span>
               </button>
             </div>
           )}

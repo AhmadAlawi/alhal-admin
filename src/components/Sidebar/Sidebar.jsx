@@ -8,19 +8,24 @@ import {
   FiFolder,
   FiShoppingCart,
   FiSettings,
-  FiX
+  FiX,
+  FiDatabase
 } from 'react-icons/fi'
+import { useTranslation } from '../../hooks/useTranslation'
 import './Sidebar.css'
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
+  const { t } = useTranslation()
+  
   const menuItems = [
-    { path: '/dashboard', icon: <FiHome />, label: 'Dashboard' },
-    { path: '/users', icon: <FiUsers />, label: 'Users' },
-    { path: '/analytics', icon: <FiBarChart2 />, label: 'Analytics' },
-    { path: '/products', icon: <FiShoppingBag />, label: 'Products' },
-    { path: '/categories', icon: <FiFolder />, label: 'Categories' },
-    { path: '/orders', icon: <FiShoppingCart />, label: 'Orders' },
-    { path: '/settings', icon: <FiSettings />, label: 'Settings' },
+    { path: '/dashboard', icon: <FiHome />, label: t('common.dashboard') },
+    { path: '/users', icon: <FiUsers />, label: t('common.users') },
+    { path: '/analytics', icon: <FiBarChart2 />, label: t('common.analytics') },
+    { path: '/reports', icon: <FiDatabase />, label: t('common.reports') },
+    { path: '/products', icon: <FiShoppingBag />, label: t('common.products') },
+    { path: '/categories', icon: <FiFolder />, label: t('common.categories') },
+    { path: '/orders', icon: <FiShoppingCart />, label: t('common.orders') },
+    { path: '/settings', icon: <FiSettings />, label: t('common.settings') },
   ]
 
   return (
