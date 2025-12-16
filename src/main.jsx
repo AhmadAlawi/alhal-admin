@@ -6,39 +6,55 @@ import './index.css'
 
 // Service Worker Management
 if ('serviceWorker' in navigator) {
-  // In development, unregister any existing service workers to prevent cache issues
-  if (import.meta.env.DEV) {
-    navigator.serviceWorker.getRegistrations().then((registrations) => {
-      for (let registration of registrations) {
-        registration.unregister().then((success) => {
-          if (success) {
-            console.log('Service Worker unregistered for development');
-          }
-        });
-      }
-    });
-  } else {
-    // In production, register the service worker
-    window.addEventListener('load', () => {
-      navigator.serviceWorker
-        .register('/firebase-messaging-sw.js', {
-          scope: '/'
-        })
-        .then((registration) => {
-          console.log('Service Worker registered successfully:', registration);
-        })
-        .catch((error) => {
-          console.error('Service Worker registration failed:', error);
-        });
-    });
-  }
+  // Always unregister existing service workers first to prevent cache issues
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    for (let registration of registrations) {
+      registration.unregister().then((success) => {
+        if (success) {
+          console.log('Service Worker unregistered');
+        }
+      });
+    }
+    
+    // Only register in production after a delay to ensure unregistration completes
+    if (import.meta.env.PROD) {
+      setTimeout(() => {
+        navigator.serviceWorker
+          .register('/firebase-messaging-sw.js', {
+            scope: '/',
+            updateViaCache: 'none' // Always check for updates
+          })
+          .then((registration) => {
+            console.log('Service Worker registered successfully:', registration);
+            // Check for updates immediately
+            registration.update();
+          })
+          .catch((error) => {
+            console.error('Service Worker registration failed:', error);
+          });
+      }, 1000);
+    }
+  });
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
+// Disable StrictMode in production to prevent double renders and refresh issues
+const root = ReactDOM.createRoot(document.getElementById('root'))
+
+if (import.meta.env.PROD) {
+  // Production: No StrictMode to prevent double renders
+  root.render(
     <LocaleProvider>
       <App />
     </LocaleProvider>
-  </React.StrictMode>
-)
+  )
+} else {
+  // Development: Use StrictMode for better debugging
+  root.render(
+    <React.StrictMode>
+      <LocaleProvider>
+        <App />
+      </LocaleProvider>
+    </React.StrictMode>
+  )
+}
 

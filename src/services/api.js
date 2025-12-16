@@ -37,8 +37,10 @@ class ApiClient {
         localStorage.removeItem('user');
         
         // Only redirect if not already on login page
+        // Use replace to prevent adding to history and potential loops
         if (!window.location.pathname.includes('/login')) {
-          window.location.href = '/login';
+          // Use replace instead of href to prevent refresh loops
+          window.location.replace('/login');
         }
         
         const error = await response.json().catch(() => ({ message: 'Unauthorized. Please login again.' }));
