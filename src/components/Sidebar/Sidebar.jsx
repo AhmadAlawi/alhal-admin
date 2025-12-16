@@ -9,7 +9,10 @@ import {
   FiShoppingCart,
   FiSettings,
   FiX,
-  FiDatabase
+  FiDatabase,
+  FiAlertCircle,
+  FiMessageSquare,
+  FiStar
 } from 'react-icons/fi'
 import { useTranslation } from '../../hooks/useTranslation'
 import './Sidebar.css'
@@ -25,6 +28,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     { path: '/products', icon: <FiShoppingBag />, label: t('common.products') },
     { path: '/categories', icon: <FiFolder />, label: t('common.categories') },
     { path: '/orders', icon: <FiShoppingCart />, label: t('common.orders') },
+    { path: '/chat-reports', icon: <FiAlertCircle />, label: t('common.chatReports') },
+    { path: '/tickets', icon: <FiMessageSquare />, label: t('common.tickets') },
+    { path: '/feedback', icon: <FiStar />, label: t('common.feedback') },
     { path: '/settings', icon: <FiSettings />, label: t('common.settings') },
   ]
 

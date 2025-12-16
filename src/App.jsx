@@ -12,6 +12,9 @@ import Products from './pages/Products'
 import Categories from './pages/Categories'
 import Orders from './pages/Orders'
 import Settings from './pages/Settings'
+import ChatReports from './pages/ChatReports'
+import Tickets from './pages/Tickets'
+import Feedback from './pages/Feedback'
 import './App.css'
 
 function App() {
@@ -109,6 +112,36 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Settings />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/chat-reports"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <ChatReports />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tickets"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Tickets />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/feedback"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Feedback />
                 </Layout>
               </ProtectedRoute>
             }
