@@ -147,8 +147,15 @@ function App() {
             }
           />
           
-          {/* Catch all - redirect to dashboard */}
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          {/* Catch all - redirect to dashboard only if authenticated */}
+          <Route 
+            path="*" 
+            element={
+              <ProtectedRoute>
+                <Navigate to="/dashboard" replace />
+              </ProtectedRoute>
+            } 
+          />
         </Routes>
       </Router>
     </NotificationProvider>

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { FiFilter, FiRefreshCw, FiDownload, FiTrendingUp, FiBarChart2, FiPieChart, FiActivity, FiDatabase, FiUsers, FiPackage } from 'react-icons/fi'
+import { FiFilter, FiRefreshCw, FiDownload, FiTrendingUp, FiBarChart2, FiPieChart, FiActivity, FiDatabase, FiUsers, FiPackage, FiTruck, FiFileText, FiGavel, FiDollarSign, FiBox, FiZap, FiTrendingDown, FiShoppingCart, FiMapPin } from 'react-icons/fi'
 import StatCard from '../components/StatCard/StatCard'
 import Chart from '../components/Chart/Chart'
+import Table from '../components/Table/Table'
 import reportsService from '../services/reportsService'
 import adminService from '../services/adminService'
 import { useTranslation } from '../hooks/useTranslation'
@@ -10,74 +11,160 @@ import './Reports.css'
 const Reports = () => {
   const { t } = useTranslation()
   
+  // Report categories
+  const reportCategories = [
+    { id: 'sales', name: 'Sales Reports', icon: <FiShoppingCart />, count: 5 },
+    { id: 'users', name: 'User Reports', icon: <FiUsers />, count: 5 },
+    { id: 'products', name: 'Product Reports', icon: <FiPackage />, count: 5 },
+    { id: 'transport', name: 'Transport Reports', icon: <FiTruck />, count: 5 },
+    { id: 'tenders', name: 'Tender Reports', icon: <FiFileText />, count: 4 },
+    { id: 'auctions', name: 'Auction Reports', icon: <FiGavel />, count: 3 },
+    { id: 'financial', name: 'Financial Reports', icon: <FiDollarSign />, count: 4 },
+    { id: 'inventory', name: 'Inventory Reports', icon: <FiBox />, count: 4 },
+    { id: 'performance', name: 'Performance Reports', icon: <FiZap />, count: 3 },
+    { id: 'market', name: 'Market Analysis Reports', icon: <FiBarChart2 />, count: 3 },
+    { id: 'losses', name: 'Loss Reports', icon: <FiTrendingDown />, count: 3 },
+  ]
+
+  // Report definitions
+  const reportDefinitions = {
+    sales: [
+      { id: 'sales', name: 'Sales Report', endpoint: 'getSalesReport', description: 'Comprehensive sales overview' },
+      { id: 'sales-by-product', name: 'Sales by Product', endpoint: 'getSalesByProduct', description: 'Sales performance by product' },
+      { id: 'sales-by-category', name: 'Sales by Category', endpoint: 'getSalesByCategory', description: 'Sales distribution by category' },
+      { id: 'sales-by-location', name: 'Sales by Location', endpoint: 'getSalesByLocation', description: 'Sales performance by location' },
+      { id: 'sales-trends', name: 'Sales Trends', endpoint: 'getSalesTrends', description: 'Sales trends over time' },
+    ],
+    users: [
+      { id: 'user-activity', name: 'User Activity', endpoint: 'getUserActivity', description: 'New and active users over time' },
+      { id: 'user-registrations', name: 'User Registrations', endpoint: 'getUserRegistrations', description: 'Registration trends and verification' },
+      { id: 'user-type', name: 'User Type Distribution', endpoint: 'getUserTypeDistribution', description: 'Distribution by user type' },
+      { id: 'user-location', name: 'User Location', endpoint: 'getUserLocation', description: 'User distribution by location' },
+      { id: 'user-performance', name: 'User Performance', endpoint: 'getUserPerformance', description: 'Individual user performance metrics' },
+    ],
+    products: [
+      { id: 'product-performance', name: 'Product Performance', endpoint: 'getProductPerformance', description: 'Sales performance metrics per product' },
+      { id: 'product-inventory', name: 'Product Inventory', endpoint: 'getProductInventory', description: 'Current inventory levels' },
+      { id: 'product-price-trends', name: 'Product Price Trends', endpoint: 'getProductPriceTrends', description: 'Price trends over time' },
+      { id: 'top-products', name: 'Top Products', endpoint: 'getTopProducts', description: 'Top performing products' },
+      { id: 'product-category', name: 'Product Category', endpoint: 'getProductCategory', description: 'Product distribution by category' },
+    ],
+    transport: [
+      { id: 'transport-activity', name: 'Transport Activity', endpoint: 'getTransportActivity', description: 'Transport request activity' },
+      { id: 'transport-providers', name: 'Transport Providers', endpoint: 'getTransportProviders', description: 'All transport providers' },
+      { id: 'transport-routes', name: 'Transport Routes', endpoint: 'getTransportRoutes', description: 'Available transport routes' },
+      { id: 'transport-revenue', name: 'Transport Revenue', endpoint: 'getTransportRevenue', description: 'Revenue from transport services' },
+      { id: 'transport-ratings', name: 'Transport Ratings', endpoint: 'getTransportRatings', description: 'Ratings and reviews' },
+    ],
+    tenders: [
+      { id: 'tender-activity', name: 'Tender Activity', endpoint: 'getTenderActivity', description: 'Tender creation and status' },
+      { id: 'tender-performance', name: 'Tender Performance', endpoint: 'getTenderPerformance', description: 'Performance metrics' },
+      { id: 'tender-offers', name: 'Tender Offers', endpoint: 'getTenderOffers', description: 'Offer statistics' },
+      { id: 'tender-awards', name: 'Tender Awards', endpoint: 'getTenderAwards', description: 'Awarded tenders with savings' },
+    ],
+    auctions: [
+      { id: 'auction-activity', name: 'Auction Activity', endpoint: 'getAuctionActivity', description: 'Auction creation and completion' },
+      { id: 'auction-bids', name: 'Auction Bids', endpoint: 'getAuctionBids', description: 'Bidding statistics' },
+      { id: 'auction-revenue', name: 'Auction Revenue', endpoint: 'getAuctionRevenue', description: 'Revenue from auctions' },
+    ],
+    financial: [
+      { id: 'revenue', name: 'Revenue Report', endpoint: 'getRevenue', description: 'Total revenue over time' },
+      { id: 'payment-methods', name: 'Payment Methods', endpoint: 'getPaymentMethods', description: 'Payment distribution by method' },
+      { id: 'transactions', name: 'Transactions', endpoint: 'getTransactions', description: 'Detailed transaction list' },
+      { id: 'profit-loss', name: 'Profit & Loss', endpoint: 'getProfitLoss', description: 'Revenue, expenses, and profit' },
+    ],
+    inventory: [
+      { id: 'inventory-levels', name: 'Inventory Levels', endpoint: 'getInventoryLevels', description: 'Current inventory levels' },
+      { id: 'inventory-movements', name: 'Inventory Movements', endpoint: 'getInventoryMovements', description: 'Inventory movements over time' },
+      { id: 'stock-balance', name: 'Stock Balance', endpoint: 'getStockBalance', description: 'Stock balances by warehouse' },
+      { id: 'warehouses', name: 'Warehouses', endpoint: 'getWarehouses', description: 'Warehouse information' },
+    ],
+    performance: [
+      { id: 'system-performance', name: 'System Performance', endpoint: 'getSystemPerformance', description: 'Overall system metrics' },
+      { id: 'conversion-rate', name: 'Conversion Rate', endpoint: 'getConversionRate', description: 'Conversion rates for tenders/auctions' },
+      { id: 'retention', name: 'Retention', endpoint: 'getRetention', description: 'User retention metrics' },
+    ],
+    market: [
+      { id: 'market-trends', name: 'Market Trends', endpoint: 'getMarketTrends', description: 'Market price trends' },
+      { id: 'price-comparison', name: 'Price Comparison', endpoint: 'getPriceComparison', description: 'Price comparisons across locations' },
+      { id: 'supply-demand', name: 'Supply & Demand', endpoint: 'getSupplyDemand', description: 'Supply and demand balance' },
+    ],
+    losses: [
+      { id: 'losses', name: 'Loss Report', endpoint: 'getLosses', description: 'Product loss quantities' },
+      { id: 'losses-by-product', name: 'Loss by Product', endpoint: 'getLossesByProduct', description: 'Loss quantities by product' },
+      { id: 'losses-by-location', name: 'Loss by Location', endpoint: 'getLossesByLocation', description: 'Loss quantities by location' },
+    ],
+  }
+
   // Filter states
   const [governorates, setGovernorates] = useState([])
   const [products, setProducts] = useState([])
-  const [categories, setCategories] = useState([])
+  const [productCategories, setProductCategories] = useState([])
+  const [users, setUsers] = useState([])
   const [loadingFilters, setLoadingFilters] = useState(true)
   
   // Selected filters
-  const [selectedGovernorate, setSelectedGovernorate] = useState(null)
-  const [selectedGovernorateId, setSelectedGovernorateId] = useState(null)
-  const [selectedProduct, setSelectedProduct] = useState(null)
-  const [selectedCategory, setSelectedCategory] = useState(null)
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
-  const [dateRange, setDateRange] = useState({
+  const [filters, setFilters] = useState({
     startDate: null,
-    endDate: null
+    endDate: null,
+    timeGroup: 'day',
+    governorate: null,
+    governorateId: null,
+    cityId: null,
+    areaId: null,
+    productId: null,
+    categoryId: null,
+    subCategoryId: null,
+    userId: null,
+    userType: null,
+    isVerified: null,
+    status: null,
+    transportProviderId: null,
+    fromArea: null,
+    toArea: null,
+    tenderId: null,
+    auctionId: null,
+    page: 1,
+    pageSize: 50,
+    sortBy: null,
+    sortOrder: 'desc',
   })
-  const [timeGroup, setTimeGroup] = useState('month')
   
-  // Active tab
-  const [activeTab, setActiveTab] = useState('ministry') // 'ministry' or 'statistics'
+  // Active category and report
+  const [activeCategory, setActiveCategory] = useState('sales')
+  const [activeReport, setActiveReport] = useState(null)
   
-  // Ministry Reports Data
-  const [monthlyMarketFlow, setMonthlyMarketFlow] = useState(null)
-  const [storageCapacity, setStorageCapacity] = useState(null)
-  const [currentMonthFlow, setCurrentMonthFlow] = useState(null)
-  const [storageUsageRate, setStorageUsageRate] = useState(null)
-  const [totalStorageCapacity, setTotalStorageCapacity] = useState(null)
-  const [storageTypesDistribution, setStorageTypesDistribution] = useState(null)
-  
-  // Statistics Reports Data
-  const [userAgeGroup, setUserAgeGroup] = useState(null)
-  const [userType, setUserType] = useState(null)
-  const [userActivity, setUserActivity] = useState(null)
-  const [userByGovernorate, setUserByGovernorate] = useState(null)
-  const [productionByProduct, setProductionByProduct] = useState(null)
-  const [productByCategory, setProductByCategory] = useState(null)
-  const [seasonalProduction, setSeasonalProduction] = useState(null)
-  
-  // Loading and error states
-  const [loading, setLoading] = useState({})
-  const [errors, setErrors] = useState({})
+  // Report data
+  const [reportData, setReportData] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
 
   // Fetch filters on mount
   useEffect(() => {
     fetchFilters()
   }, [])
 
-  // Fetch data when filters change
+  // Fetch report data when filters or report change
   useEffect(() => {
-    if (activeTab === 'ministry') {
-      fetchMinistryData()
-    } else {
-      fetchStatisticsData()
+    if (activeReport) {
+      fetchReportData()
     }
-  }, [activeTab, selectedGovernorate, selectedGovernorateId, selectedProduct, selectedCategory, selectedYear, dateRange, timeGroup])
+  }, [activeReport, filters])
 
   const fetchFilters = async () => {
     try {
       setLoadingFilters(true)
-      const [productsRes, categoriesRes] = await Promise.all([
+      const [productsRes, categoriesRes, usersRes] = await Promise.all([
         adminService.getProducts().catch(() => ({ data: [] })),
-        adminService.getCategories().catch(() => ({ data: [] }))
+        adminService.getCategories().catch(() => ({ data: [] })),
+        adminService.getUsers().catch(() => ({ data: [] }))
       ])
       
-      setProducts(productsRes.data || productsRes.data || [])
-      setCategories(categoriesRes.data || categoriesRes.data || [])
+      setProducts(productsRes.data || [])
+      setProductCategories(categoriesRes.data || [])
+      setUsers(usersRes.data || [])
       
-      // Try to get governorates from market analysis service
+      // Try to get governorates
       try {
         const marketAnalysisService = await import('../services/marketAnalysisService')
         const filtersRes = await marketAnalysisService.default.getAvailableFilters()
@@ -93,363 +180,48 @@ const Reports = () => {
     }
   }
 
-  const buildParams = () => {
-    const params = {}
-    if (selectedGovernorate) params.governorate = selectedGovernorate
-    if (selectedGovernorateId) params.governorateId = selectedGovernorateId
-    if (selectedProduct) params.productId = selectedProduct
-    if (selectedCategory) params.categoryId = selectedCategory
-    if (selectedYear) params.year = selectedYear
-    if (dateRange.startDate) params.startDate = dateRange.startDate
-    if (dateRange.endDate) params.endDate = dateRange.endDate
-    if (timeGroup) params.timeGroup = timeGroup
-    return params
-  }
-
-  const fetchMinistryData = async () => {
-    const params = buildParams()
+  const fetchReportData = async () => {
+    if (!activeReport) return
     
-    const promises = [
-      fetchMonthlyMarketFlow(params),
-      fetchStorageCapacity(params),
-      fetchCurrentMonthFlow(params),
-      fetchStorageUsageRate(params),
-      fetchTotalStorageCapacity(params),
-      fetchStorageTypesDistribution(params)
-    ]
-    
-    await Promise.allSettled(promises)
-  }
-
-  const fetchStatisticsData = async () => {
-    const params = buildParams()
-    
-    const promises = [
-      fetchUserAgeGroup(params),
-      fetchUserType(params),
-      fetchUserActivity(params),
-      fetchUserByGovernorate(params),
-      fetchProductionByProduct(params),
-      fetchProductByCategory(params),
-      fetchSeasonalProduction(params)
-    ]
-    
-    await Promise.allSettled(promises)
-  }
-
-  // Ministry API calls
-  const fetchMonthlyMarketFlow = async (params) => {
     try {
-      setLoading(prev => ({ ...prev, monthlyMarketFlow: true }))
-      const response = await reportsService.getMonthlyMarketFlow(params)
-      setMonthlyMarketFlow(response.data || response)
-      setErrors(prev => ({ ...prev, monthlyMarketFlow: null }))
-    } catch (error) {
-      console.error('Failed to fetch monthly market flow:', error)
-      setErrors(prev => ({ ...prev, monthlyMarketFlow: error.message }))
-    } finally {
-      setLoading(prev => ({ ...prev, monthlyMarketFlow: false }))
-    }
-  }
-
-  const fetchStorageCapacity = async (params) => {
-    try {
-      setLoading(prev => ({ ...prev, storageCapacity: true }))
-      const response = await reportsService.getStorageCapacityByGovernorate(params)
-      setStorageCapacity(response.data || response)
-      setErrors(prev => ({ ...prev, storageCapacity: null }))
-    } catch (error) {
-      console.error('Failed to fetch storage capacity:', error)
-      setErrors(prev => ({ ...prev, storageCapacity: error.message }))
-    } finally {
-      setLoading(prev => ({ ...prev, storageCapacity: false }))
-    }
-  }
-
-  const fetchCurrentMonthFlow = async (params) => {
-    try {
-      setLoading(prev => ({ ...prev, currentMonthFlow: true }))
-      const response = await reportsService.getCurrentMonthMarketFlow(params)
-      setCurrentMonthFlow(response.data || response)
-      setErrors(prev => ({ ...prev, currentMonthFlow: null }))
-    } catch (error) {
-      console.error('Failed to fetch current month flow:', error)
-      setErrors(prev => ({ ...prev, currentMonthFlow: error.message }))
-    } finally {
-      setLoading(prev => ({ ...prev, currentMonthFlow: false }))
-    }
-  }
-
-  const fetchStorageUsageRate = async (params) => {
-    try {
-      setLoading(prev => ({ ...prev, storageUsageRate: true }))
-      const response = await reportsService.getStorageUsageRate(params)
-      setStorageUsageRate(response.data || response)
-      setErrors(prev => ({ ...prev, storageUsageRate: null }))
-    } catch (error) {
-      console.error('Failed to fetch storage usage rate:', error)
-      setErrors(prev => ({ ...prev, storageUsageRate: error.message }))
-    } finally {
-      setLoading(prev => ({ ...prev, storageUsageRate: false }))
-    }
-  }
-
-  const fetchTotalStorageCapacity = async (params) => {
-    try {
-      setLoading(prev => ({ ...prev, totalStorageCapacity: true }))
-      const response = await reportsService.getTotalStorageCapacity(params)
-      setTotalStorageCapacity(response.data || response)
-      setErrors(prev => ({ ...prev, totalStorageCapacity: null }))
-    } catch (error) {
-      console.error('Failed to fetch total storage capacity:', error)
-      setErrors(prev => ({ ...prev, totalStorageCapacity: error.message }))
-    } finally {
-      setLoading(prev => ({ ...prev, totalStorageCapacity: false }))
-    }
-  }
-
-  const fetchStorageTypesDistribution = async (params) => {
-    try {
-      setLoading(prev => ({ ...prev, storageTypesDistribution: true }))
-      const response = await reportsService.getStorageTypesDistribution(params)
-      setStorageTypesDistribution(response.data || response)
-      setErrors(prev => ({ ...prev, storageTypesDistribution: null }))
-    } catch (error) {
-      console.error('Failed to fetch storage types distribution:', error)
-      setErrors(prev => ({ ...prev, storageTypesDistribution: error.message }))
-    } finally {
-      setLoading(prev => ({ ...prev, storageTypesDistribution: false }))
-    }
-  }
-
-  // Statistics API calls
-  const fetchUserAgeGroup = async (params) => {
-    try {
-      setLoading(prev => ({ ...prev, userAgeGroup: true }))
-      const response = await reportsService.getUserDistributionByAgeGroup(params)
-      setUserAgeGroup(response.data || response)
-      setErrors(prev => ({ ...prev, userAgeGroup: null }))
-    } catch (error) {
-      console.error('Failed to fetch user age group:', error)
-      setErrors(prev => ({ ...prev, userAgeGroup: error.message }))
-    } finally {
-      setLoading(prev => ({ ...prev, userAgeGroup: false }))
-    }
-  }
-
-  const fetchUserType = async (params) => {
-    try {
-      setLoading(prev => ({ ...prev, userType: true }))
-      const response = await reportsService.getUserDistributionByType(params)
-      setUserType(response.data || response)
-      setErrors(prev => ({ ...prev, userType: null }))
-    } catch (error) {
-      console.error('Failed to fetch user type:', error)
-      setErrors(prev => ({ ...prev, userType: error.message }))
-    } finally {
-      setLoading(prev => ({ ...prev, userType: false }))
-    }
-  }
-
-  const fetchUserActivity = async (params) => {
-    try {
-      setLoading(prev => ({ ...prev, userActivity: true }))
-      const response = await reportsService.getUserActivity(params)
-      setUserActivity(response.data || response)
-      setErrors(prev => ({ ...prev, userActivity: null }))
-    } catch (error) {
-      console.error('Failed to fetch user activity:', error)
-      setErrors(prev => ({ ...prev, userActivity: error.message }))
-    } finally {
-      setLoading(prev => ({ ...prev, userActivity: false }))
-    }
-  }
-
-  const fetchUserByGovernorate = async (params) => {
-    try {
-      setLoading(prev => ({ ...prev, userByGovernorate: true }))
-      const response = await reportsService.getUserDistributionByGovernorate(params)
-      setUserByGovernorate(response.data || response)
-      setErrors(prev => ({ ...prev, userByGovernorate: null }))
-    } catch (error) {
-      console.error('Failed to fetch user by governorate:', error)
-      setErrors(prev => ({ ...prev, userByGovernorate: error.message }))
-    } finally {
-      setLoading(prev => ({ ...prev, userByGovernorate: false }))
-    }
-  }
-
-  const fetchProductionByProduct = async (params) => {
-    try {
-      setLoading(prev => ({ ...prev, productionByProduct: true }))
-      const response = await reportsService.getProductionQuantitiesByProduct(params)
-      setProductionByProduct(response.data || response)
-      setErrors(prev => ({ ...prev, productionByProduct: null }))
-    } catch (error) {
-      console.error('Failed to fetch production by product:', error)
-      setErrors(prev => ({ ...prev, productionByProduct: error.message }))
-    } finally {
-      setLoading(prev => ({ ...prev, productionByProduct: false }))
-    }
-  }
-
-  const fetchProductByCategory = async (params) => {
-    try {
-      setLoading(prev => ({ ...prev, productByCategory: true }))
-      const response = await reportsService.getProductDistributionByCategory(params)
-      setProductByCategory(response.data || response)
-      setErrors(prev => ({ ...prev, productByCategory: null }))
-    } catch (error) {
-      console.error('Failed to fetch product by category:', error)
-      setErrors(prev => ({ ...prev, productByCategory: error.message }))
-    } finally {
-      setLoading(prev => ({ ...prev, productByCategory: false }))
-    }
-  }
-
-  const fetchSeasonalProduction = async (params) => {
-    try {
-      setLoading(prev => ({ ...prev, seasonalProduction: true }))
-      const response = await reportsService.getSeasonalProduction(params)
-      setSeasonalProduction(response.data || response)
-      setErrors(prev => ({ ...prev, seasonalProduction: null }))
-    } catch (error) {
-      console.error('Failed to fetch seasonal production:', error)
-      setErrors(prev => ({ ...prev, seasonalProduction: error.message }))
-    } finally {
-      setLoading(prev => ({ ...prev, seasonalProduction: false }))
-    }
-  }
-
-  // Data formatting functions
-  const formatMonthlyMarketFlowData = (data) => {
-    if (!data || !data.incoming || !data.outgoing) return []
-    
-    const periods = new Set()
-    data.incoming.forEach(item => periods.add(item.period))
-    data.outgoing.forEach(item => periods.add(item.period))
-    
-    return Array.from(periods).sort().map(period => {
-      const incoming = data.incoming.find(item => item.period === period) || { quantity: 0, count: 0 }
-      const outgoing = data.outgoing.find(item => item.period === period) || { quantity: 0, count: 0 }
-      return {
-        period,
-        incoming: incoming.quantity || 0,
-        outgoing: outgoing.quantity || 0,
-        netFlow: (incoming.quantity || 0) - (outgoing.quantity || 0)
+      setLoading(true)
+      setError(null)
+      
+      const reportDef = reportDefinitions[activeCategory].find(r => r.id === activeReport)
+      if (!reportDef) return
+      
+      const serviceMethod = reportsService[reportDef.endpoint]
+      if (!serviceMethod) {
+        throw new Error(`Report method ${reportDef.endpoint} not found`)
       }
-    })
-  }
-
-  const formatStorageCapacityData = (data) => {
-    if (!data || !data.storageData) return []
-    return data.storageData.map(item => ({
-      governorate: item.governorate,
-      totalCapacity: item.totalCapacity || 0,
-      actualUsage: item.actualUsage || 0,
-      usagePercentage: item.usagePercentage || 0,
-      availableCapacity: (item.totalCapacity || 0) - (item.actualUsage || 0)
-    }))
-  }
-
-  const formatStorageTypesData = (data) => {
-    if (!data || !data.distribution) return []
-    return data.distribution.map(item => ({
-      name: item.storageType,
-      value: item.count || 0,
-      percentage: item.percentage || 0,
-      capacity: item.totalCapacity || 0
-    }))
-  }
-
-  const formatUserAgeGroupData = (data) => {
-    if (!data || !data.distribution) return []
-    return data.distribution.map(item => ({
-      name: item.ageGroup,
-      value: item.count || 0,
-      percentage: item.percentage || 0
-    }))
-  }
-
-  const formatUserTypeData = (data) => {
-    if (!data || !data.distribution) return []
-    return data.distribution.map(item => ({
-      name: item.userType,
-      value: item.count || 0,
-      percentage: item.percentage || 0
-    }))
-  }
-
-  const formatUserActivityData = (data) => {
-    if (!data || !data.newUsers || !data.activeUsers) return []
-    
-    const periods = new Set()
-    data.newUsers.forEach(item => periods.add(item.period))
-    data.activeUsers.forEach(item => periods.add(item.period))
-    
-    return Array.from(periods).sort().map(period => {
-      const newUsers = data.newUsers.find(item => item.period === period) || { newUsers: 0 }
-      const activeUsers = data.activeUsers.find(item => item.period === period) || { activeUsers: 0 }
-      return {
-        period,
-        newUsers: newUsers.newUsers || 0,
-        activeUsers: activeUsers.activeUsers || 0
-      }
-    })
-  }
-
-  const formatUserByGovernorateData = (data) => {
-    if (!data || !data.distribution) return []
-    return data.distribution.map(item => ({
-      name: item.governorate,
-      value: item.count || 0,
-      percentage: item.percentage || 0
-    }))
-  }
-
-  const formatProductionByProductData = (data) => {
-    if (!data || !data.production) return []
-    return data.production.slice(0, 10).map(item => ({
-      name: item.productNameEn || item.productNameAr || `Product ${item.productId}`,
-      quantity: item.totalQuantity || 0,
-      transactions: item.transactionCount || 0,
-      avgPrice: item.averagePrice || 0
-    }))
-  }
-
-  const formatProductByCategoryData = (data) => {
-    if (!data || !data.distribution) return []
-    return data.distribution.map(item => ({
-      name: item.categoryNameEn || item.categoryNameAr || `Category ${item.categoryId}`,
-      quantity: item.totalQuantity || 0,
-      value: item.totalValue || 0,
-      quantityPercentage: item.quantityPercentage || 0,
-      valuePercentage: item.valuePercentage || 0,
-      productCount: item.productCount || 0
-    }))
-  }
-
-  const formatSeasonalProductionData = (data) => {
-    if (!data || !data.monthlyProduction) return []
-    return data.monthlyProduction.map(item => ({
-      month: item.monthName || `Month ${item.month}`,
-      totalQuantity: item.totalQuantity || 0,
-      categories: item.categories || []
-    }))
-  }
-
-  const handleRefresh = () => {
-    if (activeTab === 'ministry') {
-      fetchMinistryData()
-    } else {
-      fetchStatisticsData()
+      
+      const response = await serviceMethod(filters)
+      const data = response.data || response
+      setReportData(data)
+    } catch (err) {
+      console.error('Failed to fetch report data:', err)
+      setError(err.message || 'Failed to load report data')
+    } finally {
+      setLoading(false)
     }
   }
 
-  // Format dates for API (ISO 8601)
+  const handleFilterChange = (key, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [key]: value || null,
+      page: key === 'page' ? value : 1 // Reset to page 1 when other filters change
+    }))
+  }
+
+  const handleReportSelect = (reportId) => {
+    setActiveReport(reportId)
+    setReportData(null)
+    setError(null)
+  }
+
   const formatDateForAPI = (dateString) => {
     if (!dateString) return null
-    // If dateString is already in YYYY-MM-DD format, append time for UTC
     if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
       return `${dateString}T00:00:00Z`
     }
@@ -457,499 +229,433 @@ const Reports = () => {
     return date.toISOString()
   }
 
-  const handleDateChange = (type, value) => {
-    setDateRange(prev => ({
-      ...prev,
-      [type]: value ? formatDateForAPI(value) : null
-    }))
+  const formatReportData = (data, reportId) => {
+    if (!data) return null
+    
+    // Handle different response formats
+    const reportData = data.data || data
+    
+    // Format based on report type
+    if (reportId.includes('trend') || reportId.includes('activity') || reportId.includes('movement')) {
+      // Time series data
+      return Array.isArray(reportData) ? reportData : (reportData.data || [])
+    } else if (reportId.includes('distribution') || reportId.includes('category') || reportId.includes('type')) {
+      // Distribution data
+      return Array.isArray(reportData) ? reportData : (reportData.distribution || reportData.data || [])
+    } else if (reportId.includes('performance') || reportId.includes('top')) {
+      // List data
+      return Array.isArray(reportData) ? reportData : (reportData.items || reportData.data || [])
+    }
+    
+    return Array.isArray(reportData) ? reportData : (reportData.data || [])
   }
 
-  // Chart data
-  const monthlyMarketFlowChartData = formatMonthlyMarketFlowData(monthlyMarketFlow)
-  const storageCapacityChartData = formatStorageCapacityData(storageCapacity)
-  const storageTypesChartData = formatStorageTypesData(storageTypesDistribution)
-  const userAgeGroupChartData = formatUserAgeGroupData(userAgeGroup)
-  const userTypeChartData = formatUserTypeData(userType)
-  const userActivityChartData = formatUserActivityData(userActivity)
-  const userByGovernorateChartData = formatUserByGovernorateData(userByGovernorate)
-  const productionByProductChartData = formatProductionByProductData(productionByProduct)
-  const productByCategoryChartData = formatProductByCategoryData(productByCategory)
-  const seasonalProductionChartData = formatSeasonalProductionData(seasonalProduction)
+  const renderReportContent = () => {
+    if (!activeReport) {
+      return (
+        <div className="no-report-selected">
+          <p>Please select a report from the list above</p>
+        </div>
+      )
+    }
+
+    if (loading) {
+      return (
+        <div className="loading-state">
+          <p>Loading report data...</p>
+        </div>
+      )
+    }
+
+    if (error) {
+      return (
+        <div className="error-state">
+          <p>Error: {error}</p>
+          <button className="btn btn-primary" onClick={fetchReportData}>
+            <FiRefreshCw /> Retry
+          </button>
+        </div>
+      )
+    }
+
+    if (!reportData) {
+      return (
+        <div className="no-data-state">
+          <p>No data available for this report</p>
+        </div>
+      )
+    }
+
+    const reportDef = reportDefinitions[activeCategory].find(r => r.id === activeReport)
+    const formattedData = formatReportData(reportData, activeReport)
+    const summary = reportData.summary || reportData
+
+    // Render based on report type
+    if (activeReport.includes('trend') || activeReport.includes('activity') || activeReport.includes('movement')) {
+      return renderTimeSeriesReport(formattedData, summary, reportDef)
+    } else if (activeReport.includes('distribution') || activeReport.includes('category') || activeReport.includes('type')) {
+      return renderDistributionReport(formattedData, summary, reportDef)
+    } else if (activeReport.includes('performance') || activeReport.includes('top') || activeReport.includes('list')) {
+      return renderListReport(formattedData, summary, reportDef)
+    } else {
+      return renderGenericReport(formattedData, summary, reportDef)
+    }
+  }
+
+  const renderTimeSeriesReport = (data, summary, reportDef) => {
+    if (!data || data.length === 0) {
+      return <div className="no-data">No data available</div>
+    }
+
+    // Determine data keys
+    const firstItem = data[0]
+    const keys = Object.keys(firstItem).filter(k => 
+      k !== 'period' && k !== 'date' && k !== 'time' && 
+      k !== 'id' && typeof firstItem[k] === 'number'
+    )
+    const periodKey = firstItem.period ? 'period' : (firstItem.date ? 'date' : (firstItem.time ? 'time' : Object.keys(firstItem)[0]))
+
+    // If multiple numeric keys, use composed chart
+    const useComposed = keys.length > 1
+
+    return (
+      <div className="report-content">
+        {summary && (
+          <div className="stats-grid">
+            {summary.totalSales !== undefined && (
+              <StatCard title="Total Sales" value={`${Number(summary.totalSales).toLocaleString()} IQD`} icon={<FiDollarSign />} color="primary" />
+            )}
+            {summary.totalQuantity !== undefined && (
+              <StatCard title="Total Quantity" value={`${Number(summary.totalQuantity).toLocaleString()}`} icon={<FiPackage />} color="success" />
+            )}
+            {summary.totalTransactions !== undefined && (
+              <StatCard title="Total Transactions" value={Number(summary.totalTransactions).toLocaleString()} icon={<FiActivity />} color="info" />
+            )}
+            {summary.averagePrice !== undefined && (
+              <StatCard title="Average Price" value={`${Number(summary.averagePrice).toLocaleString()} IQD`} icon={<FiTrendingUp />} color="warning" />
+            )}
+            {summary.totalRevenue !== undefined && (
+              <StatCard title="Total Revenue" value={`${Number(summary.totalRevenue).toLocaleString()} IQD`} icon={<FiDollarSign />} color="primary" />
+            )}
+            {summary.totalUsers !== undefined && (
+              <StatCard title="Total Users" value={Number(summary.totalUsers).toLocaleString()} icon={<FiUsers />} color="success" />
+            )}
+          </div>
+        )}
+        
+        {useComposed ? (
+          <Chart
+            type="composed"
+            data={data}
+            dataKeys={keys.slice(0, 3).map(key => ({
+              dataKey: key,
+              name: key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1'),
+              type: keys.indexOf(key) === keys.length - 1 ? 'line' : 'bar',
+              color: ['#6366f1', '#10b981', '#f59e0b'][keys.indexOf(key) % 3]
+            }))}
+            xAxisKey={periodKey}
+            title={reportDef.name}
+            height={400}
+          />
+        ) : (
+          <Chart
+            type="area"
+            data={data}
+            dataKey={keys[0] || 'value'}
+            xAxisKey={periodKey}
+            title={reportDef.name}
+            height={400}
+          />
+        )}
+      </div>
+    )
+  }
+
+  const renderDistributionReport = (data, summary, reportDef) => {
+    if (!data || data.length === 0) {
+      return <div className="no-data">No data available</div>
+    }
+
+    const nameKey = data[0].name ? 'name' : (data[0].label ? 'label' : Object.keys(data[0])[0])
+    const valueKey = data[0].value ? 'value' : (data[0].count ? 'count' : Object.keys(data[0])[1])
+
+    return (
+      <div className="report-content">
+        <div className="charts-grid">
+          <Chart
+            type="pie"
+            data={data}
+            dataKey={valueKey}
+            title={reportDef.name}
+            height={400}
+            pieLabel={true}
+          />
+          <Chart
+            type="bar"
+            data={data}
+            dataKey={valueKey}
+            xAxisKey={nameKey}
+            title={reportDef.name}
+            height={400}
+          />
+        </div>
+      </div>
+    )
+  }
+
+  const renderListReport = (data, summary, reportDef) => {
+    if (!data || data.length === 0) {
+      return <div className="no-data">No data available</div>
+    }
+
+    const columns = Object.keys(data[0]).map(key => ({
+      header: key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1'),
+      accessor: key,
+      render: (value) => {
+        if (typeof value === 'number') {
+          return value.toLocaleString()
+        }
+        if (typeof value === 'boolean') {
+          return value ? 'Yes' : 'No'
+        }
+        return value || '-'
+      }
+    }))
+
+    return (
+      <div className="report-content">
+        {summary && (
+          <div className="stats-grid">
+            {Object.entries(summary).slice(0, 4).map(([key, value]) => (
+              <StatCard
+                key={key}
+                title={key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}
+                value={typeof value === 'number' ? value.toLocaleString() : String(value)}
+                icon={<FiBarChart2 />}
+                color="primary"
+              />
+            ))}
+          </div>
+        )}
+        <div className="card">
+          <h3>{reportDef.name}</h3>
+          <Table columns={columns} data={data} />
+        </div>
+      </div>
+    )
+  }
+
+  const renderGenericReport = (data, summary, reportDef) => {
+    return (
+      <div className="report-content">
+        {summary && (
+          <div className="stats-grid">
+            {Object.entries(summary).slice(0, 4).map(([key, value]) => (
+              <StatCard
+                key={key}
+                title={key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}
+                value={typeof value === 'number' ? value.toLocaleString() : String(value)}
+                icon={<FiBarChart2 />}
+                color="primary"
+              />
+            ))}
+          </div>
+        )}
+        
+        {data && Array.isArray(data) && data.length > 0 && (
+          <div className="card">
+            <h3>Data</h3>
+            <pre style={{ maxHeight: '500px', overflow: 'auto' }}>
+              {JSON.stringify(data, null, 2)}
+            </pre>
+          </div>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="reports-page">
       <div className="page-header">
         <div>
-          <h1 className="page-title">{t('reports.title')}</h1>
-          <p className="page-subtitle">{t('reports.subtitle')}</p>
+          <h1 className="page-title">Comprehensive Reports</h1>
+          <p className="page-subtitle">40+ reports covering all aspects of the platform</p>
         </div>
         <div className="header-actions">
-          <button className="btn btn-outline" onClick={handleRefresh}>
+          <button className="btn btn-outline" onClick={fetchReportData} disabled={!activeReport || loading}>
             <FiRefreshCw /> {t('common.refresh')}
           </button>
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* Category Tabs */}
       <div className="reports-tabs">
-        <button 
-          className={`tab-button ${activeTab === 'ministry' ? 'active' : ''}`}
-          onClick={() => setActiveTab('ministry')}
-        >
-          <FiDatabase /> {t('reports.ministryReports')}
-        </button>
-        <button 
-          className={`tab-button ${activeTab === 'statistics' ? 'active' : ''}`}
-          onClick={() => setActiveTab('statistics')}
-        >
-          <FiBarChart2 /> {t('reports.statisticsReports')}
-        </button>
+        {reportCategories.map(cat => (
+          <button
+            key={cat.id}
+            className={`tab-button ${activeCategory === cat.id ? 'active' : ''}`}
+            onClick={() => {
+              setActiveCategory(cat.id)
+              setActiveReport(null)
+              setReportData(null)
+            }}
+          >
+            {cat.icon} {cat.name} ({cat.count})
+          </button>
+        ))}
       </div>
 
-      {/* Filters Panel */}
-      <div className="filters-panel card">
-        <div className="filters-header">
-          <h3><FiFilter /> {t('common.filter')}</h3>
+      <div className="reports-layout">
+        {/* Report Selector Sidebar */}
+        <div className="report-selector card">
+          <h3>Select Report</h3>
+          <div className="report-list">
+            {reportDefinitions[activeCategory]?.map(report => (
+              <button
+                key={report.id}
+                className={`report-item ${activeReport === report.id ? 'active' : ''}`}
+                onClick={() => handleReportSelect(report.id)}
+              >
+                <div className="report-item-header">
+                  <span className="report-item-name">{report.name}</span>
+                </div>
+                <span className="report-item-desc">{report.description}</span>
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="filters-grid">
-          <div className="filter-group">
-            <label>{t('reports.governorate')}</label>
-            <select 
-              className="filter-select"
-              value={selectedGovernorate || ''}
-              onChange={(e) => {
-                setSelectedGovernorate(e.target.value || null)
-                setSelectedGovernorateId(null)
-              }}
-              disabled={loadingFilters}
-            >
-              <option value="">{t('reports.allGovernorates')}</option>
-              {governorates.map(gov => (
-                <option key={gov} value={gov}>{gov}</option>
-              ))}
-            </select>
+
+        {/* Main Content Area */}
+        <div className="reports-main">
+          {/* Filters Panel */}
+          <div className="filters-panel card">
+            <div className="filters-header">
+              <h3><FiFilter /> Filters</h3>
+            </div>
+            <div className="filters-grid">
+              <div className="filter-group">
+                <label>Start Date</label>
+                <input
+                  type="date"
+                  className="filter-select"
+                  value={filters.startDate ? filters.startDate.split('T')[0] : ''}
+                  onChange={(e) => handleFilterChange('startDate', formatDateForAPI(e.target.value))}
+                />
+              </div>
+
+              <div className="filter-group">
+                <label>End Date</label>
+                <input
+                  type="date"
+                  className="filter-select"
+                  value={filters.endDate ? filters.endDate.split('T')[0] : ''}
+                  onChange={(e) => handleFilterChange('endDate', formatDateForAPI(e.target.value))}
+                />
+              </div>
+
+              <div className="filter-group">
+                <label>Time Group</label>
+                <select
+                  className="filter-select"
+                  value={filters.timeGroup}
+                  onChange={(e) => handleFilterChange('timeGroup', e.target.value)}
+                >
+                  <option value="minute">Minute</option>
+                  <option value="hour">Hour</option>
+                  <option value="day">Day</option>
+                  <option value="week">Week</option>
+                  <option value="month">Month</option>
+                  <option value="year">Year</option>
+                </select>
+              </div>
+
+              <div className="filter-group">
+                <label>Governorate</label>
+                <select
+                  className="filter-select"
+                  value={filters.governorate || ''}
+                  onChange={(e) => handleFilterChange('governorate', e.target.value || null)}
+                  disabled={loadingFilters}
+                >
+                  <option value="">All Governorates</option>
+                  {governorates.map(gov => (
+                    <option key={gov} value={gov}>{gov}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="filter-group">
+                <label>Product</label>
+                <select
+                  className="filter-select"
+                  value={filters.productId || ''}
+                  onChange={(e) => handleFilterChange('productId', e.target.value ? Number(e.target.value) : null)}
+                  disabled={loadingFilters}
+                >
+                  <option value="">All Products</option>
+                  {products.map(product => (
+                    <option key={product.productId || product.id} value={product.productId || product.id}>
+                      {product.nameEn || product.nameAr || product.name || `Product ${product.productId || product.id}`}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="filter-group">
+                <label>Category</label>
+                <select
+                  className="filter-select"
+                  value={filters.categoryId || ''}
+                  onChange={(e) => handleFilterChange('categoryId', e.target.value ? Number(e.target.value) : null)}
+                  disabled={loadingFilters}
+                >
+                  <option value="">All Categories</option>
+                  {productCategories.map(cat => (
+                    <option key={cat.categoryId || cat.id} value={cat.categoryId || cat.id}>
+                      {cat.nameEn || cat.nameAr || cat.name || `Category ${cat.categoryId || cat.id}`}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="filter-group">
+                <label>User Type</label>
+                <select
+                  className="filter-select"
+                  value={filters.userType || ''}
+                  onChange={(e) => handleFilterChange('userType', e.target.value || null)}
+                >
+                  <option value="">All Types</option>
+                  <option value="farmer">Farmer</option>
+                  <option value="trader">Trader</option>
+                  <option value="transporter">Transporter</option>
+                  <option value="buyer">Buyer</option>
+                </select>
+              </div>
+
+              <div className="filter-group">
+                <label>Status</label>
+                <select
+                  className="filter-select"
+                  value={filters.status || ''}
+                  onChange={(e) => handleFilterChange('status', e.target.value || null)}
+                >
+                  <option value="">All Statuses</option>
+                  <option value="open">Open</option>
+                  <option value="completed">Completed</option>
+                  <option value="active">Active</option>
+                  <option value="closed">Closed</option>
+                </select>
+              </div>
+            </div>
           </div>
 
-          <div className="filter-group">
-            <label>{t('reports.product')}</label>
-            <select 
-              className="filter-select"
-              value={selectedProduct || ''}
-              onChange={(e) => setSelectedProduct(e.target.value ? Number(e.target.value) : null)}
-              disabled={loadingFilters}
-            >
-              <option value="">{t('reports.allProducts')}</option>
-              {products.map(product => (
-                <option key={product.productId} value={product.productId}>
-                  {product.nameEn || product.nameAr || `Product ${product.productId}`}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="filter-group">
-            <label>{t('reports.category')}</label>
-            <select 
-              className="filter-select"
-              value={selectedCategory || ''}
-              onChange={(e) => setSelectedCategory(e.target.value ? Number(e.target.value) : null)}
-              disabled={loadingFilters}
-            >
-              <option value="">{t('reports.allCategories')}</option>
-              {categories.map(cat => (
-                <option key={cat.categoryId} value={cat.categoryId}>
-                  {cat.nameEn || cat.nameAr || `Category ${cat.categoryId}`}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="filter-group">
-            <label>{t('reports.year')}</label>
-            <input 
-              type="number"
-              className="filter-select"
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(Number(e.target.value))}
-              min="2020"
-              max={new Date().getFullYear() + 1}
-            />
-          </div>
-
-          <div className="filter-group">
-            <label>{t('reports.startDate')}</label>
-            <input 
-              type="date"
-              className="filter-select"
-              value={dateRange.startDate ? dateRange.startDate.split('T')[0] : ''}
-              onChange={(e) => handleDateChange('startDate', e.target.value)}
-            />
-          </div>
-
-          <div className="filter-group">
-            <label>{t('reports.endDate')}</label>
-            <input 
-              type="date"
-              className="filter-select"
-              value={dateRange.endDate ? dateRange.endDate.split('T')[0] : ''}
-              onChange={(e) => handleDateChange('endDate', e.target.value)}
-            />
-          </div>
-
-          <div className="filter-group">
-            <label>{t('reports.timeGroup')}</label>
-            <select 
-              className="filter-select"
-              value={timeGroup}
-              onChange={(e) => setTimeGroup(e.target.value)}
-            >
-              <option value="minute">{t('reports.minute')}</option>
-              <option value="hour">{t('reports.hour')}</option>
-              <option value="day">{t('reports.day')}</option>
-              <option value="week">{t('reports.week')}</option>
-              <option value="month">{t('reports.month')}</option>
-              <option value="year">{t('reports.year')}</option>
-            </select>
-          </div>
+          {/* Report Content */}
+          {renderReportContent()}
         </div>
       </div>
-
-      {/* Ministry Reports */}
-      {activeTab === 'ministry' && (
-        <div className="reports-content">
-          {/* Summary Cards */}
-          {totalStorageCapacity && (
-            <div className="stats-grid">
-              <StatCard
-                title={t('reports.totalStorageCapacity')}
-                value={`${(totalStorageCapacity.totalCapacity || 0).toLocaleString()} ${t('reports.tons')}`}
-                icon={<FiDatabase />}
-                color="primary"
-              />
-              {storageUsageRate && (
-                <StatCard
-                  title={t('reports.storageUsageRate')}
-                  value={`${(storageUsageRate.usageRatePercentage || 0).toFixed(1)}%`}
-                  icon={<FiActivity />}
-                  color="warning"
-                />
-              )}
-              {currentMonthFlow && (
-                <StatCard
-                  title={t('reports.currentMonthFlow')}
-                  value={`${(currentMonthFlow.currentPeriod?.quantity || 0).toLocaleString()} ${t('reports.tons')}`}
-                  change={currentMonthFlow.percentageChange}
-                  icon={<FiTrendingUp />}
-                  color={currentMonthFlow.percentageChange >= 0 ? 'success' : 'danger'}
-                />
-              )}
-              {monthlyMarketFlow?.summary && (
-                <StatCard
-                  title={t('reports.monthlyMarketFlow')}
-                  value={`${(monthlyMarketFlow.summary.netFlow || 0).toLocaleString()} ${t('reports.tons')}`}
-                  icon={<FiBarChart2 />}
-                  color="info"
-                />
-              )}
-            </div>
-          )}
-
-          {/* Monthly Market Flow Chart */}
-          {monthlyMarketFlowChartData.length > 0 && (
-            <Chart
-              type="composed"
-              data={monthlyMarketFlowChartData}
-              dataKeys={[
-                { dataKey: 'incoming', name: t('reports.incoming'), type: 'bar', color: '#10b981' },
-                { dataKey: 'outgoing', name: t('reports.outgoing'), type: 'bar', color: '#ef4444' },
-                { dataKey: 'netFlow', name: t('reports.netFlow'), type: 'line', color: '#6366f1' }
-              ]}
-              xAxisKey="period"
-              title={t('reports.monthlyMarketFlow')}
-              height={400}
-              yAxisLabel={t('reports.quantity')}
-              tooltipFormatter={(value, name) => [`${value.toLocaleString()} ${t('reports.tons')}`, name]}
-            />
-          )}
-
-          {/* Current Month Flow Card */}
-          {currentMonthFlow && (
-            <div className="info-card card">
-              <h3>{t('reports.currentMonthFlow')}</h3>
-              <div className="info-grid">
-                <div>
-                  <p className="info-label">{t('reports.currentPeriod')}</p>
-                  <p className="info-value">{currentMonthFlow.currentPeriod?.quantity?.toLocaleString() || 0} {t('reports.tons')}</p>
-                </div>
-                <div>
-                  <p className="info-label">{t('reports.previousPeriod')}</p>
-                  <p className="info-value">{currentMonthFlow.previousPeriod?.quantity?.toLocaleString() || 0} {t('reports.tons')}</p>
-                </div>
-                <div>
-                  <p className="info-label">{t('reports.change')}</p>
-                  <p className={`info-value ${currentMonthFlow.percentageChange >= 0 ? 'positive' : 'negative'}`}>
-                    {currentMonthFlow.percentageChange >= 0 ? '+' : ''}{currentMonthFlow.percentageChange?.toFixed(2) || 0}%
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Storage Capacity by Governorate */}
-          {storageCapacityChartData.length > 0 && (
-            <Chart
-              type="bar"
-              data={storageCapacityChartData}
-              dataKeys={[
-                { dataKey: 'totalCapacity', name: t('reports.totalCapacity'), color: '#6366f1' },
-                { dataKey: 'actualUsage', name: t('reports.actualUsage'), color: '#10b981' },
-                { dataKey: 'availableCapacity', name: t('reports.available'), color: '#94a3b8' }
-              ]}
-              xAxisKey="governorate"
-              title={t('reports.storageCapacity')}
-              height={400}
-              yAxisLabel={t('reports.quantity')}
-              tooltipFormatter={(value) => `${value.toLocaleString()} ${t('reports.tons')}`}
-            />
-          )}
-
-          {/* Storage Usage Rate */}
-          {storageUsageRate && (
-            <div className="info-card card">
-              <h3>{t('reports.storageUsageRate')}</h3>
-              <div className="usage-stats">
-                <div className="usage-item">
-                  <p className="usage-label">{t('reports.totalCapacity')}</p>
-                  <p className="usage-value">{storageUsageRate.totalCapacity?.toLocaleString() || 0} {t('reports.tons')}</p>
-                </div>
-                <div className="usage-item">
-                  <p className="usage-label">{t('reports.actualUsage')}</p>
-                  <p className="usage-value">{storageUsageRate.actualUsage?.toLocaleString() || 0} {t('reports.tons')}</p>
-                </div>
-                <div className="usage-item">
-                  <p className="usage-label">{t('reports.availableCapacity')}</p>
-                  <p className="usage-value">{storageUsageRate.availableCapacity?.toLocaleString() || 0} {t('reports.tons')}</p>
-                </div>
-                <div className="usage-item">
-                  <p className="usage-label">{t('reports.usageRate')}</p>
-                  <p className="usage-value highlight">{storageUsageRate.usageRatePercentage?.toFixed(1) || 0}%</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Storage Types Distribution */}
-          {storageTypesChartData.length > 0 && (
-            <div className="charts-grid">
-              <Chart
-                type="pie"
-                data={storageTypesChartData}
-                dataKey="value"
-                title={t('reports.storageTypesDistribution')}
-                height={350}
-                pieLabel={true}
-                tooltipFormatter={(value, name, props) => [
-                  `${value} ${t('reports.facilities')} (${props.payload.percentage?.toFixed(1)}%)`,
-                  name
-                ]}
-              />
-              <Chart
-                type="bar"
-                data={storageTypesChartData}
-                dataKey="capacity"
-                xAxisKey="name"
-                title={t('reports.storageTypesCapacity')}
-                height={350}
-                yAxisLabel={t('reports.quantity')}
-                tooltipFormatter={(value) => `${value.toLocaleString()} ${t('reports.tons')}`}
-              />
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Statistics Reports */}
-      {activeTab === 'statistics' && (
-        <div className="reports-content">
-          {/* Summary Cards */}
-          {userActivity?.summary && (
-            <div className="stats-grid">
-              <StatCard
-                title={t('reports.totalNewUsers')}
-                value={(userActivity.summary.totalNewUsers || 0).toLocaleString()}
-                icon={<FiUsers />}
-                color="success"
-              />
-              <StatCard
-                title={t('reports.totalActiveUsers')}
-                value={(userActivity.summary.totalActiveUsers || 0).toLocaleString()}
-                icon={<FiActivity />}
-                color="primary"
-              />
-              <StatCard
-                title={t('reports.avgNewUsers')}
-                value={(userActivity.summary.averageNewUsersPerPeriod || 0).toFixed(0)}
-                icon={<FiTrendingUp />}
-                color="info"
-              />
-              {productionByProduct?.summary && (
-                <StatCard
-                  title={t('reports.totalProduction')}
-                  value={`${(productionByProduct.summary.totalQuantity || 0).toLocaleString()} ${t('reports.tons')}`}
-                  icon={<FiPackage />}
-                  color="warning"
-                />
-              )}
-            </div>
-          )}
-
-          {/* User Activity Chart */}
-          {userActivityChartData.length > 0 && (
-            <Chart
-              type="composed"
-              data={userActivityChartData}
-              dataKeys={[
-                { dataKey: 'newUsers', name: t('reports.newUsers'), type: 'bar', color: '#10b981' },
-                { dataKey: 'activeUsers', name: t('reports.activeUsers'), type: 'line', color: '#6366f1' }
-              ]}
-              xAxisKey="period"
-              title={t('reports.userActivity')}
-              height={400}
-              yAxisLabel={t('reports.numberOfUsers')}
-              tooltipFormatter={(value) => value.toLocaleString()}
-            />
-          )}
-
-          {/* User Distribution Charts */}
-          <div className="charts-grid">
-            {userAgeGroupChartData.length > 0 && (
-              <Chart
-                type="pie"
-                data={userAgeGroupChartData}
-                dataKey="value"
-                title={t('reports.userAgeGroup')}
-                height={350}
-                pieLabel={true}
-                tooltipFormatter={(value, name, props) => [
-                  `${value} ${t('common.users')} (${props.payload.percentage?.toFixed(1)}%)`,
-                  name
-                ]}
-              />
-            )}
-
-            {userTypeChartData.length > 0 && (
-              <Chart
-                type="pie"
-                data={userTypeChartData}
-                dataKey="value"
-                title={t('reports.userType')}
-                height={350}
-                pieLabel={true}
-                tooltipFormatter={(value, name, props) => [
-                  `${value} ${t('common.users')} (${props.payload.percentage?.toFixed(1)}%)`,
-                  name
-                ]}
-              />
-            )}
-          </div>
-
-          {/* User Distribution by Governorate */}
-          {userByGovernorateChartData.length > 0 && (
-            <Chart
-              type="bar"
-              data={userByGovernorateChartData}
-              dataKey="value"
-              xAxisKey="name"
-              title={t('reports.userByGovernorate')}
-              height={400}
-              yAxisLabel={t('reports.numberOfUsers')}
-              tooltipFormatter={(value, name, props) => [
-                `${value.toLocaleString()} users (${props.payload.percentage?.toFixed(1)}%)`,
-                name
-              ]}
-            />
-          )}
-
-          {/* Production by Product */}
-          {productionByProductChartData.length > 0 && (
-            <Chart
-              type="bar"
-              data={productionByProductChartData}
-              dataKey="quantity"
-              xAxisKey="name"
-              title={t('reports.productionByProduct')}
-              height={400}
-              yAxisLabel={t('reports.quantity')}
-              tooltipFormatter={(value, name, props) => [
-                `${value.toLocaleString()} ${t('reports.tons')} (${props.payload.transactions} ${t('reports.transactions')})`,
-                name
-              ]}
-            />
-          )}
-
-          {/* Product Distribution by Category */}
-          {productByCategoryChartData.length > 0 && (
-            <div className="charts-grid">
-              <Chart
-                type="bar"
-                data={productByCategoryChartData}
-                dataKey="quantity"
-                xAxisKey="name"
-                title={t('reports.productByCategory')}
-                height={350}
-                yAxisLabel={t('reports.quantity')}
-                tooltipFormatter={(value, name, props) => [
-                  `${value.toLocaleString()} ${t('reports.tons')} (${props.payload.quantityPercentage?.toFixed(1)}%)`,
-                  name
-                ]}
-              />
-              <Chart
-                type="pie"
-                data={productByCategoryChartData}
-                dataKey="quantityPercentage"
-                title={t('reports.productByCategory')}
-                height={350}
-                pieLabel={true}
-                tooltipFormatter={(value, name, props) => [
-                  `${value.toFixed(1)}% (${props.payload.quantity?.toLocaleString()} ${t('reports.tons')})`,
-                  name
-                ]}
-              />
-            </div>
-          )}
-
-          {/* Seasonal Production */}
-          {seasonalProductionChartData.length > 0 && (
-            <Chart
-              type="bar"
-              data={seasonalProductionChartData}
-              dataKey="totalQuantity"
-              xAxisKey="month"
-              title={`${t('reports.seasonalProduction')} ${seasonalProduction?.year || selectedYear}`}
-              height={400}
-              yAxisLabel={t('reports.quantity')}
-              tooltipFormatter={(value) => `${value.toLocaleString()} ${t('reports.tons')}`}
-            />
-          )}
-        </div>
-      )}
-
-      {/* Loading States */}
-      {Object.values(loading).some(v => v) && (
-        <div className="loading-overlay">
-          <p>{t('reports.loadingReports')}</p>
-        </div>
-      )}
-
-      {/* Error Messages */}
-      {Object.entries(errors).map(([key, error]) => error && (
-        <div key={key} className="error-message card">
-          <p>Error loading {key}: {error}</p>
-        </div>
-      ))}
     </div>
   )
 }
 
 export default Reports
-

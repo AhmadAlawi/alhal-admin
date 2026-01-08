@@ -35,6 +35,22 @@
   margin-bottom: 2rem;
   border-bottom: 2px solid var(--border-color);
   padding-bottom: 0.5rem;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+}
+
+.reports-tabs::-webkit-scrollbar {
+  height: 6px;
+}
+
+.reports-tabs::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.reports-tabs::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
 }
 
 .tab-button {
@@ -245,7 +261,118 @@
   margin: 0;
 }
 
+/* Reports Layout */
+.reports-layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.report-selector {
+  position: sticky;
+  top: 2rem;
+  height: fit-content;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+}
+
+.report-selector h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.report-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.report-item {
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  width: 100%;
+}
+
+.report-item:hover {
+  border-color: var(--primary-color);
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.report-item.active {
+  border-color: var(--primary-color);
+  background: rgba(99, 102, 241, 0.15);
+}
+
+.report-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.report-item-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.report-item-desc {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  display: block;
+}
+
+.reports-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.report-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.no-report-selected,
+.loading-state,
+.error-state,
+.no-data-state,
+.no-data {
+  padding: 3rem;
+  text-align: center;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-color);
+}
+
+.error-state {
+  color: var(--danger-color);
+  border-color: var(--danger-color);
+}
+
+.error-state button {
+  margin-top: 1rem;
+}
+
 /* Responsive */
+@media (max-width: 1200px) {
+  .reports-layout {
+    grid-template-columns: 250px 1fr;
+  }
+}
+
 @media (max-width: 768px) {
   .reports-page {
     padding: 1rem;
@@ -254,6 +381,16 @@
   .page-header {
     flex-direction: column;
     gap: 1rem;
+  }
+
+  .reports-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .report-selector {
+    position: relative;
+    top: 0;
+    max-height: none;
   }
 
   .filters-grid {
@@ -274,13 +411,13 @@
   }
 
   .reports-tabs {
-    flex-direction: column;
+    flex-wrap: wrap;
     gap: 0.5rem;
   }
 
   .tab-button {
-    width: 100%;
-    justify-content: center;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
   }
 }
 

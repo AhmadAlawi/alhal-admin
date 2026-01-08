@@ -1,189 +1,279 @@
 import apiClient from './api';
 
 /**
- * Reports Service
- * Handles all Reports API endpoints for Ministry and Statistics reports
+ * Comprehensive Reports Service
+ * Handles all 40+ Reports API endpoints covering all aspects of the platform
  */
 
+// Helper function to build filtered params
+const buildParams = (params = {}) => {
+  const filteredParams = {};
+  const paramKeys = [
+    'startDate', 'endDate', 'timeGroup', 'governorate', 'governorateId', 
+    'cityId', 'areaId', 'productId', 'categoryId', 'subCategoryId',
+    'userId', 'userType', 'isVerified', 'status', 'transportProviderId',
+    'fromArea', 'toArea', 'tenderId', 'auctionId', 'page', 'pageSize',
+    'sortBy', 'sortOrder', 'year'
+  ];
+  
+  paramKeys.forEach(key => {
+    if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
+      filteredParams[key] = params[key];
+    }
+  });
+  
+  return filteredParams;
+};
+
 const reportsService = {
-  // ===== MINISTRY REPORTS =====
-
-  /**
-   * Monthly Market Flow
-   * Comparison between incoming and outgoing products monthly (in tons)
-   */
-  getMonthlyMarketFlow: async (params = {}) => {
-    const filteredParams = {};
-    if (params.startDate) filteredParams.startDate = params.startDate;
-    if (params.endDate) filteredParams.endDate = params.endDate;
-    if (params.governorate) filteredParams.governorate = params.governorate;
-    if (params.governorateId) filteredParams.governorateId = params.governorateId;
-    if (params.productId) filteredParams.productId = params.productId;
-    if (params.timeGroup) filteredParams.timeGroup = params.timeGroup;
-
-    return apiClient.get('/api/reports/ministry/market-flow/monthly', filteredParams);
+  // ===== SALES REPORTS (5 reports) =====
+  
+  getSalesReport: async (params = {}) => {
+    return apiClient.get('/api/reports/sales', buildParams(params));
   },
 
-  /**
-   * Storage Capacity by Governorate
-   * Distribution of storage capacity and actual usage by governorate (in tons)
-   */
-  getStorageCapacityByGovernorate: async (params = {}) => {
-    const filteredParams = {};
-    if (params.governorate) filteredParams.governorate = params.governorate;
-    if (params.startDate) filteredParams.startDate = params.startDate;
-    if (params.endDate) filteredParams.endDate = params.endDate;
-    if (params.timeGroup) filteredParams.timeGroup = params.timeGroup;
-
-    return apiClient.get('/api/reports/ministry/storage-capacity/by-governorate', filteredParams);
+  getSalesByProduct: async (params = {}) => {
+    return apiClient.get('/api/reports/sales/by-product', buildParams(params));
   },
 
-  /**
-   * Current Month Market Flow
-   * Monthly market flow with percentage change from previous period
-   */
-  getCurrentMonthMarketFlow: async (params = {}) => {
-    const filteredParams = {};
-    if (params.governorate) filteredParams.governorate = params.governorate;
-    if (params.governorateId) filteredParams.governorateId = params.governorateId;
-    if (params.productId) filteredParams.productId = params.productId;
-    if (params.timeGroup) filteredParams.timeGroup = params.timeGroup;
-
-    return apiClient.get('/api/reports/ministry/market-flow/current-month', filteredParams);
+  getSalesByCategory: async (params = {}) => {
+    return apiClient.get('/api/reports/sales/by-category', buildParams(params));
   },
 
-  /**
-   * Storage Usage Rate
-   * Usage rate - actual usage vs total capacity
-   */
-  getStorageUsageRate: async (params = {}) => {
-    const filteredParams = {};
-    if (params.governorate) filteredParams.governorate = params.governorate;
-
-    return apiClient.get('/api/reports/ministry/storage/usage-rate', filteredParams);
+  getSalesByLocation: async (params = {}) => {
+    return apiClient.get('/api/reports/sales/by-location', buildParams(params));
   },
 
-  /**
-   * Total Storage Capacity
-   * Total storage capacity
-   */
-  getTotalStorageCapacity: async (params = {}) => {
-    const filteredParams = {};
-    if (params.governorate) filteredParams.governorate = params.governorate;
-
-    return apiClient.get('/api/reports/ministry/storage/total-capacity', filteredParams);
+  getSalesTrends: async (params = {}) => {
+    return apiClient.get('/api/reports/sales/trends', buildParams(params));
   },
 
-  /**
-   * Storage Types Distribution
-   * Distribution of storage types - percentages of different storage facilities
-   */
-  getStorageTypesDistribution: async (params = {}) => {
-    const filteredParams = {};
-    if (params.governorate) filteredParams.governorate = params.governorate;
+  // ===== USER REPORTS (5 reports) =====
 
-    return apiClient.get('/api/reports/ministry/storage/types-distribution', filteredParams);
-  },
-
-  // ===== STATISTICS REPORTS =====
-
-  /**
-   * User Distribution by Age Group
-   * User distribution by age group - percentage for each age group
-   */
-  getUserDistributionByAgeGroup: async (params = {}) => {
-    const filteredParams = {};
-    if (params.governorate) filteredParams.governorate = params.governorate;
-    if (params.startDate) filteredParams.startDate = params.startDate;
-    if (params.endDate) filteredParams.endDate = params.endDate;
-    if (params.timeGroup) filteredParams.timeGroup = params.timeGroup;
-
-    return apiClient.get('/api/reports/statistics/users/by-age-group', filteredParams);
-  },
-
-  /**
-   * User Distribution by Type
-   * User distribution by type - percentage for each user type
-   */
-  getUserDistributionByType: async (params = {}) => {
-    const filteredParams = {};
-    if (params.governorate) filteredParams.governorate = params.governorate;
-    if (params.startDate) filteredParams.startDate = params.startDate;
-    if (params.endDate) filteredParams.endDate = params.endDate;
-    if (params.timeGroup) filteredParams.timeGroup = params.timeGroup;
-
-    return apiClient.get('/api/reports/statistics/users/by-type', filteredParams);
-  },
-
-  /**
-   * User Activity
-   * User activity - active and new users throughout the year
-   */
   getUserActivity: async (params = {}) => {
-    const filteredParams = {};
-    if (params.startDate) filteredParams.startDate = params.startDate;
-    if (params.endDate) filteredParams.endDate = params.endDate;
-    if (params.governorate) filteredParams.governorate = params.governorate;
-    if (params.governorateId) filteredParams.governorateId = params.governorateId;
-    if (params.timeGroup) filteredParams.timeGroup = params.timeGroup;
-
-    return apiClient.get('/api/reports/statistics/users/activity', filteredParams);
+    return apiClient.get('/api/reports/users/activity', buildParams(params));
   },
 
-  /**
-   * User Distribution by Governorate
-   * User distribution by governorate - percentage of users in each governorate
-   */
+  getUserRegistrations: async (params = {}) => {
+    return apiClient.get('/api/reports/users/registrations', buildParams(params));
+  },
+
+  getUserTypeDistribution: async (params = {}) => {
+    return apiClient.get('/api/reports/users/by-type', buildParams(params));
+  },
+
+  getUserLocation: async (params = {}) => {
+    return apiClient.get('/api/reports/users/by-location', buildParams(params));
+  },
+
+  getUserPerformance: async (params = {}) => {
+    return apiClient.get('/api/reports/users/performance', buildParams(params));
+  },
+
+  // ===== PRODUCT REPORTS (5 reports) =====
+
+  getProductPerformance: async (params = {}) => {
+    return apiClient.get('/api/reports/products/performance', buildParams(params));
+  },
+
+  getProductInventory: async (params = {}) => {
+    return apiClient.get('/api/reports/products/inventory', buildParams(params));
+  },
+
+  getProductPriceTrends: async (params = {}) => {
+    return apiClient.get('/api/reports/products/price-trends', buildParams(params));
+  },
+
+  getTopProducts: async (params = {}) => {
+    return apiClient.get('/api/reports/products/top', buildParams(params));
+  },
+
+  getProductCategory: async (params = {}) => {
+    return apiClient.get('/api/reports/products/by-category', buildParams(params));
+  },
+
+  // ===== TRANSPORT REPORTS (5 reports) =====
+
+  getTransportActivity: async (params = {}) => {
+    return apiClient.get('/api/reports/transport/activity', buildParams(params));
+  },
+
+  getTransportProviders: async (params = {}) => {
+    return apiClient.get('/api/reports/transport/providers', buildParams(params));
+  },
+
+  getTransportRoutes: async (params = {}) => {
+    return apiClient.get('/api/reports/transport/routes', buildParams(params));
+  },
+
+  getTransportRevenue: async (params = {}) => {
+    return apiClient.get('/api/reports/transport/revenue', buildParams(params));
+  },
+
+  getTransportRatings: async (params = {}) => {
+    return apiClient.get('/api/reports/transport/ratings', buildParams(params));
+  },
+
+  // ===== TENDER REPORTS (4 reports) =====
+
+  getTenderActivity: async (params = {}) => {
+    return apiClient.get('/api/reports/tenders/activity', buildParams(params));
+  },
+
+  getTenderPerformance: async (params = {}) => {
+    return apiClient.get('/api/reports/tenders/performance', buildParams(params));
+  },
+
+  getTenderOffers: async (params = {}) => {
+    return apiClient.get('/api/reports/tenders/offers', buildParams(params));
+  },
+
+  getTenderAwards: async (params = {}) => {
+    return apiClient.get('/api/reports/tenders/awards', buildParams(params));
+  },
+
+  // ===== AUCTION REPORTS (3 reports) =====
+
+  getAuctionActivity: async (params = {}) => {
+    return apiClient.get('/api/reports/auctions/activity', buildParams(params));
+  },
+
+  getAuctionBids: async (params = {}) => {
+    return apiClient.get('/api/reports/auctions/bids', buildParams(params));
+  },
+
+  getAuctionRevenue: async (params = {}) => {
+    return apiClient.get('/api/reports/auctions/revenue', buildParams(params));
+  },
+
+  // ===== FINANCIAL REPORTS (4 reports) =====
+
+  getRevenue: async (params = {}) => {
+    return apiClient.get('/api/reports/financial/revenue', buildParams(params));
+  },
+
+  getPaymentMethods: async (params = {}) => {
+    return apiClient.get('/api/reports/financial/payment-methods', buildParams(params));
+  },
+
+  getTransactions: async (params = {}) => {
+    return apiClient.get('/api/reports/financial/transactions', buildParams(params));
+  },
+
+  getProfitLoss: async (params = {}) => {
+    return apiClient.get('/api/reports/financial/profit-loss', buildParams(params));
+  },
+
+  // ===== INVENTORY REPORTS (4 reports) =====
+
+  getInventoryLevels: async (params = {}) => {
+    return apiClient.get('/api/reports/inventory/levels', buildParams(params));
+  },
+
+  getInventoryMovements: async (params = {}) => {
+    return apiClient.get('/api/reports/inventory/movements', buildParams(params));
+  },
+
+  getStockBalance: async (params = {}) => {
+    return apiClient.get('/api/reports/inventory/stock-balance', buildParams(params));
+  },
+
+  getWarehouses: async (params = {}) => {
+    return apiClient.get('/api/reports/inventory/warehouses', buildParams(params));
+  },
+
+  // ===== PERFORMANCE REPORTS (3 reports) =====
+
+  getSystemPerformance: async (params = {}) => {
+    return apiClient.get('/api/reports/performance/system', buildParams(params));
+  },
+
+  getConversionRate: async (params = {}) => {
+    return apiClient.get('/api/reports/performance/conversion', buildParams(params));
+  },
+
+  getRetention: async (params = {}) => {
+    return apiClient.get('/api/reports/performance/retention', buildParams(params));
+  },
+
+  // ===== MARKET ANALYSIS REPORTS (3 reports) =====
+
+  getMarketTrends: async (params = {}) => {
+    return apiClient.get('/api/reports/market/trends', buildParams(params));
+  },
+
+  getPriceComparison: async (params = {}) => {
+    return apiClient.get('/api/reports/market/price-comparison', buildParams(params));
+  },
+
+  getSupplyDemand: async (params = {}) => {
+    return apiClient.get('/api/reports/market/supply-demand', buildParams(params));
+  },
+
+  // ===== LOSS REPORTS (3 reports) =====
+
+  getLosses: async (params = {}) => {
+    return apiClient.get('/api/reports/losses', buildParams(params));
+  },
+
+  getLossesByProduct: async (params = {}) => {
+    return apiClient.get('/api/reports/losses/by-product', buildParams(params));
+  },
+
+  getLossesByLocation: async (params = {}) => {
+    return apiClient.get('/api/reports/losses/by-location', buildParams(params));
+  },
+
+  // ===== LEGACY MINISTRY REPORTS (for backward compatibility) =====
+
+  getMonthlyMarketFlow: async (params = {}) => {
+    return apiClient.get('/api/reports/ministry/market-flow/monthly', buildParams(params));
+  },
+
+  getStorageCapacityByGovernorate: async (params = {}) => {
+    return apiClient.get('/api/reports/ministry/storage-capacity/by-governorate', buildParams(params));
+  },
+
+  getCurrentMonthMarketFlow: async (params = {}) => {
+    return apiClient.get('/api/reports/ministry/market-flow/current-month', buildParams(params));
+  },
+
+  getStorageUsageRate: async (params = {}) => {
+    return apiClient.get('/api/reports/ministry/storage/usage-rate', buildParams(params));
+  },
+
+  getTotalStorageCapacity: async (params = {}) => {
+    return apiClient.get('/api/reports/ministry/storage/total-capacity', buildParams(params));
+  },
+
+  getStorageTypesDistribution: async (params = {}) => {
+    return apiClient.get('/api/reports/ministry/storage/types-distribution', buildParams(params));
+  },
+
+  // ===== LEGACY STATISTICS REPORTS (for backward compatibility) =====
+
+  getUserDistributionByAgeGroup: async (params = {}) => {
+    return apiClient.get('/api/reports/statistics/users/by-age-group', buildParams(params));
+  },
+
+  getUserDistributionByType: async (params = {}) => {
+    return apiClient.get('/api/reports/statistics/users/by-type', buildParams(params));
+  },
+
   getUserDistributionByGovernorate: async (params = {}) => {
-    const filteredParams = {};
-    if (params.startDate) filteredParams.startDate = params.startDate;
-    if (params.endDate) filteredParams.endDate = params.endDate;
-    if (params.timeGroup) filteredParams.timeGroup = params.timeGroup;
-
-    return apiClient.get('/api/reports/statistics/users/by-governorate', filteredParams);
+    return apiClient.get('/api/reports/statistics/users/by-governorate', buildParams(params));
   },
 
-  /**
-   * Production Quantities by Product
-   * Production quantities by product - production quantity in tons per product
-   */
   getProductionQuantitiesByProduct: async (params = {}) => {
-    const filteredParams = {};
-    if (params.startDate) filteredParams.startDate = params.startDate;
-    if (params.endDate) filteredParams.endDate = params.endDate;
-    if (params.governorate) filteredParams.governorate = params.governorate;
-    if (params.categoryId) filteredParams.categoryId = params.categoryId;
-    if (params.timeGroup) filteredParams.timeGroup = params.timeGroup;
-
-    return apiClient.get('/api/reports/statistics/production/by-product', filteredParams);
+    return apiClient.get('/api/reports/statistics/production/by-product', buildParams(params));
   },
 
-  /**
-   * Product Distribution by Category
-   * Product distribution by category - percentage for each product category
-   */
   getProductDistributionByCategory: async (params = {}) => {
-    const filteredParams = {};
-    if (params.startDate) filteredParams.startDate = params.startDate;
-    if (params.endDate) filteredParams.endDate = params.endDate;
-    if (params.governorate) filteredParams.governorate = params.governorate;
-    if (params.timeGroup) filteredParams.timeGroup = params.timeGroup;
-
-    return apiClient.get('/api/reports/statistics/products/by-category', filteredParams);
+    return apiClient.get('/api/reports/statistics/products/by-category', buildParams(params));
   },
 
-  /**
-   * Seasonal Production
-   * Seasonal production - monthly production quantities by product category (in tons)
-   */
   getSeasonalProduction: async (params = {}) => {
-    const filteredParams = {};
-    if (params.year) filteredParams.year = params.year;
-    if (params.governorate) filteredParams.governorate = params.governorate;
-    if (params.categoryId) filteredParams.categoryId = params.categoryId;
-    if (params.timeGroup) filteredParams.timeGroup = params.timeGroup;
-
-    return apiClient.get('/api/reports/statistics/production/seasonal', filteredParams);
+    return apiClient.get('/api/reports/statistics/production/seasonal', buildParams(params));
   },
 };
 

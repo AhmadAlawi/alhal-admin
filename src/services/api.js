@@ -29,18 +29,34 @@ class ApiClient {
       
       // Handle 401 Unauthorized - token expired or invalid
       if (response.status === 401) {
+        // Prevent multiple redirects
+        const redirectKey = 'auth_redirect_in_progress';
+        if (sessionStorage.getItem(redirectKey)) {
+          // Already redirecting, just throw error
+          const error = await response.json().catch(() => ({ message: 'Unauthorized. Please login again.' }));
+          throw new Error(error.message || error.error?.detail || 'Unauthorized. Please login again.');
+        }
+        
+        // Set flag to prevent loops
+        sessionStorage.setItem(redirectKey, 'true');
+        
         // Clear auth data
         localStorage.removeItem('authToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('tokenExpiresAt');
         localStorage.removeItem('userId');
         localStorage.removeItem('user');
+        sessionStorage.removeItem('authLastCheck');
         
         // Only redirect if not already on login page
-        // Use replace to prevent adding to history and potential loops
         if (!window.location.pathname.includes('/login')) {
-          // Use replace instead of href to prevent refresh loops
-          window.location.replace('/login');
+          // Use replace and clear flag after redirect
+          setTimeout(() => {
+            sessionStorage.removeItem(redirectKey);
+            window.location.replace('/login');
+          }, 100);
+        } else {
+          sessionStorage.removeItem(redirectKey);
         }
         
         const error = await response.json().catch(() => ({ message: 'Unauthorized. Please login again.' }));

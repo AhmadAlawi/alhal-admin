@@ -9,11 +9,12 @@ const ProtectedRoute = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    let isMounted = true // Prevent state updates if component unmounts
+    let isMounted = true
+    let timeoutId = null
     
     const checkAuth = async () => {
       try {
-        // Check if token exists in localStorage
+        // Simple token check - no API call to prevent loops
         const hasToken = authService.isAuthenticated()
         
         if (!hasToken) {
@@ -24,9 +25,30 @@ const ProtectedRoute = ({ children }) => {
           return
         }
         
-        // Verify token by calling /api/auth/me
+        // Only verify token if we haven't checked recently (prevent loops)
+        const lastCheck = sessionStorage.getItem('authLastCheck')
+        const now = Date.now()
+        const checkCooldown = 30000 // 30 seconds cooldown
+        
+        if (lastCheck && (now - parseInt(lastCheck)) < checkCooldown) {
+          // Use cached result to prevent API loops
+          if (isMounted) {
+            setIsAuthenticated(true)
+            setIsLoading(false)
+          }
+          return
+        }
+        
+        // Verify token by calling /api/auth/me (with timeout)
         try {
-          const userResponse = await authService.getCurrentUser()
+          const userResponse = await Promise.race([
+            authService.getCurrentUser(),
+            new Promise((_, reject) => 
+              timeoutId = setTimeout(() => reject(new Error('Timeout')), 5000)
+            )
+          ])
+          
+          if (timeoutId) clearTimeout(timeoutId)
           
           // Extract user info from response if needed
           if (userResponse?.data?.userId || userResponse?.data?.data?.userId) {
@@ -36,16 +58,18 @@ const ProtectedRoute = ({ children }) => {
             }
           }
           
+          sessionStorage.setItem('authLastCheck', now.toString())
+          
           if (isMounted) {
             setIsAuthenticated(true)
             setIsLoading(false)
           }
         } catch (error) {
-          // Token might be invalid or expired
-          // Clear invalid token
-          authService.logout()
+          if (timeoutId) clearTimeout(timeoutId)
+          
+          // On error, just check token existence (don't clear - might be network issue)
           if (isMounted) {
-            setIsAuthenticated(false)
+            setIsAuthenticated(hasToken) // Use token existence as fallback
             setIsLoading(false)
           }
         }
@@ -62,8 +86,9 @@ const ProtectedRoute = ({ children }) => {
     // Cleanup function
     return () => {
       isMounted = false
+      if (timeoutId) clearTimeout(timeoutId)
     }
-  }, [location.pathname]) // Re-check only when pathname changes
+  }, []) // Only run once on mount - no re-checks
 
   if (isLoading) {
     // Show loading spinner or skeleton
