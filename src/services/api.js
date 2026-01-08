@@ -1,5 +1,11 @@
 // API Configuration and Base Setup
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://alhal.awnak.net';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://localhost:7059';
+
+// Log API base URL for debugging (only in development)
+if (import.meta.env.DEV) {
+  console.log('API Base URL:', API_BASE_URL);
+  console.log('Environment Variable:', import.meta.env.VITE_API_BASE_URL);
+}
 
 // API Client with interceptors
 class ApiClient {
@@ -9,7 +15,18 @@ class ApiClient {
 
   async request(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
-    const token = localStorage.getItem('authToken');
+    let token = localStorage.getItem('authToken');
+    
+    // Handle token if it's stored as JSON string
+    if (token) {
+      try {
+        const parsed = JSON.parse(token);
+        token = typeof parsed === 'string' ? parsed : (parsed.token || parsed.accessToken || token);
+      } catch (e) {
+        // Token is already a string, use as is
+        token = token;
+      }
+    }
 
     // If body is FormData, don't set Content-Type header (browser will set it with boundary)
     const isFormData = options.body instanceof FormData;

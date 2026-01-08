@@ -299,7 +299,7 @@ const filteredProducts = products.filter(p =>
 ### Products Not Loading?
 
 **Check:**
-1. Is backend running on `https://alhal.awnak.net`?
+1. Is backend running on `https://localhost:7059`?
 2. Does `/api/admin/products` endpoint return data?
 3. Check browser console for errors
 

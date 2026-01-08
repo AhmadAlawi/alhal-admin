@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { FiFilter, FiRefreshCw, FiDownload, FiTrendingUp, FiBarChart2, FiPieChart, FiActivity, FiDatabase, FiUsers, FiPackage, FiTruck, FiFileText, FiGavel, FiDollarSign, FiBox, FiZap, FiTrendingDown, FiShoppingCart, FiMapPin } from 'react-icons/fi'
+import { FiFilter, FiRefreshCw, FiDownload, FiTrendingUp, FiBarChart2, FiPieChart, FiActivity, FiDatabase, FiUsers, FiPackage, FiTruck, FiFileText, FiAward, FiDollarSign, FiBox, FiZap, FiTrendingDown, FiShoppingCart, FiMapPin } from 'react-icons/fi'
 import StatCard from '../components/StatCard/StatCard'
 import Chart from '../components/Chart/Chart'
 import Table from '../components/Table/Table'
@@ -18,7 +18,7 @@ const Reports = () => {
     { id: 'products', name: 'Product Reports', icon: <FiPackage />, count: 5 },
     { id: 'transport', name: 'Transport Reports', icon: <FiTruck />, count: 5 },
     { id: 'tenders', name: 'Tender Reports', icon: <FiFileText />, count: 4 },
-    { id: 'auctions', name: 'Auction Reports', icon: <FiGavel />, count: 3 },
+    { id: 'auctions', name: 'Auction Reports', icon: <FiAward />, count: 3 },
     { id: 'financial', name: 'Financial Reports', icon: <FiDollarSign />, count: 4 },
     { id: 'inventory', name: 'Inventory Reports', icon: <FiBox />, count: 4 },
     { id: 'performance', name: 'Performance Reports', icon: <FiZap />, count: 3 },
