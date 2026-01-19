@@ -35,7 +35,7 @@ Purpose: Real-time monitoring, KPIs, and operational dashboards
 
 # Market Analysis APIs
 
-Base URL: `https://localhost:7059/api/MarketAnalysis`
+Base URL: `https://alhal.awnak.net/api/MarketAnalysis`
 
 ---
 
@@ -52,7 +52,7 @@ Base URL: `https://localhost:7059/api/MarketAnalysis`
 
 **Request**:
 ```bash
-curl -X POST https://localhost:7059/api/MarketAnalysis/backfill/sales-transactions
+curl -X POST https://alhal.awnak.net/api/MarketAnalysis/backfill/sales-transactions
 ```
 
 **Response**:
@@ -99,7 +99,7 @@ interface MarketAnalysisRequest {
 
 **Request Example**:
 ```bash
-curl -X GET 'https://localhost:7059/api/MarketAnalysis/comprehensive-analysis?governorate=Baghdad&startDate=2025-10-01&endDate=2025-11-01'
+curl -X GET 'https://alhal.awnak.net/api/MarketAnalysis/comprehensive-analysis?governorate=Baghdad&startDate=2025-10-01&endDate=2025-11-01'
 ```
 
 **Response**:
@@ -199,7 +199,7 @@ groupBy?: "day" | "week" | "month" (default: "day")
 
 **Request**:
 ```bash
-curl -X GET 'https://localhost:7059/api/MarketAnalysis/charts/price-trends?productId=1&groupBy=week&startDate=2025-10-01&endDate=2025-11-01'
+curl -X GET 'https://alhal.awnak.net/api/MarketAnalysis/charts/price-trends?productId=1&groupBy=week&startDate=2025-10-01&endDate=2025-11-01'
 ```
 
 **Response**:
@@ -277,7 +277,7 @@ const chartData = {
 
 **Request**:
 ```bash
-curl -X GET 'https://localhost:7059/api/MarketAnalysis/charts/volume-by-governorate?productId=1&startDate=2025-10-01'
+curl -X GET 'https://alhal.awnak.net/api/MarketAnalysis/charts/volume-by-governorate?productId=1&startDate=2025-10-01'
 ```
 
 **Response**:
@@ -364,7 +364,7 @@ const pieData = {
 
 **Request**:
 ```bash
-curl -X GET 'https://localhost:7059/api/MarketAnalysis/charts/sales-heatmap?productId=1&year=2025'
+curl -X GET 'https://alhal.awnak.net/api/MarketAnalysis/charts/sales-heatmap?productId=1&year=2025'
 ```
 
 **Response**:
@@ -427,7 +427,7 @@ svg.selectAll('rect')
 
 **Request**:
 ```bash
-curl -X GET 'https://localhost:7059/api/MarketAnalysis/charts/supply-demand-trends?productId=1&days=30'
+curl -X GET 'https://alhal.awnak.net/api/MarketAnalysis/charts/supply-demand-trends?productId=1&days=30'
 ```
 
 **Response**:
@@ -512,7 +512,7 @@ curl -X GET 'https://localhost:7059/api/MarketAnalysis/charts/supply-demand-tren
 
 **Request**:
 ```bash
-curl -X GET 'https://localhost:7059/api/MarketAnalysis/charts/price-volatility?productId=1&groupBy=week'
+curl -X GET 'https://alhal.awnak.net/api/MarketAnalysis/charts/price-volatility?productId=1&groupBy=week'
 ```
 
 **Response**:
@@ -575,7 +575,7 @@ candlestickSeries.setData(
 
 **Request**:
 ```bash
-curl -X GET 'https://localhost:7059/api/MarketAnalysis/charts/daily-sales-sparkline?productId=1&days=7'
+curl -X GET 'https://alhal.awnak.net/api/MarketAnalysis/charts/daily-sales-sparkline?productId=1&days=7'
 ```
 
 **Response**:
@@ -819,7 +819,7 @@ curl -X GET 'https://localhost:7059/api/MarketAnalysis/charts/daily-sales-sparkl
 
 # Dashboard APIs
 
-Base URL: `https://localhost:7059/api/gov/dashboard`
+Base URL: `https://alhal.awnak.net/api/gov/dashboard`
 
 ---
 
@@ -837,7 +837,7 @@ days?: number (default: 30)
 
 **Request**:
 ```bash
-curl -X GET 'https://localhost:7059/api/gov/dashboard/auto-fill?governorate=Baghdad&days=30'
+curl -X GET 'https://alhal.awnak.net/api/gov/dashboard/auto-fill?governorate=Baghdad&days=30'
 ```
 
 **Complete Response** (Full Example):
@@ -1214,7 +1214,7 @@ topN?: number (default: 10)
 
 **Example 1: By Product**
 ```bash
-curl -X GET 'https://localhost:7059/api/gov/dashboard/analytics/breakdown?groupBy=product&topN=5'
+curl -X GET 'https://alhal.awnak.net/api/gov/dashboard/analytics/breakdown?groupBy=product&topN=5'
 ```
 
 **Response**:
@@ -1251,7 +1251,7 @@ curl -X GET 'https://localhost:7059/api/gov/dashboard/analytics/breakdown?groupB
 
 **Example 2: By Governorate**
 ```bash
-curl -X GET 'https://localhost:7059/api/gov/dashboard/analytics/breakdown?groupBy=governorate'
+curl -X GET 'https://alhal.awnak.net/api/gov/dashboard/analytics/breakdown?groupBy=governorate'
 ```
 
 **Response**:

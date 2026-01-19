@@ -52,7 +52,11 @@
     "previous": "السابق",
     "next": "التالي",
     "page": "صفحة",
-    "of": "من"
+    "of": "من",
+    "show": "عرض",
+    "transportProviders": "مزودو النقل",
+    "transportRequests": "طلبات النقل",
+    "transportPriceLines": "أسعار النقل"
   },
   "dashboard": {
     "title": "لوحة التحكم",
@@ -323,6 +327,104 @@
     "delivery": "التسليم",
     "productQuality": "جودة المنتج",
     "service": "الخدمة"
+  },
+  "transport": {
+    "currency": "ل.س",
+    "error": {
+      "loadProviders": "فشل تحميل مزودي النقل",
+      "loadRequests": "فشل تحميل طلبات النقل",
+      "loadPriceLines": "فشل تحميل أسعار النقل"
+    },
+    "providers": {
+      "title": "مزودو النقل",
+      "subtitle": "إدارة مزودي خدمات النقل",
+      "id": "المعرف",
+      "name": "الاسم",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "accountType": "نوع الحساب",
+      "company": "شركة",
+      "individual": "فرد",
+      "coveredAreas": "المناطق المغطاة",
+      "verified": "مُتحقق",
+      "notVerified": "غير مُتحقق",
+      "workersAvailable": "العمال المتاحون",
+      "availabilityHours": "ساعات التوفر",
+      "estimatedPricePerKm": "السعر المقدر/كم",
+      "verificationDate": "تاريخ التحقق",
+      "vehicles": "المركبات",
+      "details": "تفاصيل المزود",
+      "basicInfo": "المعلومات الأساسية",
+      "verify": "التحقق",
+      "unverify": "إلغاء التحقق",
+      "confirmVerify": "هل أنت متأكد من رغبتك في التحقق من هذا المزود؟",
+      "confirmUnverify": "هل أنت متأكد من رغبتك في إلغاء التحقق من هذا المزود؟",
+      "verifySuccess": "تم تحديث حالة التحقق بنجاح",
+      "verifyError": "فشل تحديث حالة التحقق",
+      "searchPlaceholder": "البحث بالاسم، البريد الإلكتروني، الهاتف، أو المعرف..."
+    },
+    "requests": {
+      "title": "طلبات النقل",
+      "subtitle": "إدارة طلبات النقل من المشترين",
+      "id": "رقم الطلب",
+      "orderId": "رقم الطلب",
+      "buyerUserId": "معرف المشتري",
+      "fromRegion": "من المنطقة",
+      "toRegion": "إلى المنطقة",
+      "distance": "المسافة",
+      "weight": "الوزن",
+      "productType": "نوع المنتج",
+      "status": "الحالة",
+      "createdAt": "تاريخ الإنشاء",
+      "offers": "العروض",
+      "notify": "إشعار الناقلين",
+      "details": "تفاصيل الطلب",
+      "basicInfo": "المعلومات الأساسية",
+      "confirmDelete": "هل أنت متأكد من رغبتك في حذف طلب النقل هذا؟",
+      "deleteSuccess": "تم حذف طلب النقل بنجاح",
+      "deleteError": "فشل حذف طلب النقل",
+      "notifySuccess": "تم إرسال الإشعارات بنجاح",
+      "notifyError": "فشل إرسال الإشعارات",
+      "searchPlaceholder": "البحث بالمعرف، المنطقة، أو نوع المنتج...",
+      "status": {
+        "open": "مفتوح",
+        "pending": "قيد الانتظار",
+        "negotiating": "قيد التفاوض",
+        "completed": "مكتمل",
+        "cancelled": "ملغي"
+      }
+    },
+    "offers": {
+      "offer": "عرض",
+      "price": "السعر",
+      "transporterId": "معرف الناقل"
+    },
+    "priceLines": {
+      "title": "أسعار النقل",
+      "subtitle": "إدارة الأسعار الثابتة لطرق النقل",
+      "providers": "المزودون",
+      "priceLines": "أسعار النقل",
+      "priceLinesFor": "أسعار النقل لـ",
+      "fromArea": "من المنطقة",
+      "toArea": "إلى المنطقة",
+      "price": "السعر",
+      "govMaxPrice": "السعر الحكومي الأقصى",
+      "status": "الحالة",
+      "active": "نشط",
+      "addPriceLine": "إضافة سعر",
+      "editPriceLine": "تعديل السعر",
+      "selectProvider": "اختر مزوداً لعرض أسعار النقل",
+      "selectProviderFirst": "يرجى اختيار مزود أولاً",
+      "noPriceLines": "لا توجد أسعار نقل",
+      "confirmDelete": "هل أنت متأكد من رغبتك في حذف هذا السعر؟",
+      "deleteSuccess": "تم حذف السعر بنجاح",
+      "deleteError": "فشل حذف السعر",
+      "createSuccess": "تم إنشاء السعر بنجاح",
+      "updateSuccess": "تم تحديث السعر بنجاح",
+      "saveError": "فشل حفظ السعر",
+      "searchProviders": "البحث عن المزودين...",
+      "searchPriceLines": "البحث عن الأسعار..."
+    }
   }
 }
 

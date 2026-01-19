@@ -299,7 +299,7 @@ VITE_FIREBASE_VAPID_KEY=your-vapid-key-here
 VITE_APP_VERSION=1.0.0
 
 # API Base URL
-VITE_API_BASE_URL=https://localhost:7059
+VITE_API_BASE_URL=https://alhal.awnak.net
 ```
 
 ### Cooldown Period

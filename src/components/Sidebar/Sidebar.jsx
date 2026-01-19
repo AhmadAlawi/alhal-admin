@@ -12,7 +12,10 @@ import {
   FiDatabase,
   FiAlertCircle,
   FiMessageSquare,
-  FiStar
+  FiStar,
+  FiTruck,
+  FiPackage,
+  FiDollarSign
 } from 'react-icons/fi'
 import { useTranslation } from '../../hooks/useTranslation'
 import './Sidebar.css'
@@ -31,6 +34,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     { path: '/chat-reports', icon: <FiAlertCircle />, label: t('common.chatReports') },
     { path: '/tickets', icon: <FiMessageSquare />, label: t('common.tickets') },
     { path: '/feedback', icon: <FiStar />, label: t('common.feedback') },
+    { path: '/transport/providers', icon: <FiTruck />, label: t('common.transportProviders') },
+    { path: '/transport/requests', icon: <FiPackage />, label: t('common.transportRequests') },
+    { path: '/transport/price-lines', icon: <FiDollarSign />, label: t('common.transportPriceLines') },
     { path: '/settings', icon: <FiSettings />, label: t('common.settings') },
   ]
 

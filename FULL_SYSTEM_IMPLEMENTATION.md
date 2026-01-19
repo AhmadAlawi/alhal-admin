@@ -409,13 +409,13 @@ src/
 
 ### Environment Variables
 ```env
-VITE_API_BASE_URL=https://localhost:7059
+VITE_API_BASE_URL=https://alhal.awnak.net
 ```
 
 ### API Client Configuration
 ```javascript
 // src/services/api.js
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://localhost:7059';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://alhal.awnak.net';
 ```
 
 ---

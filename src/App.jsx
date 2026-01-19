@@ -15,6 +15,9 @@ import Settings from './pages/Settings'
 import ChatReports from './pages/ChatReports'
 import Tickets from './pages/Tickets'
 import Feedback from './pages/Feedback'
+import TransportProviders from './pages/TransportProviders'
+import TransportRequests from './pages/TransportRequests'
+import TransportPriceLines from './pages/TransportPriceLines'
 import './App.css'
 
 function App() {
@@ -142,6 +145,36 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Feedback />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/transport/providers"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <TransportProviders />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/transport/requests"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <TransportRequests />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/transport/price-lines"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <TransportPriceLines />
                 </Layout>
               </ProtectedRoute>
             }

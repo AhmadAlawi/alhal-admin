@@ -52,7 +52,11 @@
     "previous": "Previous",
     "next": "Next",
     "page": "Page",
-    "of": "of"
+    "of": "of",
+    "show": "Show",
+    "transportProviders": "Transport Providers",
+    "transportRequests": "Transport Requests",
+    "transportPriceLines": "Price Lines"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -323,6 +327,104 @@
     "delivery": "Delivery",
     "productQuality": "Product Quality",
     "service": "Service"
+  },
+  "transport": {
+    "currency": "SYP",
+    "error": {
+      "loadProviders": "Failed to load transport providers",
+      "loadRequests": "Failed to load transport requests",
+      "loadPriceLines": "Failed to load price lines"
+    },
+    "providers": {
+      "title": "Transport Providers",
+      "subtitle": "Manage transport service providers",
+      "id": "ID",
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "accountType": "Account Type",
+      "company": "Company",
+      "individual": "Individual",
+      "coveredAreas": "Covered Areas",
+      "verified": "Verified",
+      "notVerified": "Not Verified",
+      "workersAvailable": "Workers Available",
+      "availabilityHours": "Availability Hours",
+      "estimatedPricePerKm": "Estimated Price/Km",
+      "verificationDate": "Verification Date",
+      "vehicles": "Vehicles",
+      "details": "Provider Details",
+      "basicInfo": "Basic Information",
+      "verify": "Verify",
+      "unverify": "Unverify",
+      "confirmVerify": "Are you sure you want to verify this provider?",
+      "confirmUnverify": "Are you sure you want to unverify this provider?",
+      "verifySuccess": "Provider verification updated successfully",
+      "verifyError": "Failed to update verification",
+      "searchPlaceholder": "Search by name, email, phone, or ID..."
+    },
+    "requests": {
+      "title": "Transport Requests",
+      "subtitle": "Manage transport requests from buyers",
+      "id": "Request ID",
+      "orderId": "Order ID",
+      "buyerUserId": "Buyer User ID",
+      "fromRegion": "From Region",
+      "toRegion": "To Region",
+      "distance": "Distance",
+      "weight": "Weight",
+      "productType": "Product Type",
+      "status": "Status",
+      "createdAt": "Created At",
+      "offers": "Offers",
+      "notify": "Notify Transporters",
+      "details": "Request Details",
+      "basicInfo": "Basic Information",
+      "confirmDelete": "Are you sure you want to delete this transport request?",
+      "deleteSuccess": "Transport request deleted successfully",
+      "deleteError": "Failed to delete transport request",
+      "notifySuccess": "Notifications sent successfully",
+      "notifyError": "Failed to send notifications",
+      "searchPlaceholder": "Search by ID, region, or product type...",
+      "status": {
+        "open": "Open",
+        "pending": "Pending",
+        "negotiating": "Negotiating",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      }
+    },
+    "offers": {
+      "offer": "Offer",
+      "price": "Price",
+      "transporterId": "Transporter ID"
+    },
+    "priceLines": {
+      "title": "Transport Price Lines",
+      "subtitle": "Manage fixed prices for transport routes",
+      "providers": "Providers",
+      "priceLines": "Price Lines",
+      "priceLinesFor": "Price Lines for",
+      "fromArea": "From Area",
+      "toArea": "To Area",
+      "price": "Price",
+      "govMaxPrice": "Gov. Max Price",
+      "status": "Status",
+      "active": "Active",
+      "addPriceLine": "Add Price Line",
+      "editPriceLine": "Edit Price Line",
+      "selectProvider": "Select a provider to view price lines",
+      "selectProviderFirst": "Please select a provider first",
+      "noPriceLines": "No price lines found",
+      "confirmDelete": "Are you sure you want to delete this price line?",
+      "deleteSuccess": "Price line deleted successfully",
+      "deleteError": "Failed to delete price line",
+      "createSuccess": "Price line created successfully",
+      "updateSuccess": "Price line updated successfully",
+      "saveError": "Failed to save price line",
+      "searchProviders": "Search providers...",
+      "searchPriceLines": "Search price lines..."
+    }
   }
 }
 
