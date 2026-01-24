@@ -10,6 +10,10 @@ const transportService = {
     return apiClient.get(`/api/transport/${id}`)
   },
 
+  createProvider: async (providerData) => {
+    return apiClient.post('/api/transport', providerData)
+  },
+
   getProvidersByArea: async (area) => {
     return apiClient.get(`/api/transport/area/${encodeURIComponent(area)}`)
   },
@@ -63,6 +67,10 @@ const transportService = {
 
   getTransportRequestById: async (requestId) => {
     return apiClient.get(`/api/transport/requests/${requestId}`)
+  },
+
+  createTransportRequest: async (requestData) => {
+    return apiClient.post('/api/transport/requests', requestData)
   },
 
   deleteTransportRequest: async (requestId) => {

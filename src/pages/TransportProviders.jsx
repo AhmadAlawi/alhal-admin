@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { FiTruck, FiSearch, FiRefreshCw, FiCheck, FiX, FiEye, FiMapPin } from 'react-icons/fi'
+import { FiTruck, FiSearch, FiRefreshCw, FiCheck, FiX, FiEye, FiMapPin, FiPlus, FiEdit } from 'react-icons/fi'
 import transportService from '../services/transportService'
 import { useTranslation } from '../hooks/useTranslation'
 import './TransportProviders.css'
@@ -12,7 +12,19 @@ const TransportProviders = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedProvider, setSelectedProvider] = useState(null)
   const [showDetailModal, setShowDetailModal] = useState(false)
+  const [showFormModal, setShowFormModal] = useState(false)
+  const [editingProvider, setEditingProvider] = useState(null)
   const [verifying, setVerifying] = useState(null)
+  const [formData, setFormData] = useState({
+    userId: '',
+    accountType: 'individual',
+    walletAccount: '',
+    coveredAreas: '',
+    workersAvailable: 0,
+    availabilityHours: '08:00-18:00',
+    preferredPaymentMethod: '',
+    estimatedPricePerKm: ''
+  })
 
   useEffect(() => {
     fetchProviders()
@@ -64,9 +76,64 @@ const TransportProviders = () => {
     setShowDetailModal(true)
   }
 
+  const handleEdit = (provider) => {
+    setEditingProvider(provider)
+    setFormData({
+      userId: provider.userId || '',
+      accountType: provider.accountType || 'individual',
+      walletAccount: provider.walletAccount || '',
+      coveredAreas: provider.coveredAreas || '',
+      workersAvailable: provider.workersAvailable || 0,
+      availabilityHours: provider.availabilityHours || '08:00-18:00',
+      preferredPaymentMethod: provider.preferredPaymentMethod || '',
+      estimatedPricePerKm: provider.estimatedPricePerKm || ''
+    })
+    setShowFormModal(true)
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    try {
+      const submitData = {
+        ...formData,
+        userId: Number(formData.userId),
+        workersAvailable: Number(formData.workersAvailable),
+        estimatedPricePerKm: formData.estimatedPricePerKm ? Number(formData.estimatedPricePerKm) : null
+      }
+
+      if (editingProvider) {
+        // Note: Update endpoint might not exist, this is for future use
+        alert(t('transport.providers.updateNote'))
+      } else {
+        await transportService.createProvider(submitData)
+        alert(t('transport.providers.createSuccess'))
+        setShowFormModal(false)
+        fetchProviders()
+      }
+    } catch (err) {
+      console.error('Failed to save provider:', err)
+      alert(t('transport.providers.saveError') + ': ' + (err.message || 'Unknown error'))
+    }
+  }
+
   const closeDetailModal = () => {
     setShowDetailModal(false)
     setSelectedProvider(null)
+  }
+
+  const closeFormModal = () => {
+    setShowFormModal(false)
+    setEditingProvider(null)
+    setFormData({
+      userId: '',
+      accountType: 'individual',
+      walletAccount: '',
+      coveredAreas: '',
+      workersAvailable: 0,
+      availabilityHours: '08:00-18:00',
+      preferredPaymentMethod: '',
+      estimatedPricePerKm: ''
+    })
   }
 
   const filteredProviders = providers.filter(provider => {
@@ -111,6 +178,22 @@ const TransportProviders = () => {
           <p className="page-subtitle">{t('transport.providers.subtitle')}</p>
         </div>
         <div className="header-actions">
+          <button className="btn btn-primary" onClick={() => {
+            setEditingProvider(null)
+            setFormData({
+              userId: '',
+              accountType: 'individual',
+              walletAccount: '',
+              coveredAreas: '',
+              workersAvailable: 0,
+              availabilityHours: '08:00-18:00',
+              preferredPaymentMethod: '',
+              estimatedPricePerKm: ''
+            })
+            setShowFormModal(true)
+          }}>
+            <FiPlus /> {t('transport.providers.addProvider')}
+          </button>
           <button className="btn btn-outline" onClick={fetchProviders}>
             <FiRefreshCw /> {t('common.refresh')}
           </button>
@@ -194,6 +277,13 @@ const TransportProviders = () => {
                         title={t('common.view')}
                       >
                         <FiEye />
+                      </button>
+                      <button
+                        className="btn btn-sm btn-icon btn-info"
+                        onClick={() => handleEdit(provider)}
+                        title={t('common.edit')}
+                      >
+                        <FiEdit />
                       </button>
                       <button
                         className={`btn btn-sm btn-icon ${provider.isVerified ? 'btn-warning' : 'btn-success'}`}
@@ -294,6 +384,112 @@ const TransportProviders = () => {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {showFormModal && (
+        <div className="modal-overlay" onClick={closeFormModal}>
+          <div className="modal-content modal-large" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>
+                {editingProvider 
+                  ? t('transport.providers.editProvider')
+                  : t('transport.providers.addProvider')}
+              </h2>
+              <button className="modal-close" onClick={closeFormModal}>
+                <FiX />
+              </button>
+            </div>
+            <form onSubmit={handleSubmit} className="modal-body">
+              <div className="form-grid">
+                <div className="form-group">
+                  <label>{t('transport.providers.userId')} *</label>
+                  <input
+                    type="number"
+                    value={formData.userId}
+                    onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
+                    required
+                    placeholder="User ID"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>{t('transport.providers.accountType')} *</label>
+                  <select
+                    value={formData.accountType}
+                    onChange={(e) => setFormData({ ...formData, accountType: e.target.value })}
+                    required
+                  >
+                    <option value="individual">{t('transport.providers.individual')}</option>
+                    <option value="company">{t('transport.providers.company')}</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>{t('transport.providers.walletAccount')} *</label>
+                  <input
+                    type="text"
+                    value={formData.walletAccount}
+                    onChange={(e) => setFormData({ ...formData, walletAccount: e.target.value })}
+                    required
+                    placeholder="Wallet account"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>{t('transport.providers.coveredAreas')}</label>
+                  <input
+                    type="text"
+                    value={formData.coveredAreas}
+                    onChange={(e) => setFormData({ ...formData, coveredAreas: e.target.value })}
+                    placeholder="دمشق, ريف دمشق, حمص"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>{t('transport.providers.workersAvailable')}</label>
+                  <input
+                    type="number"
+                    value={formData.workersAvailable}
+                    onChange={(e) => setFormData({ ...formData, workersAvailable: e.target.value })}
+                    min="0"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>{t('transport.providers.availabilityHours')}</label>
+                  <input
+                    type="text"
+                    value={formData.availabilityHours}
+                    onChange={(e) => setFormData({ ...formData, availabilityHours: e.target.value })}
+                    placeholder="08:00-18:00"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>{t('transport.providers.preferredPaymentMethod')}</label>
+                  <input
+                    type="text"
+                    value={formData.preferredPaymentMethod}
+                    onChange={(e) => setFormData({ ...formData, preferredPaymentMethod: e.target.value })}
+                    placeholder="نقدي / إلكتروني"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>{t('transport.providers.estimatedPricePerKm')}</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={formData.estimatedPricePerKm}
+                    onChange={(e) => setFormData({ ...formData, estimatedPricePerKm: e.target.value })}
+                    placeholder="2.5"
+                  />
+                </div>
+              </div>
+              <div className="form-actions">
+                <button type="button" className="btn btn-outline" onClick={closeFormModal}>
+                  {t('common.cancel')}
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  {t('common.save')}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

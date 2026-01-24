@@ -1,5 +1,9 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in the current working directory.
@@ -29,6 +33,17 @@ export default defineConfig(({ mode }) => {
   
   return {
     plugins: [react()],
+    resolve: {
+      alias: {
+        // Ensure React is resolved to a single instance
+        'react': path.resolve(__dirname, './node_modules/react'),
+        'react-dom': path.resolve(__dirname, './node_modules/react-dom'),
+      },
+      dedupe: ['react', 'react-dom'], // Deduplicate React instances
+    },
+    optimizeDeps: {
+      include: ['react', 'react-dom'], // Pre-bundle React for faster dev server
+    },
     server: {
       port: port,
       open: !isServerEnvironment, // Only open browser in local development

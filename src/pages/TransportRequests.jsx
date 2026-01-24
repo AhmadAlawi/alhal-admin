@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { FiPackage, FiSearch, FiRefreshCw, FiEye, FiTrash2, FiBell, FiX } from 'react-icons/fi'
+import { FiPackage, FiSearch, FiRefreshCw, FiEye, FiTrash2, FiBell, FiX, FiPlus } from 'react-icons/fi'
 import transportService from '../services/transportService'
 import { useTranslation } from '../hooks/useTranslation'
 import './TransportRequests.css'
@@ -13,6 +13,16 @@ const TransportRequests = () => {
   const [statusFilter, setStatusFilter] = useState('all')
   const [selectedRequest, setSelectedRequest] = useState(null)
   const [showDetailModal, setShowDetailModal] = useState(false)
+  const [showFormModal, setShowFormModal] = useState(false)
+  const [formData, setFormData] = useState({
+    contextId: '',
+    contextType: 'auction',
+    buyerUserId: '',
+    toRegion: '',
+    preferredPickupDate: '',
+    preferredDeliveryDate: '',
+    specialRequirements: ''
+  })
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
   const [totalPages, setTotalPages] = useState(1)
@@ -32,21 +42,67 @@ const TransportRequests = () => {
       }
       const response = await transportService.getTransportRequests(params)
       
-      if (response.items) {
-        setRequests(response.items || [])
-        setTotalPages(response.totalPages || 1)
-        setTotalCount(response.total || 0)
-      } else if (Array.isArray(response)) {
-        setRequests(response)
-      } else if (response.data) {
-        setRequests(Array.isArray(response.data) ? response.data : [])
-      } else {
-        setRequests([])
+      console.log('Transport Requests API Response:', response)
+      
+      // Handle different response structures
+      let requestsData = []
+      let total = 0
+      let totalPagesCount = 1
+      
+      if (response) {
+        // Check if response has items directly (most common structure)
+        if (response.items && Array.isArray(response.items)) {
+          requestsData = response.items
+          total = response.total || response.totalCount || requestsData.length
+          totalPagesCount = response.totalPages || Math.ceil(total / pageSize) || 1
+        }
+        // Check if response has a data wrapper
+        else if (response.data) {
+          const data = response.data
+          if (data.items && Array.isArray(data.items)) {
+            requestsData = data.items
+            total = data.total || data.totalCount || requestsData.length
+            totalPagesCount = data.totalPages || Math.ceil(total / pageSize) || 1
+          } else if (Array.isArray(data)) {
+            requestsData = data
+            total = data.length
+            totalPagesCount = Math.ceil(total / pageSize) || 1
+          }
+        }
+        // Check if response is an array directly
+        else if (Array.isArray(response)) {
+          requestsData = response
+          total = response.length
+          totalPagesCount = Math.ceil(total / pageSize) || 1
+        }
+        // Check if response has status and data
+        else if (response.status === 'success' && response.data) {
+          const data = response.data
+          if (data.items && Array.isArray(data.items)) {
+            requestsData = data.items
+            total = data.total || data.totalCount || requestsData.length
+            totalPagesCount = data.totalPages || Math.ceil(total / pageSize) || 1
+          } else if (Array.isArray(data)) {
+            requestsData = data
+            total = data.length
+            totalPagesCount = Math.ceil(total / pageSize) || 1
+          }
+        }
+      }
+      
+      setRequests(requestsData)
+      setTotalPages(totalPagesCount)
+      setTotalCount(total)
+      
+      if (requestsData.length === 0 && !error) {
+        console.log('No transport requests found')
       }
     } catch (err) {
       console.error('Failed to fetch requests:', err)
       setError(err.message || t('transport.error.loadRequests'))
       setRequests([])
+      setTotalPages(1)
+      setTotalCount(0)
     } finally {
       setLoading(false)
     }
@@ -89,9 +145,41 @@ const TransportRequests = () => {
     }
   }
 
+  const handleCreate = async (e) => {
+    e.preventDefault()
+    try {
+      // Convert numeric string inputs to numbers
+      const submitData = {
+        ...formData,
+        contextId: Number(formData.contextId),
+        buyerUserId: Number(formData.buyerUserId)
+      }
+      await transportService.createTransportRequest(submitData)
+      alert(t('transport.requests.createSuccess'))
+      setShowFormModal(false)
+      fetchRequests()
+    } catch (err) {
+      console.error('Failed to create request:', err)
+      alert(t('transport.requests.createError') + ': ' + (err.message || 'Unknown error'))
+    }
+  }
+
   const closeDetailModal = () => {
     setShowDetailModal(false)
     setSelectedRequest(null)
+  }
+
+  const closeFormModal = () => {
+    setShowFormModal(false)
+    setFormData({
+      contextId: '',
+      contextType: 'auction',
+      buyerUserId: '',
+      toRegion: '',
+      preferredPickupDate: '',
+      preferredDeliveryDate: '',
+      specialRequirements: ''
+    })
   }
 
   const filteredRequests = requests.filter(request => {
@@ -131,7 +219,7 @@ const TransportRequests = () => {
     return <span className={`badge ${statusInfo.class}`}>{statusInfo.label}</span>
   }
 
-  if (loading && requests.length === 0) {
+  if (loading && requests.length === 0 && !error) {
     return (
       <div className="transport-requests-page">
         <div className="loading-container">
@@ -152,6 +240,20 @@ const TransportRequests = () => {
           <p className="page-subtitle">{t('transport.requests.subtitle')}</p>
         </div>
         <div className="header-actions">
+          <button className="btn btn-primary" onClick={() => {
+            setFormData({
+              contextId: '',
+              contextType: 'auction',
+              buyerUserId: '',
+              toRegion: '',
+              preferredPickupDate: '',
+              preferredDeliveryDate: '',
+              specialRequirements: ''
+            })
+            setShowFormModal(true)
+          }}>
+            <FiPlus /> {t('transport.requests.addRequest')}
+          </button>
           <button className="btn btn-outline" onClick={fetchRequests}>
             <FiRefreshCw /> {t('common.refresh')}
           </button>
@@ -161,10 +263,42 @@ const TransportRequests = () => {
       {error && (
         <div className="error-message card">
           <FiX /> {error}
+          <button 
+            className="btn btn-sm btn-outline" 
+            onClick={fetchRequests}
+            style={{ marginLeft: '1rem' }}
+          >
+            {t('common.retry') || 'Retry'}
+          </button>
         </div>
       )}
-
-      <div className="filters-section card">
+      
+      {!loading && !error && requests.length === 0 ? (
+        <div className="empty-state card" style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>
+          <FiPackage size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
+          <p>{t('transport.requests.noRequests') || 'No transport requests found'}</p>
+          <button 
+            className="btn btn-primary" 
+            onClick={() => {
+              setFormData({
+                contextId: '',
+                contextType: 'auction',
+                buyerUserId: '',
+                toRegion: '',
+                preferredPickupDate: '',
+                preferredDeliveryDate: '',
+                specialRequirements: ''
+              })
+              setShowFormModal(true)
+            }}
+            style={{ marginTop: '1rem' }}
+          >
+            <FiPlus /> {t('transport.requests.addRequest')}
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className="filters-section card">
         <div className="search-box">
           <FiSearch />
           <input
@@ -277,6 +411,7 @@ const TransportRequests = () => {
           </tbody>
         </table>
       </div>
+      )}
 
       {totalPages > 1 && (
         <div className="pagination">
@@ -298,6 +433,8 @@ const TransportRequests = () => {
             {t('common.next')}
           </button>
         </div>
+      )}
+        </>
       )}
 
       {showDetailModal && selectedRequest && (
@@ -382,6 +519,98 @@ const TransportRequests = () => {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {showFormModal && (
+        <div className="modal-overlay" onClick={closeFormModal}>
+          <div className="modal-content modal-large" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{t('transport.requests.addRequest')}</h2>
+              <button className="modal-close" onClick={closeFormModal}>
+                <FiX />
+              </button>
+            </div>
+            <form onSubmit={handleCreate} className="modal-body">
+              <div className="form-grid">
+                <div className="form-group">
+                  <label>{t('transport.requests.contextId')} *</label>
+                  <input
+                    type="number"
+                    value={formData.contextId}
+                    onChange={(e) => setFormData({ ...formData, contextId: e.target.value })}
+                    required
+                    placeholder="Auction/Tender/Listing ID"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>{t('transport.requests.contextType')} *</label>
+                  <select
+                    value={formData.contextType}
+                    onChange={(e) => setFormData({ ...formData, contextType: e.target.value })}
+                    required
+                  >
+                    <option value="auction">Auction</option>
+                    <option value="tender">Tender</option>
+                    <option value="direct">Direct</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>{t('transport.requests.buyerUserId')} *</label>
+                  <input
+                    type="number"
+                    value={formData.buyerUserId}
+                    onChange={(e) => setFormData({ ...formData, buyerUserId: e.target.value })}
+                    required
+                    placeholder="Buyer User ID"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>{t('transport.requests.toRegion')} *</label>
+                  <input
+                    type="text"
+                    value={formData.toRegion}
+                    onChange={(e) => setFormData({ ...formData, toRegion: e.target.value })}
+                    required
+                    placeholder="حلب"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>{t('transport.requests.preferredPickupDate')}</label>
+                  <input
+                    type="datetime-local"
+                    value={formData.preferredPickupDate}
+                    onChange={(e) => setFormData({ ...formData, preferredPickupDate: e.target.value })}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>{t('transport.requests.preferredDeliveryDate')}</label>
+                  <input
+                    type="datetime-local"
+                    value={formData.preferredDeliveryDate}
+                    onChange={(e) => setFormData({ ...formData, preferredDeliveryDate: e.target.value })}
+                  />
+                </div>
+                <div className="form-group full-width">
+                  <label>{t('transport.requests.specialRequirements')}</label>
+                  <textarea
+                    value={formData.specialRequirements}
+                    onChange={(e) => setFormData({ ...formData, specialRequirements: e.target.value })}
+                    rows="3"
+                    placeholder="Special requirements..."
+                  />
+                </div>
+              </div>
+              <div className="form-actions">
+                <button type="button" className="btn btn-outline" onClick={closeFormModal}>
+                  {t('common.cancel')}
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  {t('common.submit')}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

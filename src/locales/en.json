@@ -55,6 +55,7 @@
     "of": "of",
     "show": "Show",
     "transportProviders": "Transport Providers",
+    "transportVehicles": "Vehicles",
     "transportRequests": "Transport Requests",
     "transportPriceLines": "Price Lines"
   },
@@ -333,7 +334,8 @@
     "error": {
       "loadProviders": "Failed to load transport providers",
       "loadRequests": "Failed to load transport requests",
-      "loadPriceLines": "Failed to load price lines"
+      "loadPriceLines": "Failed to load price lines",
+      "loadVehicles": "Failed to load vehicles"
     },
     "providers": {
       "title": "Transport Providers",
@@ -361,7 +363,15 @@
       "confirmUnverify": "Are you sure you want to unverify this provider?",
       "verifySuccess": "Provider verification updated successfully",
       "verifyError": "Failed to update verification",
-      "searchPlaceholder": "Search by name, email, phone, or ID..."
+      "searchPlaceholder": "Search by name, email, phone, or ID...",
+      "addProvider": "Add Provider",
+      "editProvider": "Edit Provider",
+      "userId": "User ID",
+      "walletAccount": "Wallet Account",
+      "preferredPaymentMethod": "Preferred Payment Method",
+      "createSuccess": "Provider created successfully",
+      "saveError": "Failed to save provider",
+      "updateNote": "Update functionality will be available soon"
     },
     "requests": {
       "title": "Transport Requests",
@@ -386,6 +396,15 @@
       "notifySuccess": "Notifications sent successfully",
       "notifyError": "Failed to send notifications",
       "searchPlaceholder": "Search by ID, region, or product type...",
+      "addRequest": "Add Transport Request",
+      "contextId": "Context ID",
+      "contextType": "Context Type",
+      "preferredPickupDate": "Preferred Pickup Date",
+      "preferredDeliveryDate": "Preferred Delivery Date",
+      "specialRequirements": "Special Requirements",
+      "createSuccess": "Transport request created successfully",
+      "createError": "Failed to create transport request",
+      "noRequests": "No transport requests found. Create your first request to get started.",
       "status": {
         "open": "Open",
         "pending": "Pending",
@@ -423,7 +442,42 @@
       "updateSuccess": "Price line updated successfully",
       "saveError": "Failed to save price line",
       "searchProviders": "Search providers...",
-      "searchPriceLines": "Search price lines..."
+      "searchPriceLines": "Search price lines...",
+      "selectFromArea": "Select From Area",
+      "selectToArea": "Select To Area",
+      "govPrice": "Government Price",
+      "checkingGovPrice": "Checking government price...",
+      "priceExceedsGovMax": "Price exceeds government maximum of",
+      "priceWithinLimit": "Price is within government limit"
+    },
+    "vehicles": {
+      "title": "Transport Vehicles",
+      "subtitle": "Manage vehicles for transport providers",
+      "providers": "Providers",
+      "vehicles": "Vehicles",
+      "vehiclesFor": "Vehicles for",
+      "type": "Vehicle Type",
+      "capacity": "Capacity",
+      "model": "Model",
+      "storageType": "Storage Type",
+      "pricePerKm": "Price/Km",
+      "workersAvailable": "Workers Available",
+      "availabilityHours": "Availability Hours",
+      "hasTools": "Has Tools (crane, scale, etc.)",
+      "canProvideLoadingWorkers": "Can Provide Loading Workers",
+      "addVehicle": "Add Vehicle",
+      "editVehicle": "Edit Vehicle",
+      "selectProvider": "Select a provider to view vehicles",
+      "selectProviderFirst": "Please select a provider first",
+      "noVehicles": "No vehicles found",
+      "confirmDelete": "Are you sure you want to delete this vehicle?",
+      "deleteSuccess": "Vehicle deleted successfully",
+      "deleteError": "Failed to delete vehicle",
+      "createSuccess": "Vehicle created successfully",
+      "saveError": "Failed to save vehicle",
+      "updateNote": "Update functionality will be available soon",
+      "searchProviders": "Search providers...",
+      "searchVehicles": "Search vehicles..."
     }
   }
 }

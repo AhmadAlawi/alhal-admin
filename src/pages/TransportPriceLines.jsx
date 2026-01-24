@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { FiDollarSign, FiSearch, FiRefreshCw, FiPlus, FiEdit, FiTrash2, FiX, FiCheck } from 'react-icons/fi'
+import { FiDollarSign, FiSearch, FiRefreshCw, FiPlus, FiEdit, FiTrash2, FiX, FiCheck, FiInfo, FiAlertCircle } from 'react-icons/fi'
 import transportService from '../services/transportService'
 import { useTranslation } from '../hooks/useTranslation'
 import './TransportPriceLines.css'
@@ -14,6 +14,10 @@ const TransportPriceLines = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [editingPriceLine, setEditingPriceLine] = useState(null)
+  const [regions, setRegions] = useState([])
+  const [checkingGovPrice, setCheckingGovPrice] = useState(false)
+  const [govPriceInfo, setGovPriceInfo] = useState(null)
+  const [priceError, setPriceError] = useState(null)
   const [formData, setFormData] = useState({
     fromArea: '',
     toArea: '',
@@ -23,6 +27,7 @@ const TransportPriceLines = () => {
 
   useEffect(() => {
     fetchProviders()
+    fetchRegions()
   }, [])
 
   useEffect(() => {
@@ -72,6 +77,70 @@ const TransportPriceLines = () => {
     }
   }
 
+  const fetchRegions = async () => {
+    try {
+      const response = await transportService.getRegions()
+      // Handle different response structures (consistent with other fetch functions)
+      if (response.status === 'success' && response.data) {
+        setRegions(Array.isArray(response.data) ? response.data : [])
+      } else if (response.data && Array.isArray(response.data)) {
+        setRegions(response.data)
+      } else if (Array.isArray(response)) {
+        setRegions(response)
+      } else {
+        setRegions([])
+      }
+    } catch (err) {
+      console.error('Failed to fetch regions:', err)
+      setRegions([])
+    }
+  }
+
+  const checkGovernmentPrice = async () => {
+    if (!formData.fromArea || !formData.toArea) {
+      setGovPriceInfo(null)
+      return
+    }
+
+    try {
+      setCheckingGovPrice(true)
+      setPriceError(null)
+      setGovPriceInfo(null)
+      
+      const response = await transportService.getOfficialPrice({
+        fromRegion: formData.fromArea.toString(),
+        toRegion: formData.toArea,
+        distanceKm: 0,
+        pricingType: 'government'
+      })
+      
+      if (response) {
+        setGovPriceInfo(response)
+        // Check if entered price exceeds government max
+        if (formData.price && Number(formData.price) > response.totalPrice) {
+          setPriceError(`${t('transport.priceLines.priceExceedsGovMax')} ${response.totalPrice} ${t('transport.currency')}`)
+        } else {
+          setPriceError(null)
+        }
+      }
+    } catch (err) {
+      console.error('Failed to check government price:', err)
+      setGovPriceInfo(null)
+      // Don't show error if no government price exists (it's optional)
+    } finally {
+      setCheckingGovPrice(false)
+    }
+  }
+
+  useEffect(() => {
+    if (formData.fromArea && formData.toArea && !editingPriceLine) {
+      const timer = setTimeout(() => {
+        checkGovernmentPrice()
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [formData.fromArea, formData.toArea])
+
   const handleProviderSelect = (provider) => {
     setSelectedProvider(provider)
     setSearchTerm('')
@@ -89,6 +158,8 @@ const TransportPriceLines = () => {
       price: '',
       isActive: true
     })
+    setGovPriceInfo(null)
+    setPriceError(null)
     setShowModal(true)
   }
 
@@ -100,6 +171,8 @@ const TransportPriceLines = () => {
       price: priceLine.price.toString(),
       isActive: priceLine.isActive
     })
+    setGovPriceInfo(null)
+    setPriceError(null)
     setShowModal(true)
   }
 
@@ -122,6 +195,12 @@ const TransportPriceLines = () => {
     e.preventDefault()
     if (!selectedProvider) return
 
+    // Validate price against government max if available
+    if (govPriceInfo && Number(formData.price) > govPriceInfo.totalPrice) {
+      setPriceError(`${t('transport.priceLines.priceExceedsGovMax')} ${govPriceInfo.totalPrice} ${t('transport.currency')}`)
+      return
+    }
+
     try {
       const data = {
         transportProviderId: selectedProvider.transportProviderId,
@@ -142,6 +221,8 @@ const TransportPriceLines = () => {
       }
 
       setShowModal(false)
+      setGovPriceInfo(null)
+      setPriceError(null)
       fetchPriceLines(selectedProvider.transportProviderId)
     } catch (err) {
       console.error('Failed to save price line:', err)
@@ -350,34 +431,99 @@ const TransportPriceLines = () => {
             <form onSubmit={handleSubmit} className="modal-body">
               <div className="form-group">
                 <label>{t('transport.priceLines.fromArea')} *</label>
-                <input
-                  type="number"
-                  value={formData.fromArea}
-                  onChange={(e) => setFormData({ ...formData, fromArea: e.target.value })}
-                  required
-                  placeholder="Governorate ID"
-                />
+                {regions.length > 0 ? (
+                  <select
+                    value={formData.fromArea}
+                    onChange={(e) => setFormData({ ...formData, fromArea: e.target.value })}
+                    required
+                  >
+                    <option value="">{t('transport.priceLines.selectFromArea') || 'Select From Area'}</option>
+                    {regions.map((region, idx) => (
+                      <option key={idx} value={region}>{region}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={formData.fromArea}
+                    onChange={(e) => setFormData({ ...formData, fromArea: e.target.value })}
+                    required
+                    placeholder="Governorate ID or Name"
+                  />
+                )}
               </div>
               <div className="form-group">
                 <label>{t('transport.priceLines.toArea')} *</label>
-                <input
-                  type="text"
-                  value={formData.toArea}
-                  onChange={(e) => setFormData({ ...formData, toArea: e.target.value })}
-                  required
-                  placeholder="Destination area"
-                />
+                {regions.length > 0 ? (
+                  <select
+                    value={formData.toArea}
+                    onChange={(e) => setFormData({ ...formData, toArea: e.target.value })}
+                    required
+                  >
+                    <option value="">{t('transport.priceLines.selectToArea') || 'Select To Area'}</option>
+                    {regions.map((region, idx) => (
+                      <option key={idx} value={region}>{region}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={formData.toArea}
+                    onChange={(e) => setFormData({ ...formData, toArea: e.target.value })}
+                    required
+                    placeholder="Destination area"
+                  />
+                )}
               </div>
+              
+              {govPriceInfo && (
+                <div className="gov-price-info">
+                  <FiInfo />
+                  <div>
+                    <strong>{t('transport.priceLines.govPrice')}:</strong>
+                    <span>{govPriceInfo.totalPrice} {t('transport.currency')}</span>
+                    {govPriceInfo.distanceKm && (
+                      <span className="gov-price-detail">
+                        ({govPriceInfo.distanceKm} km × {govPriceInfo.pricePerKm} {t('transport.currency')}/km)
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div className="form-group">
                 <label>{t('transport.priceLines.price')} *</label>
                 <input
                   type="number"
                   step="0.01"
                   value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, price: e.target.value })
+                    if (govPriceInfo && Number(e.target.value) > govPriceInfo.totalPrice) {
+                      setPriceError(`${t('transport.priceLines.priceExceedsGovMax')} ${govPriceInfo.totalPrice} ${t('transport.currency')}`)
+                    } else {
+                      setPriceError(null)
+                    }
+                  }}
                   required
                   placeholder="0.00"
+                  className={priceError ? 'input-error' : ''}
                 />
+                {checkingGovPrice && (
+                  <span className="checking-price">
+                    {t('transport.priceLines.checkingGovPrice') || 'Checking government price...'}
+                  </span>
+                )}
+                {priceError && (
+                  <span className="price-error">
+                    <FiAlertCircle /> {priceError}
+                  </span>
+                )}
+                {govPriceInfo && !priceError && formData.price && (
+                  <span className="price-ok">
+                    <FiCheck /> {t('transport.priceLines.priceWithinLimit') || 'Price is within government limit'}
+                  </span>
+                )}
               </div>
               {editingPriceLine && (
                 <div className="form-group">

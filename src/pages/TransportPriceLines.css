@@ -349,9 +349,79 @@
   font-size: 0.95rem;
 }
 
-.form-group input:focus {
+.form-group input:focus,
+.form-group select:focus {
   outline: none;
   border-color: #6366f1;
+}
+
+.form-group select {
+  padding: 0.75rem;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 0.5rem;
+  color: #e2e8f0;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.input-error {
+  border-color: #ef4444 !important;
+}
+
+.gov-price-info {
+  padding: 1rem;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  color: #3b82f6;
+}
+
+.gov-price-info svg {
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+}
+
+.gov-price-info div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.gov-price-info strong {
+  font-size: 0.875rem;
+}
+
+.gov-price-detail {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.checking-price,
+.price-error,
+.price-ok {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checking-price {
+  color: #94a3b8;
+}
+
+.price-error {
+  color: #ef4444;
+}
+
+.price-ok {
+  color: #10b981;
 }
 
 .checkbox-label {

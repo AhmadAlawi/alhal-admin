@@ -18,12 +18,18 @@ import Feedback from './pages/Feedback'
 import TransportProviders from './pages/TransportProviders'
 import TransportRequests from './pages/TransportRequests'
 import TransportPriceLines from './pages/TransportPriceLines'
+import TransportVehicles from './pages/TransportVehicles'
 import './App.css'
 
 function App() {
   return (
     <NotificationProvider>
-      <Router>
+      <Router
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true,
+        }}
+      >
         <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
@@ -175,6 +181,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <TransportPriceLines />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/transport/vehicles"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <TransportVehicles />
                 </Layout>
               </ProtectedRoute>
             }

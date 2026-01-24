@@ -55,6 +55,7 @@
     "of": "من",
     "show": "عرض",
     "transportProviders": "مزودو النقل",
+    "transportVehicles": "المركبات",
     "transportRequests": "طلبات النقل",
     "transportPriceLines": "أسعار النقل"
   },
@@ -333,7 +334,8 @@
     "error": {
       "loadProviders": "فشل تحميل مزودي النقل",
       "loadRequests": "فشل تحميل طلبات النقل",
-      "loadPriceLines": "فشل تحميل أسعار النقل"
+      "loadPriceLines": "فشل تحميل أسعار النقل",
+      "loadVehicles": "فشل تحميل المركبات"
     },
     "providers": {
       "title": "مزودو النقل",
@@ -361,7 +363,15 @@
       "confirmUnverify": "هل أنت متأكد من رغبتك في إلغاء التحقق من هذا المزود؟",
       "verifySuccess": "تم تحديث حالة التحقق بنجاح",
       "verifyError": "فشل تحديث حالة التحقق",
-      "searchPlaceholder": "البحث بالاسم، البريد الإلكتروني، الهاتف، أو المعرف..."
+      "searchPlaceholder": "البحث بالاسم، البريد الإلكتروني، الهاتف، أو المعرف...",
+      "addProvider": "إضافة مزود",
+      "editProvider": "تعديل مزود",
+      "userId": "معرف المستخدم",
+      "walletAccount": "حساب المحفظة",
+      "preferredPaymentMethod": "طريقة الدفع المفضلة",
+      "createSuccess": "تم إنشاء المزود بنجاح",
+      "saveError": "فشل حفظ المزود",
+      "updateNote": "ستكون وظيفة التحديث متاحة قريباً"
     },
     "requests": {
       "title": "طلبات النقل",
@@ -386,6 +396,15 @@
       "notifySuccess": "تم إرسال الإشعارات بنجاح",
       "notifyError": "فشل إرسال الإشعارات",
       "searchPlaceholder": "البحث بالمعرف، المنطقة، أو نوع المنتج...",
+      "addRequest": "إضافة طلب نقل",
+      "contextId": "معرف السياق",
+      "contextType": "نوع السياق",
+      "preferredPickupDate": "تاريخ الاستلام المفضل",
+      "preferredDeliveryDate": "تاريخ التسليم المفضل",
+      "specialRequirements": "متطلبات خاصة",
+      "createSuccess": "تم إنشاء طلب النقل بنجاح",
+      "createError": "فشل إنشاء طلب النقل",
+      "noRequests": "لا توجد طلبات نقل. قم بإنشاء طلبك الأول للبدء.",
       "status": {
         "open": "مفتوح",
         "pending": "قيد الانتظار",
@@ -423,7 +442,42 @@
       "updateSuccess": "تم تحديث السعر بنجاح",
       "saveError": "فشل حفظ السعر",
       "searchProviders": "البحث عن المزودين...",
-      "searchPriceLines": "البحث عن الأسعار..."
+      "searchPriceLines": "البحث عن الأسعار...",
+      "selectFromArea": "اختر المنطقة المصدر",
+      "selectToArea": "اختر المنطقة الوجهة",
+      "govPrice": "السعر الحكومي",
+      "checkingGovPrice": "جاري التحقق من السعر الحكومي...",
+      "priceExceedsGovMax": "السعر يتجاوز الحد الأقصى الحكومي البالغ",
+      "priceWithinLimit": "السعر ضمن الحد الحكومي"
+    },
+    "vehicles": {
+      "title": "مركبات النقل",
+      "subtitle": "إدارة مركبات مزودي النقل",
+      "providers": "المزودون",
+      "vehicles": "المركبات",
+      "vehiclesFor": "مركبات",
+      "type": "نوع المركبة",
+      "capacity": "السعة",
+      "model": "الموديل",
+      "storageType": "نوع التخزين",
+      "pricePerKm": "السعر/كم",
+      "workersAvailable": "العمال المتاحون",
+      "availabilityHours": "ساعات التوفر",
+      "hasTools": "يحتوي على أدوات (رافعة، ميزان، إلخ)",
+      "canProvideLoadingWorkers": "يمكن توفير عمال التحميل",
+      "addVehicle": "إضافة مركبة",
+      "editVehicle": "تعديل مركبة",
+      "selectProvider": "اختر مزوداً لعرض المركبات",
+      "selectProviderFirst": "يرجى اختيار مزود أولاً",
+      "noVehicles": "لا توجد مركبات",
+      "confirmDelete": "هل أنت متأكد من رغبتك في حذف هذه المركبة؟",
+      "deleteSuccess": "تم حذف المركبة بنجاح",
+      "deleteError": "فشل حذف المركبة",
+      "createSuccess": "تم إنشاء المركبة بنجاح",
+      "saveError": "فشل حفظ المركبة",
+      "updateNote": "ستكون وظيفة التحديث متاحة قريباً",
+      "searchProviders": "البحث عن المزودين...",
+      "searchVehicles": "البحث عن المركبات..."
     }
   }
 }
