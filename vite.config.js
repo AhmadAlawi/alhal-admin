@@ -20,7 +20,8 @@ export default defineConfig(({ mode }) => {
         'adminalhal.awnak.net',
         'localhost',
         '.localhost',
-        '127.0.0.1'
+        '127.0.0.1',
+        'admin.sooq-alhal.com'
       ]
   
   // Disable auto-open browser in server/CI environments
@@ -32,7 +33,12 @@ export default defineConfig(({ mode }) => {
                               env.VITE_DISABLE_AUTO_OPEN === 'true'
   
   return {
-    plugins: [react()],
+    plugins: [
+      react({
+        // Ensure React is properly handled by the plugin
+        jsxRuntime: 'automatic',
+      })
+    ],
     resolve: {
       alias: {
         // Ensure React is resolved to a single instance
@@ -44,7 +50,16 @@ export default defineConfig(({ mode }) => {
       preserveSymlinks: false,
     },
     optimizeDeps: {
-      include: ['react', 'react-dom'], // Pre-bundle React for faster dev server
+      include: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'], // Pre-bundle React for faster dev server
+      esbuildOptions: {
+        // Ensure React is treated as a singleton
+        resolve: {
+          alias: {
+            'react': path.resolve(__dirname, './node_modules/react'),
+            'react-dom': path.resolve(__dirname, './node_modules/react-dom'),
+          }
+        }
+      }
     },
     server: {
       port: port,
@@ -66,15 +81,31 @@ export default defineConfig(({ mode }) => {
           },
           // Ensure React and React-DOM are in a single chunk to prevent multiple instances
           manualChunks: (id) => {
-            // Put React and React-DOM in a single chunk to prevent duplicate instances
-            if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+            // More aggressive matching for React packages - must come first
+            if (
+              id.includes('node_modules/react/') || 
+              id.includes('node_modules/react-dom/') ||
+              id.includes('node_modules/react/jsx-runtime') ||
+              id.includes('node_modules/react/jsx-dev-runtime') ||
+              id.includes('node_modules/react/index') ||
+              id.includes('node_modules/react-dom/index')
+            ) {
+              return 'react-vendor';
+            }
+            // Put react-router-dom with React to ensure compatibility
+            if (id.includes('node_modules/react-router-dom/')) {
               return 'react-vendor';
             }
             // Put other node_modules in separate chunks
             if (id.includes('node_modules/')) {
               return 'vendor';
             }
-          }
+          },
+          // Ensure proper chunk format for better module sharing
+          format: 'es',
+          // Ensure consistent chunk naming
+          chunkFileNames: 'assets/[name]-[hash].js',
+          entryFileNames: 'assets/[name]-[hash].js'
         }
       },
       // Ensure common chunks are properly shared
@@ -83,7 +114,15 @@ export default defineConfig(({ mode }) => {
         transformMixedEsModules: true
       },
       // Increase chunk size warning limit (React can be large)
-      chunkSizeWarningLimit: 1000
+      chunkSizeWarningLimit: 1000,
+      // Ensure proper minification that preserves module structure
+      minify: 'esbuild',
+      // Target modern browsers for better tree-shaking
+      target: 'esnext',
+      // Ensure proper module format
+      modulePreload: {
+        polyfill: true
+      }
     }
   }
 })
