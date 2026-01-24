@@ -40,6 +40,8 @@ export default defineConfig(({ mode }) => {
         'react-dom': path.resolve(__dirname, './node_modules/react-dom'),
       },
       dedupe: ['react', 'react-dom'], // Deduplicate React instances
+      // Ensure consistent module resolution
+      preserveSymlinks: false,
     },
     optimizeDeps: {
       include: ['react', 'react-dom'], // Pre-bundle React for faster dev server
@@ -61,9 +63,27 @@ export default defineConfig(({ mode }) => {
               return 'firebase-messaging-sw.js';
             }
             return 'assets/[name]-[hash][extname]';
+          },
+          // Ensure React and React-DOM are in a single chunk to prevent multiple instances
+          manualChunks: (id) => {
+            // Put React and React-DOM in a single chunk to prevent duplicate instances
+            if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+              return 'react-vendor';
+            }
+            // Put other node_modules in separate chunks
+            if (id.includes('node_modules/')) {
+              return 'vendor';
+            }
           }
         }
-      }
+      },
+      // Ensure common chunks are properly shared
+      commonjsOptions: {
+        include: [/node_modules/],
+        transformMixedEsModules: true
+      },
+      // Increase chunk size warning limit (React can be large)
+      chunkSizeWarningLimit: 1000
     }
   }
 })
