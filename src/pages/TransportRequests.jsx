@@ -411,7 +411,6 @@ const TransportRequests = () => {
           </tbody>
         </table>
       </div>
-      )}
 
       {totalPages > 1 && (
         <div className="pagination">

@@ -51,15 +51,7 @@ export default defineConfig(({ mode }) => {
     },
     optimizeDeps: {
       include: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'], // Pre-bundle React for faster dev server
-      esbuildOptions: {
-        // Ensure React is treated as a singleton
-        resolve: {
-          alias: {
-            'react': path.resolve(__dirname, './node_modules/react'),
-            'react-dom': path.resolve(__dirname, './node_modules/react-dom'),
-          }
-        }
-      }
+      // Note: esbuildOptions.resolve is not valid - use top-level resolve.alias instead
     },
     server: {
       port: port,
