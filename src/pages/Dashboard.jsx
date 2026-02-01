@@ -282,6 +282,9 @@ const Dashboard = () => {
         </div>
       )}
 
+      {/* Admin Push Notifications - send/schedule notifications to users */}
+      <AdminPushNotifications />
+
       {dashboardLoading ? (
         <div className="loading-message card">
           <p>⏳ Loading dashboard data...</p>
