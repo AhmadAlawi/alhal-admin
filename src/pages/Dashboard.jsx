@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { FiUsers, FiDollarSign, FiShoppingCart, FiTrendingUp, FiRefreshCw, FiPackage, FiActivity, FiGlobe, FiAlertCircle, FiClock } from 'react-icons/fi'
 import StatCard from '../components/StatCard/StatCard'
+import AdminPushNotifications from '../components/AdminPushNotifications/AdminPushNotifications'
 import Chart from '../components/Chart/Chart'
 import Table from '../components/Table/Table'
 import { useAutoFillData, useRealTimeData, useMapData } from '../hooks/useDashboardData'
