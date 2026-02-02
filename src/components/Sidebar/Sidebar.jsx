@@ -75,8 +75,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           <div className="user-info">
             <div className="user-avatar">AD</div>
             <div className="user-details">
-              <p className="user-name">Admin User</p>
-              <p className="user-role">Administrator</p>
+              <p className="user-name">{t('common.adminUser')}</p>
+              <p className="user-role">{t('common.administrator')}</p>
             </div>
           </div>
         </div>

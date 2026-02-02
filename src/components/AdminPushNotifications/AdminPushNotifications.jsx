@@ -205,7 +205,7 @@ const AdminPushNotifications = () => {
               value={sendForm.title}
               onChange={(e) => setSendForm({ ...sendForm, title: e.target.value })}
               required
-              placeholder="Notification title"
+              placeholder={t('common.notificationTitlePlaceholder')}
             />
           </div>
           <div className="form-row">
@@ -248,7 +248,7 @@ const AdminPushNotifications = () => {
                 type="text"
                 value={sendForm.roleName}
                 onChange={(e) => setSendForm({ ...sendForm, roleName: e.target.value })}
-                placeholder="farmer, trader, transporter"
+                placeholder={t('common.rolePlaceholder')}
               />
             </div>
           )}
@@ -269,7 +269,7 @@ const AdminPushNotifications = () => {
               type="url"
               value={sendForm.imageUrl}
               onChange={(e) => setSendForm({ ...sendForm, imageUrl: e.target.value })}
-              placeholder="https://..."
+              placeholder={t('common.urlPlaceholder')}
             />
           </div>
           <div className="form-row">
@@ -296,7 +296,7 @@ const AdminPushNotifications = () => {
               value={scheduleForm.title}
               onChange={(e) => setScheduleForm({ ...scheduleForm, title: e.target.value })}
               required
-              placeholder="Notification title"
+              placeholder={t('common.notificationTitlePlaceholder')}
             />
           </div>
           <div className="form-row">
@@ -337,7 +337,7 @@ const AdminPushNotifications = () => {
                 min={1}
                 value={scheduleForm.repeatCount}
                 onChange={(e) => setScheduleForm({ ...scheduleForm, repeatCount: e.target.value })}
-                placeholder="Leave empty for indefinite"
+                placeholder={t('common.repeatCountPlaceholder')}
               />
             </div>
           )}
@@ -371,7 +371,7 @@ const AdminPushNotifications = () => {
                 type="text"
                 value={scheduleForm.roleName}
                 onChange={(e) => setScheduleForm({ ...scheduleForm, roleName: e.target.value })}
-                placeholder="farmer, trader, transporter"
+                placeholder={t('common.rolePlaceholder')}
               />
             </div>
           )}

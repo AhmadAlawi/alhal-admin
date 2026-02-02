@@ -16,7 +16,7 @@ const Header = ({ toggleSidebar }) => {
   const { language, changeLanguage } = useLocale()
   const { t } = useTranslation()
   const user = authService.getUser()
-  const userName = user?.fullName || user?.name || user?.email || 'Admin User'
+  const userName = user?.fullName || user?.name || user?.email || t('common.adminUser')
 
   // Close menus when clicking outside
   useEffect(() => {
@@ -40,7 +40,8 @@ const Header = ({ toggleSidebar }) => {
   }
 
   const getUserInitials = () => {
-    if (userName && userName !== 'Admin User') {
+    const defaultName = t('common.adminUser')
+    if (userName && userName !== defaultName) {
       return userName
         .split(' ')
         .map(n => n[0])
@@ -110,7 +111,7 @@ const Header = ({ toggleSidebar }) => {
           <button 
             className="header-user-btn" 
             onClick={() => setUserMenuOpen(!userMenuOpen)}
-            title="User menu"
+            title={t('common.userMenu')}
           >
             <div className="header-user-avatar">
               {user?.imageUrl ? (

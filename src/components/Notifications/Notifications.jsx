@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FiBell, FiX, FiCheck, FiTrash2, FiRefreshCw } from 'react-icons/fi';
 import { useNotifications } from '../../contexts/NotificationContext';
+import { useTranslation } from '../../hooks/useTranslation';
 import authService from '../../services/authService';
 import './Notifications.css';
 
@@ -101,21 +102,21 @@ const Notifications = () => {
       {isOpen && (
         <div className="notifications-dropdown">
           <div className="notifications-header">
-            <h3>Notifications</h3>
+            <h3>{t('common.notifications')}</h3>
             <div className="notifications-actions">
               {notifications.length > 0 && (
                 <>
                   <button
                     className="icon-button"
                     onClick={markAllAsRead}
-                    title="Mark all as read"
+                    title={t('common.markAllAsRead')}
                   >
                     <FiCheck />
                   </button>
                   <button
                     className="icon-button"
                     onClick={clearAll}
-                    title="Clear all"
+                    title={t('common.clearAll')}
                   >
                     <FiTrash2 />
                   </button>
@@ -134,19 +135,19 @@ const Notifications = () => {
           <div className="notifications-body">
             {permission === 'default' && (
               <div className="notification-permission-request">
-                <p>Enable notifications to receive updates</p>
+                <p>{t('common.enableNotifications')}</p>
                 <button
                   className="btn btn-primary"
                   onClick={handleRequestPermission}
                 >
-                  Enable Notifications
+                  {t('common.enableNotificationsBtn')}
                 </button>
               </div>
             )}
 
             {permission === 'denied' && (
               <div className="notification-permission-denied">
-                <p>Notifications are blocked. Please enable them in your browser settings.</p>
+                <p>{t('common.notificationsBlocked')}</p>
               </div>
             )}
 
@@ -189,7 +190,7 @@ const Notifications = () => {
                                 e.stopPropagation();
                                 markAsRead(notification.id);
                               }}
-                              title="Mark as read"
+                              title={t('common.markAsRead')}
                             >
                               <FiCheck />
                             </button>

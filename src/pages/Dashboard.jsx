@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { FiUsers, FiDollarSign, FiShoppingCart, FiTrendingUp, FiRefreshCw, FiPackage, FiActivity, FiGlobe, FiAlertCircle, FiClock } from 'react-icons/fi'
 import StatCard from '../components/StatCard/StatCard'
 import AdminPushNotifications from '../components/AdminPushNotifications/AdminPushNotifications'
+import { useTranslation } from '../hooks/useTranslation'
 import Chart from '../components/Chart/Chart'
 import Table from '../components/Table/Table'
 import { useAutoFillData, useRealTimeData, useMapData } from '../hooks/useDashboardData'
@@ -10,6 +11,7 @@ import authService from '../services/authService'
 import './Dashboard.css'
 
 const Dashboard = () => {
+  const { t } = useTranslation()
   const [selectedDays, setSelectedDays] = useState(30)
   const { registerDevice, fcmToken, permission, isInitialized } = useNotifications()
   
@@ -133,7 +135,7 @@ const Dashboard = () => {
   const formatMarketShareData = (data) => {
     if (!data || !data.data || !data.data.transactionsByType) return []
     return data.data.transactionsByType.map(item => ({
-      name: item.type === 'direct' ? 'Direct Sales' : item.type === 'auction' ? 'Auctions' : 'Tenders',
+      name: item.type === 'direct' ? t('dashboard.directSales') : item.type === 'auction' ? t('dashboard.auctions') : t('dashboard.tenders'),
       value: item.count || 0,
       revenue: item.value || 0
     }))
@@ -146,7 +148,7 @@ const Dashboard = () => {
     
     if (Array.isArray(apiData)) {
       return apiData.map(item => ({
-        governorate: item.governorate || 'Unknown',
+        governorate: item.governorate || t('dashboard.unknown'),
         offeredQty: item.offeredQty || 0,
         soldQty: item.soldQty || 0,
         avgPrices: item.avgPrices && item.avgPrices.length > 0 
@@ -166,7 +168,7 @@ const Dashboard = () => {
     if (activity.auctions) {
       activity.auctions.slice(0, 5).forEach(item => {
         allItems.push({
-          type: 'Auction',
+          type: t('dashboard.auctions'),
           id: `#${item.id}`,
           title: item.title,
           status: item.status,
@@ -183,7 +185,7 @@ const Dashboard = () => {
     if (activity.tenders) {
       activity.tenders.slice(0, 5).forEach(item => {
         allItems.push({
-          type: 'Tender',
+          type: t('dashboard.tenders'),
           id: `#${item.id}`,
           title: item.title,
           status: item.status,
@@ -202,19 +204,19 @@ const Dashboard = () => {
 
   // Table columns for governorate data
   const governorateColumns = [
-    { header: 'Governorate', accessor: 'governorate' },
+    { header: t('dashboard.governorate'), accessor: 'governorate' },
     { 
-      header: 'Offered Qty (kg)', 
+      header: t('dashboard.offeredQty'), 
       accessor: 'offeredQty',
       render: (value) => <strong>{value.toLocaleString()}</strong>
     },
     { 
-      header: 'Sold Qty (kg)', 
+      header: t('dashboard.soldQty'), 
       accessor: 'soldQty',
       render: (value) => <span className={value > 0 ? 'text-success' : ''}>{value.toLocaleString()}</span>
     },
     { 
-      header: 'Avg Prices', 
+      header: t('dashboard.avgPrices'), 
       accessor: 'avgPrices',
       render: (value) => <span className="text-small">{value}</span>
     },
@@ -223,15 +225,15 @@ const Dashboard = () => {
   // Table columns for recent activity
   const activityColumns = [
     { 
-      header: 'Type', 
+      header: t('dashboard.type'), 
       accessor: 'type',
       render: (value) => {
-        const badgeClass = value === 'Auction' ? 'badge-primary' : 'badge-warning'
+        const badgeClass = value === t('dashboard.auctions') ? 'badge-primary' : 'badge-warning'
         return <span className={`badge ${badgeClass}`}>{value}</span>
       }
     },
     { header: 'ID', accessor: 'id' },
-    { header: 'Title', accessor: 'title' },
+    { header: t('dashboard.columnTitle'), accessor: 'title' },
     { 
       header: 'Status', 
       accessor: 'status',
@@ -241,7 +243,7 @@ const Dashboard = () => {
         return <span className={`badge ${statusClass}`}>{value}</span>
       }
     },
-    { header: 'Created At', accessor: 'createdAt' },
+    { header: t('dashboard.createdAt'), accessor: 'createdAt' },
   ]
 
   const revenueData = formatRevenueData(dashboardData)
@@ -255,8 +257,8 @@ const Dashboard = () => {
     <div className="dashboard">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Government Dashboard</h1>
-          <p className="page-subtitle">Real-time market overview and analytics</p>
+          <h1 className="page-title">{t('dashboard.governmentDashboard')}</h1>
+          <p className="page-subtitle">{t('dashboard.realtimeOverview')}</p>
         </div>
         <div className="header-actions">
           <select 
@@ -264,13 +266,13 @@ const Dashboard = () => {
             value={selectedDays} 
             onChange={(e) => setSelectedDays(Number(e.target.value))}
           >
-            <option value={7}>Last 7 Days</option>
-            <option value={30}>Last 30 Days</option>
-            <option value={60}>Last 60 Days</option>
-            <option value={90}>Last 90 Days</option>
+            <option value={7}>{t('dashboard.last7Days')}</option>
+            <option value={30}>{t('dashboard.last30Days')}</option>
+            <option value={60}>{t('dashboard.last60Days')}</option>
+            <option value={90}>{t('dashboard.last90Days')}</option>
           </select>
           <button className="btn btn-outline" onClick={handleRefresh}>
-            <FiRefreshCw /> Refresh
+            <FiRefreshCw /> {t('common.refresh')}
           </button>
         </div>
       </div>
@@ -287,7 +289,7 @@ const Dashboard = () => {
 
       {dashboardLoading ? (
         <div className="loading-message card">
-          <p>⏳ Loading dashboard data...</p>
+          <p>⏳ {t('dashboard.loadingData')}</p>
         </div>
       ) : dashboardData?.data && (
         <>
@@ -301,7 +303,7 @@ const Dashboard = () => {
               color="success"
             />
             <StatCard
-              title="Total Transactions"
+              title={t('dashboard.totalTransactions')}
               value={(dashboardData.data.marketAnalysis?.totalTransactions?.value || 0).toLocaleString()}
               change={dashboardData.data.marketAnalysis?.totalTransactions?.changePercentage}
               icon={<FiShoppingCart />}
@@ -315,7 +317,7 @@ const Dashboard = () => {
               color="warning"
             />
             <StatCard
-              title="Average Price"
+              title={t('dashboard.averagePrice')}
               value={`$${(dashboardData.data.marketAnalysis?.averagePrice?.value || 0).toLocaleString()}/kg`}
               change={dashboardData.data.marketAnalysis?.averagePrice?.changePercentage}
               icon={<FiTrendingUp />}
@@ -331,9 +333,9 @@ const Dashboard = () => {
                   <FiUsers color="#6366f1" size={24} />
                 </div>
                 <div className="overview-content">
-                  <span className="overview-label">Total Users</span>
+                  <span className="overview-label">{t('dashboard.totalUsers')}</span>
                   <span className="overview-value">{dashboardData.data.overview.totalUsers.toLocaleString()}</span>
-                  <span className="overview-detail">Active (30d): {dashboardData.data.overview.activeUsers30Days}</span>
+                  <span className="overview-detail">{t('dashboard.active30d')}: {dashboardData.data.overview.activeUsers30Days}</span>
                 </div>
               </div>
               <div className="overview-card card">
@@ -341,7 +343,7 @@ const Dashboard = () => {
                   <FiGlobe color="#10b981" size={24} />
                 </div>
                 <div className="overview-content">
-                  <span className="overview-label">Total Farms</span>
+                  <span className="overview-label">{t('dashboard.totalFarms')}</span>
                   <span className="overview-value">{dashboardData.data.overview.totalFarms.toLocaleString()}</span>
                   <span className="overview-detail">Inventory: {dashboardData.data.overview.totalInventory.toLocaleString()} kg</span>
                 </div>
@@ -351,7 +353,7 @@ const Dashboard = () => {
                   <FiActivity color="#f59e0b" size={24} />
                 </div>
                 <div className="overview-content">
-                  <span className="overview-label">Open Auctions</span>
+                  <span className="overview-label">{t('dashboard.openAuctions')}</span>
                   <span className="overview-value">{dashboardData.data.overview.openAuctions.toLocaleString()}</span>
                   <span className="overview-detail">Tenders: {dashboardData.data.overview.openTenders}</span>
                 </div>
@@ -361,7 +363,7 @@ const Dashboard = () => {
                   <FiPackage color="#ef4444" size={24} />
                 </div>
                 <div className="overview-content">
-                  <span className="overview-label">Active Listings</span>
+                  <span className="overview-label">{t('dashboard.activeListings')}</span>
                   <span className="overview-value">{dashboardData.data.overview.activeListings.toLocaleString()}</span>
                   <span className="overview-detail">New today: {dashboardData.data.overview.newUsersToday}</span>
                 </div>
@@ -373,7 +375,7 @@ const Dashboard = () => {
           {realTimeData?.data && (
             <div className="realtime-section card">
               <div className="realtime-header">
-                <h3><FiClock /> Today's Activity</h3>
+                <h3><FiClock /> {t('dashboard.todaysActivity')}</h3>
                 {!realTimeLoading && (
                   <span className="realtime-timestamp">
                     Last updated: {new Date(realTimeData.data.timestamp).toLocaleTimeString()}
@@ -382,7 +384,7 @@ const Dashboard = () => {
               </div>
               <div className="realtime-stats">
                 <div className="realtime-stat">
-                  <span className="realtime-label">New Users</span>
+                  <span className="realtime-label">{t('dashboard.newUsers')}</span>
                   <span className="realtime-value">{realTimeData.data.todayStats.newUsers}</span>
                 </div>
                 <div className="realtime-stat">
@@ -390,7 +392,7 @@ const Dashboard = () => {
                   <span className="realtime-value">{realTimeData.data.todayStats.newAuctions}</span>
                 </div>
                 <div className="realtime-stat">
-                  <span className="realtime-label">New Tenders</span>
+                  <span className="realtime-label">{t('dashboard.newTenders')}</span>
                   <span className="realtime-value">{realTimeData.data.todayStats.newTenders}</span>
                 </div>
                 <div className="realtime-stat">
@@ -398,7 +400,7 @@ const Dashboard = () => {
                   <span className="realtime-value">{realTimeData.data.todayStats.totalBids}</span>
                 </div>
                 <div className="realtime-stat">
-                  <span className="realtime-label">Total Offers</span>
+                  <span className="realtime-label">{t('dashboard.totalOffers')}</span>
                   <span className="realtime-value">{realTimeData.data.todayStats.totalOffers}</span>
                 </div>
               </div>
@@ -413,7 +415,7 @@ const Dashboard = () => {
                 data={revenueData}
                 dataKey="value"
                 xAxisKey="date"
-                title="Revenue Trends"
+                title={t('dashboard.revenueTrends')}
                 color="#6366f1"
               />
             )}
@@ -423,7 +425,7 @@ const Dashboard = () => {
                 data={priceTrendsData}
                 dataKey="price"
                 xAxisKey="date"
-                title="Average Price Trends"
+                title={t('dashboard.priceTrends')}
                 color="#10b981"
               />
             )}
@@ -446,7 +448,7 @@ const Dashboard = () => {
                 data={marketShareData}
                 dataKey="value"
                 xAxisKey="name"
-                title="Transactions by Type"
+                title={t('dashboard.transactionsByType')}
                 color="#ef4444"
               />
             )}
@@ -466,9 +468,9 @@ const Dashboard = () => {
           {governorateTableData.length > 0 && (
             <div className="section">
               <div className="section-header">
-                <h2 className="section-title">Activity by Governorate</h2>
+                <h2 className="section-title">{t('dashboard.activityByGovernorate')}</h2>
                 <div className="section-actions">
-                  {mapLoading && <span className="loading-text">Loading...</span>}
+                  {mapLoading && <span className="loading-text">{t('common.loading')}</span>}
                 </div>
               </div>
               <Table columns={governorateColumns} data={governorateTableData} />
@@ -479,7 +481,7 @@ const Dashboard = () => {
           {dashboardData.data.inventory && dashboardData.data.inventory.lowStockProducts && dashboardData.data.inventory.lowStockProducts.length > 0 && (
             <div className="low-stock-section card">
               <div className="low-stock-header">
-                <h3><FiAlertCircle /> Low Stock Products</h3>
+                <h3><FiAlertCircle /> {t('dashboard.lowStockProducts')}</h3>
                 <span className="low-stock-count">{dashboardData.data.inventory.lowStockProducts.length} items</span>
               </div>
               <div className="low-stock-list">
