@@ -11,19 +11,19 @@ import './Reports.css'
 const Reports = () => {
   const { t } = useTranslation()
   
-  // Report categories
+  // Report categories (names from t via nameKey)
   const reportCategories = [
-    { id: 'sales', name: 'Sales Reports', icon: <FiShoppingCart />, count: 5 },
-    { id: 'users', name: 'User Reports', icon: <FiUsers />, count: 5 },
-    { id: 'products', name: 'Product Reports', icon: <FiPackage />, count: 5 },
-    { id: 'transport', name: 'Transport Reports', icon: <FiTruck />, count: 5 },
-    { id: 'tenders', name: 'Tender Reports', icon: <FiFileText />, count: 4 },
-    { id: 'auctions', name: 'Auction Reports', icon: <FiAward />, count: 3 },
-    { id: 'financial', name: 'Financial Reports', icon: <FiDollarSign />, count: 4 },
-    { id: 'inventory', name: 'Inventory Reports', icon: <FiBox />, count: 4 },
-    { id: 'performance', name: 'Performance Reports', icon: <FiZap />, count: 3 },
-    { id: 'market', name: 'Market Analysis Reports', icon: <FiBarChart2 />, count: 3 },
-    { id: 'losses', name: 'Loss Reports', icon: <FiTrendingDown />, count: 3 },
+    { id: 'sales', nameKey: 'categorySales', icon: <FiShoppingCart />, count: 5 },
+    { id: 'users', nameKey: 'categoryUsers', icon: <FiUsers />, count: 5 },
+    { id: 'products', nameKey: 'categoryProducts', icon: <FiPackage />, count: 5 },
+    { id: 'transport', nameKey: 'categoryTransport', icon: <FiTruck />, count: 5 },
+    { id: 'tenders', nameKey: 'categoryTenders', icon: <FiFileText />, count: 4 },
+    { id: 'auctions', nameKey: 'categoryAuctions', icon: <FiAward />, count: 3 },
+    { id: 'financial', nameKey: 'categoryFinancial', icon: <FiDollarSign />, count: 4 },
+    { id: 'inventory', nameKey: 'categoryInventory', icon: <FiBox />, count: 4 },
+    { id: 'performance', nameKey: 'categoryPerformance', icon: <FiZap />, count: 3 },
+    { id: 'market', nameKey: 'categoryMarket', icon: <FiBarChart2 />, count: 3 },
+    { id: 'losses', nameKey: 'categoryLosses', icon: <FiTrendingDown />, count: 3 },
   ]
 
   // Report definitions
@@ -304,7 +304,7 @@ const Reports = () => {
 
   const renderTimeSeriesReport = (data, summary, reportDef) => {
     if (!data || data.length === 0) {
-      return <div className="no-data">No data available</div>
+      return <div className="no-data">{t('reports.noDataAvailable')}</div>
     }
 
     // Determine data keys
@@ -323,22 +323,22 @@ const Reports = () => {
         {summary && (
           <div className="stats-grid">
             {summary.totalSales !== undefined && (
-              <StatCard title="Total Sales" value={`${Number(summary.totalSales).toLocaleString()} IQD`} icon={<FiDollarSign />} color="primary" />
+              <StatCard title={t('reports.totalSales')} value={`${Number(summary.totalSales).toLocaleString()} IQD`} icon={<FiDollarSign />} color="primary" />
             )}
             {summary.totalQuantity !== undefined && (
-              <StatCard title="Total Quantity" value={`${Number(summary.totalQuantity).toLocaleString()}`} icon={<FiPackage />} color="success" />
+              <StatCard title={t('reports.totalQuantity')} value={`${Number(summary.totalQuantity).toLocaleString()}`} icon={<FiPackage />} color="success" />
             )}
             {summary.totalTransactions !== undefined && (
-              <StatCard title="Total Transactions" value={Number(summary.totalTransactions).toLocaleString()} icon={<FiActivity />} color="info" />
+              <StatCard title={t('reports.totalTransactions')} value={Number(summary.totalTransactions).toLocaleString()} icon={<FiActivity />} color="info" />
             )}
             {summary.averagePrice !== undefined && (
-              <StatCard title="Average Price" value={`${Number(summary.averagePrice).toLocaleString()} IQD`} icon={<FiTrendingUp />} color="warning" />
+              <StatCard title={t('reports.averagePrice')} value={`${Number(summary.averagePrice).toLocaleString()} IQD`} icon={<FiTrendingUp />} color="warning" />
             )}
             {summary.totalRevenue !== undefined && (
-              <StatCard title="Total Revenue" value={`${Number(summary.totalRevenue).toLocaleString()} IQD`} icon={<FiDollarSign />} color="primary" />
+              <StatCard title={t('reports.totalRevenue')} value={`${Number(summary.totalRevenue).toLocaleString()} IQD`} icon={<FiDollarSign />} color="primary" />
             )}
             {summary.totalUsers !== undefined && (
-              <StatCard title="Total Users" value={Number(summary.totalUsers).toLocaleString()} icon={<FiUsers />} color="success" />
+              <StatCard title={t('reports.totalUsers')} value={Number(summary.totalUsers).toLocaleString()} icon={<FiUsers />} color="success" />
             )}
           </div>
         )}
@@ -354,7 +354,7 @@ const Reports = () => {
               color: ['#6366f1', '#10b981', '#f59e0b'][keys.indexOf(key) % 3]
             }))}
             xAxisKey={periodKey}
-            title={reportDef.name}
+            title={t('reports.reportNames.' + reportDef.id) || reportDef.name}
             height={400}
           />
         ) : (
@@ -363,7 +363,7 @@ const Reports = () => {
             data={data}
             dataKey={keys[0] || 'value'}
             xAxisKey={periodKey}
-            title={reportDef.name}
+            title={t('reports.reportNames.' + reportDef.id) || reportDef.name}
             height={400}
           />
         )}
@@ -373,7 +373,7 @@ const Reports = () => {
 
   const renderDistributionReport = (data, summary, reportDef) => {
     if (!data || data.length === 0) {
-      return <div className="no-data">No data available</div>
+      return <div className="no-data">{t('reports.noDataAvailable')}</div>
     }
 
     const nameKey = data[0].name ? 'name' : (data[0].label ? 'label' : Object.keys(data[0])[0])
@@ -386,7 +386,7 @@ const Reports = () => {
             type="pie"
             data={data}
             dataKey={valueKey}
-            title={reportDef.name}
+            title={t('reports.reportNames.' + reportDef.id) || reportDef.name}
             height={400}
             pieLabel={true}
           />
@@ -395,7 +395,7 @@ const Reports = () => {
             data={data}
             dataKey={valueKey}
             xAxisKey={nameKey}
-            title={reportDef.name}
+            title={t('reports.reportNames.' + reportDef.id) || reportDef.name}
             height={400}
           />
         </div>
@@ -405,7 +405,7 @@ const Reports = () => {
 
   const renderListReport = (data, summary, reportDef) => {
     if (!data || data.length === 0) {
-      return <div className="no-data">No data available</div>
+      return <div className="no-data">{t('reports.noDataAvailable')}</div>
     }
 
     const columns = Object.keys(data[0]).map(key => ({
@@ -416,7 +416,7 @@ const Reports = () => {
           return value.toLocaleString()
         }
         if (typeof value === 'boolean') {
-          return value ? 'Yes' : 'No'
+          return value ? t('common.yes') : t('common.no')
         }
         return value || '-'
       }
@@ -438,7 +438,7 @@ const Reports = () => {
           </div>
         )}
         <div className="card">
-          <h3>{reportDef.name}</h3>
+          <h3>{t('reports.reportNames.' + reportDef.id) || reportDef.name}</h3>
           <Table columns={columns} data={data} />
         </div>
       </div>
@@ -464,7 +464,7 @@ const Reports = () => {
         
         {data && Array.isArray(data) && data.length > 0 && (
           <div className="card">
-            <h3>Data</h3>
+            <h3>{t('reports.data')}</h3>
             <pre style={{ maxHeight: '500px', overflow: 'auto' }}>
               {JSON.stringify(data, null, 2)}
             </pre>
@@ -478,8 +478,8 @@ const Reports = () => {
     <div className="reports-page">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Comprehensive Reports</h1>
-          <p className="page-subtitle">40+ reports covering all aspects of the platform</p>
+          <h1 className="page-title">{t('reports.comprehensiveReports')}</h1>
+          <p className="page-subtitle">{t('reports.reportsSubtitle')}</p>
         </div>
         <div className="header-actions">
           <button className="btn btn-outline" onClick={fetchReportData} disabled={!activeReport || loading}>
@@ -500,7 +500,7 @@ const Reports = () => {
               setReportData(null)
             }}
           >
-            {cat.icon} {cat.name} ({cat.count})
+            {cat.icon} {t('reports.' + cat.nameKey)} ({cat.count})
           </button>
         ))}
       </div>
@@ -508,7 +508,7 @@ const Reports = () => {
       <div className="reports-layout">
         {/* Report Selector Sidebar */}
         <div className="report-selector card">
-          <h3>Select Report</h3>
+          <h3>{t('reports.selectReport')}</h3>
           <div className="report-list">
             {reportDefinitions[activeCategory]?.map(report => (
               <button
@@ -517,9 +517,9 @@ const Reports = () => {
                 onClick={() => handleReportSelect(report.id)}
               >
                 <div className="report-item-header">
-                  <span className="report-item-name">{report.name}</span>
+                  <span className="report-item-name">{t('reports.reportNames.' + report.id) || report.name}</span>
                 </div>
-                <span className="report-item-desc">{report.description}</span>
+                <span className="report-item-desc">{t('reports.reportDescriptions.' + report.id) || report.description}</span>
               </button>
             ))}
           </div>
@@ -530,11 +530,11 @@ const Reports = () => {
           {/* Filters Panel */}
           <div className="filters-panel card">
             <div className="filters-header">
-              <h3><FiFilter /> Filters</h3>
+              <h3><FiFilter /> {t('reports.filters')}</h3>
             </div>
             <div className="filters-grid">
               <div className="filter-group">
-                <label>Start Date</label>
+                <label>{t('reports.startDate')}</label>
                 <input
                   type="date"
                   className="filter-select"
@@ -544,7 +544,7 @@ const Reports = () => {
               </div>
 
               <div className="filter-group">
-                <label>End Date</label>
+                <label>{t('reports.endDate')}</label>
                 <input
                   type="date"
                   className="filter-select"
@@ -554,30 +554,30 @@ const Reports = () => {
               </div>
 
               <div className="filter-group">
-                <label>Time Group</label>
+                <label>{t('reports.timeGroup')}</label>
                 <select
                   className="filter-select"
                   value={filters.timeGroup}
                   onChange={(e) => handleFilterChange('timeGroup', e.target.value)}
                 >
-                  <option value="minute">Minute</option>
-                  <option value="hour">Hour</option>
-                  <option value="day">Day</option>
-                  <option value="week">Week</option>
-                  <option value="month">Month</option>
-                  <option value="year">Year</option>
+                  <option value="minute">{t('reports.minute')}</option>
+                  <option value="hour">{t('reports.hour')}</option>
+                  <option value="day">{t('reports.day')}</option>
+                  <option value="week">{t('reports.week')}</option>
+                  <option value="month">{t('reports.month')}</option>
+                  <option value="year">{t('reports.year')}</option>
                 </select>
               </div>
 
               <div className="filter-group">
-                <label>Governorate</label>
+                <label>{t('reports.governorate')}</label>
                 <select
                   className="filter-select"
                   value={filters.governorate || ''}
                   onChange={(e) => handleFilterChange('governorate', e.target.value || null)}
                   disabled={loadingFilters}
                 >
-                  <option value="">All Governorates</option>
+                  <option value="">{t('reports.allGovernorates')}</option>
                   {governorates.map(gov => (
                     <option key={gov} value={gov}>{gov}</option>
                   ))}
@@ -585,14 +585,14 @@ const Reports = () => {
               </div>
 
               <div className="filter-group">
-                <label>Product</label>
+                <label>{t('reports.product')}</label>
                 <select
                   className="filter-select"
                   value={filters.productId || ''}
                   onChange={(e) => handleFilterChange('productId', e.target.value ? Number(e.target.value) : null)}
                   disabled={loadingFilters}
                 >
-                  <option value="">All Products</option>
+                  <option value="">{t('reports.allProducts')}</option>
                   {products.map(product => (
                     <option key={product.productId || product.id} value={product.productId || product.id}>
                       {product.nameEn || product.nameAr || product.name || `Product ${product.productId || product.id}`}
@@ -602,14 +602,14 @@ const Reports = () => {
               </div>
 
               <div className="filter-group">
-                <label>Category</label>
+                <label>{t('reports.category')}</label>
                 <select
                   className="filter-select"
                   value={filters.categoryId || ''}
                   onChange={(e) => handleFilterChange('categoryId', e.target.value ? Number(e.target.value) : null)}
                   disabled={loadingFilters}
                 >
-                  <option value="">All Categories</option>
+                  <option value="">{t('reports.allCategories')}</option>
                   {productCategories.map(cat => (
                     <option key={cat.categoryId || cat.id} value={cat.categoryId || cat.id}>
                       {cat.nameEn || cat.nameAr || cat.name || `Category ${cat.categoryId || cat.id}`}
@@ -619,32 +619,32 @@ const Reports = () => {
               </div>
 
               <div className="filter-group">
-                <label>User Type</label>
+                <label>{t('reports.userTypeLabel')}</label>
                 <select
                   className="filter-select"
                   value={filters.userType || ''}
                   onChange={(e) => handleFilterChange('userType', e.target.value || null)}
                 >
-                  <option value="">All Types</option>
-                  <option value="farmer">Farmer</option>
-                  <option value="trader">Trader</option>
-                  <option value="transporter">Transporter</option>
-                  <option value="buyer">Buyer</option>
+                  <option value="">{t('reports.allTypes')}</option>
+                  <option value="farmer">{t('reports.farmer')}</option>
+                  <option value="trader">{t('reports.trader')}</option>
+                  <option value="transporter">{t('reports.transporter')}</option>
+                  <option value="buyer">{t('reports.buyer')}</option>
                 </select>
               </div>
 
               <div className="filter-group">
-                <label>Status</label>
+                <label>{t('common.status')}</label>
                 <select
                   className="filter-select"
                   value={filters.status || ''}
                   onChange={(e) => handleFilterChange('status', e.target.value || null)}
                 >
-                  <option value="">All Statuses</option>
-                  <option value="open">Open</option>
-                  <option value="completed">Completed</option>
-                  <option value="active">Active</option>
-                  <option value="closed">Closed</option>
+                  <option value="">{t('reports.allStatuses')}</option>
+                  <option value="open">{t('reports.statusOpen')}</option>
+                  <option value="completed">{t('reports.statusCompleted')}</option>
+                  <option value="active">{t('reports.statusActive')}</option>
+                  <option value="closed">{t('reports.statusClosed')}</option>
                 </select>
               </div>
             </div>

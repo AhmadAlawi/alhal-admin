@@ -5,9 +5,11 @@ import Chart from '../components/Chart/Chart'
 import Table from '../components/Table/Table'
 import marketAnalysisService from '../services/marketAnalysisService'
 import adminService from '../services/adminService'
+import { useTranslation } from '../hooks/useTranslation'
 import './Analytics.css'
 
 const Analytics = () => {
+  const { t } = useTranslation()
   // Filter states
   const [products, setProducts] = useState([])
   const [availableFilters, setAvailableFilters] = useState(null)
@@ -254,8 +256,8 @@ const Analytics = () => {
   const formatTransactionData = (data) => {
     if (!data || !data.data) return []
     return data.data.map(item => ({
-      name: item.category === 'direct' ? 'Direct Sales' : 
-            item.category === 'auction' ? 'Auctions' : 'Tenders',
+      name: item.category === 'direct' ? t('analytics.directSales') :
+            item.category === 'auction' ? t('analytics.auctions') : t('analytics.tenders'),
       value: item.value || 0
     }))
   }
@@ -280,7 +282,7 @@ const Analytics = () => {
 
   const getProductName = (productId) => {
     const product = products.find(p => p.productId === productId)
-    return product ? (product.nameEn || product.nameAr || `Product ${productId}`) : `Product ${productId}`
+    return product ? (product.nameEn || product.nameAr || `${t('analytics.productLabel')} ${productId}`) : `${t('analytics.productLabel')} ${productId}`
   }
 
   const handleRefresh = () => {
@@ -300,12 +302,12 @@ const Analytics = () => {
     <div className="analytics-page">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Market Analysis & Analytics</h1>
-          <p className="page-subtitle">Comprehensive market insights and trend analysis</p>
+          <h1 className="page-title">{t('analytics.title')}</h1>
+          <p className="page-subtitle">{t('analytics.subtitle')}</p>
         </div>
         <div className="header-actions">
           <button className="btn btn-outline" onClick={handleRefresh} disabled={!selectedProduct}>
-            <FiRefreshCw /> Refresh
+            <FiRefreshCw /> {t('common.refresh')}
           </button>
         </div>
       </div>
@@ -313,18 +315,18 @@ const Analytics = () => {
       {/* Filters Panel */}
       <div className="filters-panel card">
         <div className="filters-header">
-          <h3><FiFilter /> Filters</h3>
+          <h3><FiFilter /> {t('analytics.filters')}</h3>
         </div>
         <div className="filters-grid">
           <div className="filter-group">
-            <label>Product *</label>
+            <label>{t('analytics.product')} *</label>
             <select 
               className="filter-select"
               value={selectedProduct || ''}
               onChange={(e) => setSelectedProduct(e.target.value ? Number(e.target.value) : null)}
               disabled={loadingProducts}
             >
-              <option value="">Select Product</option>
+              <option value="">{t('analytics.selectProduct')}</option>
               {products.map(product => (
                 <option key={product.productId} value={product.productId}>
                   {product.nameEn || product.nameAr || `Product ${product.productId}`}
@@ -334,14 +336,14 @@ const Analytics = () => {
           </div>
 
           <div className="filter-group">
-            <label>Governorate</label>
+            <label>{t('analytics.governorate')}</label>
             <select 
               className="filter-select"
               value={selectedGovernorate || ''}
               onChange={(e) => setSelectedGovernorate(e.target.value || null)}
               disabled={loadingFilters}
             >
-              <option value="">All Governorates</option>
+              <option value="">{t('analytics.allGovernorates')}</option>
               {availableFilters?.governorates?.map(gov => (
                 <option key={gov} value={gov}>{gov}</option>
               ))}
@@ -349,7 +351,7 @@ const Analytics = () => {
           </div>
 
           <div className="filter-group">
-            <label>Start Date</label>
+            <label>{t('analytics.startDate')}</label>
             <input 
               type="date"
               className="filter-select"
@@ -359,7 +361,7 @@ const Analytics = () => {
           </div>
 
           <div className="filter-group">
-            <label>End Date</label>
+            <label>{t('analytics.endDate')}</label>
             <input 
               type="date"
               className="filter-select"
@@ -369,15 +371,15 @@ const Analytics = () => {
           </div>
 
           <div className="filter-group">
-            <label>Group By</label>
+            <label>{t('analytics.groupBy')}</label>
             <select 
               className="filter-select"
               value={groupBy}
               onChange={(e) => setGroupBy(e.target.value)}
             >
-              <option value="day">Daily</option>
-              <option value="week">Weekly</option>
-              <option value="month">Monthly</option>
+              <option value="day">{t('analytics.daily')}</option>
+              <option value="week">{t('analytics.weekly')}</option>
+              <option value="month">{t('analytics.monthly')}</option>
             </select>
           </div>
         </div>
@@ -401,7 +403,7 @@ const Analytics = () => {
 
       {!selectedProduct && !loadingProducts && products.length > 0 && (
         <div className="info-message card">
-          <p><FiBarChart2 /> Please select a product to view detailed analytics</p>
+          <p><FiBarChart2 /> {t('analytics.selectProductPlaceholder')}</p>
         </div>
       )}
 
@@ -410,8 +412,8 @@ const Analytics = () => {
           {/* Selected Product Banner */}
           <div className="selected-product-info">
             <h3 className="selected-product-title">
-              Analyzing: <span className="product-name">{getProductName(selectedProduct)}</span>
-              {selectedGovernorate && <span className="governorate-tag"> in {selectedGovernorate}</span>}
+              {t('analytics.analyzing')}: <span className="product-name">{getProductName(selectedProduct)}</span>
+              {selectedGovernorate && <span className="governorate-tag"> {t('analytics.in')} {selectedGovernorate}</span>}
             </h3>
           </div>
 
@@ -423,13 +425,13 @@ const Analytics = () => {
                 data={priceTrendsChartData}
                 dataKey="avgPrice"
                 xAxisKey="date"
-                title={`Price Trends for ${getProductName(selectedProduct)}`}
+                title={`${t('analytics.priceTrendsFor')} ${getProductName(selectedProduct)}`}
                 color="#6366f1"
               />
             </div>
           ) : loading.priceTrends ? (
             <div className="loading-chart card">
-              <p>Loading price trends...</p>
+              <p>{t('analytics.loadingPriceTrends')}</p>
             </div>
           ) : null}
 
@@ -442,7 +444,7 @@ const Analytics = () => {
                 data={volumeChartData}
                 dataKey="volume"
                 xAxisKey="governorate"
-                title="Sales Volume by Governorate"
+                title={t('analytics.salesVolume')}
                 color="#10b981"
               />
             )}
@@ -454,7 +456,7 @@ const Analytics = () => {
                 data={marketShareChartData}
                 dataKey="value"
                 xAxisKey="name"
-                title="Market Share by Product"
+                title={t('analytics.marketShare')}
                 color="#f59e0b"
               />
             )}
@@ -466,7 +468,7 @@ const Analytics = () => {
                 data={transactionChartData}
                 dataKey="value"
                 xAxisKey="name"
-                title="Transaction Type Distribution"
+                title={t('analytics.transactionDistribution')}
                 color="#ef4444"
               />
             )}
@@ -478,7 +480,7 @@ const Analytics = () => {
                 data={supplyDemandChartData}
                 dataKey="supply"
                 xAxisKey="date"
-                title="Supply vs Demand Trends"
+                title={t('analytics.supplyDemand')}
                 color="#8b5cf6"
               />
             )}
@@ -492,7 +494,7 @@ const Analytics = () => {
                 data={topProductsChartData}
                 dataKey="revenue"
                 xAxisKey="name"
-                title="Top 10 Products by Revenue"
+                title={t('analytics.topProducts')}
                 color="#06b6d4"
               />
             </div>

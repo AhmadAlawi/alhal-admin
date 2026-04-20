@@ -16,6 +16,7 @@ import {
   FiTruck,
   FiPackage,
   FiDollarSign,
+  FiImage,
 } from 'react-icons/fi'
 import { useTranslation } from '../../hooks/useTranslation'
 import './Sidebar.css'
@@ -38,6 +39,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     { path: '/transport/vehicles', icon: <FiTruck />, label: t('common.transportVehicles') },
     { path: '/transport/requests', icon: <FiPackage />, label: t('common.transportRequests') },
     { path: '/transport/price-lines', icon: <FiDollarSign />, label: t('common.transportPriceLines') },
+    { path: '/ads', icon: <FiImage />, label: t('common.ads') },
     { path: '/settings', icon: <FiSettings />, label: t('common.settings') },
   ]
 

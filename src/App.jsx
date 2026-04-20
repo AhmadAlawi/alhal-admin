@@ -19,6 +19,7 @@ import TransportProviders from './pages/TransportProviders'
 import TransportRequests from './pages/TransportRequests'
 import TransportPriceLines from './pages/TransportPriceLines'
 import TransportVehicles from './pages/TransportVehicles'
+import Ads from './pages/Ads'
 import './App.css'
 
 function App() {
@@ -111,6 +112,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Orders />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/ads"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Ads />
                 </Layout>
               </ProtectedRoute>
             }
