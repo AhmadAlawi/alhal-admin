@@ -6,14 +6,25 @@ import {
   FiPlus,
   FiRefreshCw,
   FiTrash2,
+  FiUpload,
   FiX,
 } from 'react-icons/fi'
 import advertisementsService from '../services/advertisementsService'
+import imageService from '../services/imageService'
 import './Ads.css'
 
 const PLATFORM_OPTIONS = ['web', 'mobile', 'all']
 const POSITION_OPTIONS = ['header', 'sidebar', 'footer', 'banner', 'popup']
 const CLICK_ACTION_OPTIONS = ['url', 'product', 'category', 'auction', 'tender', 'listing']
+const RECOMMENDED_IMAGE_WIDTH = 1200
+const RECOMMENDED_IMAGE_HEIGHT = 300
+const MIN_IMAGE_WIDTH = 800
+const MIN_IMAGE_HEIGHT = 200
+const IMAGE_RATIO_TARGET = 4
+const IMAGE_RATIO_TOLERANCE = 0.05
+const ALLOWED_IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp']
+const RECOMMENDED_MAX_SIZE = 300 * 1024
+const HARD_MAX_SIZE = 500 * 1024
 
 const createEmptyForm = () => ({
   title: '',
@@ -51,10 +62,15 @@ const Ads = () => {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [previewError, setPreviewError] = useState('')
 
   const [showModal, setShowModal] = useState(false)
   const [selectedAd, setSelectedAd] = useState(null)
   const [formData, setFormData] = useState(createEmptyForm())
+  const [formError, setFormError] = useState('')
+  const [imageFiles, setImageFiles] = useState([])
+  const [thumbnailFiles, setThumbnailFiles] = useState([])
+  const [uploadWarning, setUploadWarning] = useState('')
 
   const [filters, setFilters] = useState({
     platform: 'all',
@@ -73,16 +89,31 @@ const Ads = () => {
     try {
       setLoading(true)
       setError('')
-      const [allAds, enabledMobileAds] = await Promise.all([
+      setPreviewError('')
+
+      const [adminAdsResult, mobileAdsResult] = await Promise.allSettled([
         advertisementsService.getAdvertisements(),
         advertisementsService.getAppAdvertisements(true),
       ])
-      setAds(Array.isArray(allAds) ? allAds : [])
-      setMobileAds(Array.isArray(enabledMobileAds) ? enabledMobileAds : [])
+
+      if (adminAdsResult.status === 'fulfilled') {
+        setAds(Array.isArray(adminAdsResult.value) ? adminAdsResult.value : [])
+      } else {
+        setAds([])
+        setError(adminAdsResult.reason?.message || 'Failed to load ads')
+      }
+
+      if (mobileAdsResult.status === 'fulfilled') {
+        setMobileAds(Array.isArray(mobileAdsResult.value) ? mobileAdsResult.value : [])
+      } else {
+        setMobileAds([])
+        setPreviewError(
+          mobileAdsResult.reason?.message ||
+            'Mobile preview endpoint is unavailable (possibly blocked by browser extension).'
+        )
+      }
     } catch (err) {
       setError(err.message || 'Failed to load ads')
-      setAds([])
-      setMobileAds([])
     } finally {
       setLoading(false)
     }
@@ -91,11 +122,19 @@ const Ads = () => {
   const openCreateModal = () => {
     setSelectedAd(null)
     setFormData(createEmptyForm())
+    setFormError('')
+    setImageFiles([])
+    setThumbnailFiles([])
+    setUploadWarning('')
     setShowModal(true)
   }
 
   const openEditModal = (ad) => {
     setSelectedAd(ad)
+    setFormError('')
+    setImageFiles([])
+    setThumbnailFiles([])
+    setUploadWarning('')
     setFormData({
       title: ad.title || '',
       description: ad.description || '',
@@ -118,6 +157,10 @@ const Ads = () => {
   const closeModal = () => {
     setShowModal(false)
     setSelectedAd(null)
+    setFormError('')
+    setImageFiles([])
+    setThumbnailFiles([])
+    setUploadWarning('')
     setFormData(createEmptyForm())
   }
 
@@ -127,16 +170,153 @@ const Ads = () => {
       .map((line) => line.trim())
       .filter(Boolean)
 
-  const validateForm = () => {
+  const isAllowedImageFormat = (url) => {
+    const sanitized = url.split('?')[0].toLowerCase()
+    return ALLOWED_IMAGE_EXTENSIONS.some((extension) => sanitized.endsWith(extension))
+  }
+
+  const isAllowedFileFormat = (file) =>
+    ALLOWED_IMAGE_EXTENSIONS.some((extension) => file.name.toLowerCase().endsWith(extension))
+
+  const getImageDimensionsFromFile = (file) =>
+    new Promise((resolve, reject) => {
+      const img = new Image()
+      const objectUrl = URL.createObjectURL(file)
+      img.onload = () => {
+        URL.revokeObjectURL(objectUrl)
+        resolve({ width: img.naturalWidth, height: img.naturalHeight })
+      }
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl)
+        reject(new Error(`Unable to read image "${file.name}".`))
+      }
+      img.src = objectUrl
+    })
+
+  const extractUploadedUrl = (uploadResponse) => {
+    if (uploadResponse?.data?.url) return uploadResponse.data.url
+    if (uploadResponse?.data?.data?.url) return uploadResponse.data.data.url
+    if (uploadResponse?.url) return uploadResponse.url
+    if (typeof uploadResponse?.data === 'string') return uploadResponse.data
+    return null
+  }
+
+  const validateSelectedFiles = async (files) => {
+    for (const file of files) {
+      if (!isAllowedFileFormat(file)) {
+        return `File "${file.name}" must be JPG, PNG, or WEBP.`
+      }
+      if (file.size > HARD_MAX_SIZE) {
+        return `File "${file.name}" exceeds hard limit (500KB).`
+      }
+
+      const { width, height } = await getImageDimensionsFromFile(file)
+      const ratio = width / height
+      if (width < MIN_IMAGE_WIDTH || height < MIN_IMAGE_HEIGHT) {
+        return `File "${file.name}" is too small (${width}x${height}). Minimum is ${MIN_IMAGE_WIDTH}x${MIN_IMAGE_HEIGHT}.`
+      }
+      if (Math.abs(ratio - IMAGE_RATIO_TARGET) > IMAGE_RATIO_TOLERANCE) {
+        return `File "${file.name}" must use 4:1 ratio. Current ratio is ${ratio.toFixed(2)}:1.`
+      }
+    }
+    return ''
+  }
+
+  const uploadFilesAndGetUrls = async (files) => {
+    const urls = []
+    for (const file of files) {
+      const uploadResponse = await imageService.uploadImage(file, 'ads')
+      const uploadedUrl = extractUploadedUrl(uploadResponse)
+      if (!uploadedUrl) {
+        throw new Error(`Upload failed for "${file.name}". No URL in response.`)
+      }
+      urls.push(uploadedUrl)
+    }
+    return urls
+  }
+
+  const validateImageDimensions = (url, useCrossOrigin = false) =>
+    new Promise((resolve) => {
+      const img = new Image()
+      if (useCrossOrigin) {
+        img.crossOrigin = 'anonymous'
+      }
+
+      img.onload = () => {
+        const width = img.naturalWidth
+        const height = img.naturalHeight
+        const ratio = width / height
+        const hasMinResolution = width >= MIN_IMAGE_WIDTH && height >= MIN_IMAGE_HEIGHT
+        const hasRequiredRatio = Math.abs(ratio - IMAGE_RATIO_TARGET) <= IMAGE_RATIO_TOLERANCE
+        const isRecommended = width >= RECOMMENDED_IMAGE_WIDTH && height >= RECOMMENDED_IMAGE_HEIGHT
+
+        resolve({
+          ok: hasMinResolution && hasRequiredRatio,
+          hasMinResolution,
+          hasRequiredRatio,
+          isRecommended,
+          width,
+          height,
+        })
+      }
+
+      img.onerror = () => {
+        resolve({
+          ok: false,
+          loadError: true,
+        })
+      }
+
+      img.src = url
+    })
+
+  /**
+   * Remote URL checks can fail even when the URL is valid (ad blockers on `/ads/`,
+   * CORP/CORS, hotlink rules, etc.). Uploaded files are still validated strictly.
+   */
+  const validateImageSpecs = async (imageUrls) => {
+    const warnings = []
+
+    for (const url of imageUrls) {
+      if (!isAllowedImageFormat(url)) {
+        return { error: 'Image format must be JPG, PNG, or WEBP.', warnings }
+      }
+
+      let imageCheck = await validateImageDimensions(url, false)
+      if (imageCheck.loadError) {
+        imageCheck = await validateImageDimensions(url, true)
+      }
+
+      if (imageCheck.loadError) {
+        warnings.push(
+          `Could not load image in the browser to verify size/ratio: ${url}. If the file is correct, you can still save — confirm 4:1 ratio and min ${MIN_IMAGE_WIDTH}×${MIN_IMAGE_HEIGHT} (e.g. ad blockers often block URLs containing "/ads/").`
+        )
+        continue
+      }
+
+      if (!imageCheck.hasMinResolution) {
+        return {
+          error: `Image "${url}" is too small (${imageCheck.width}x${imageCheck.height}). Minimum is ${MIN_IMAGE_WIDTH}x${MIN_IMAGE_HEIGHT}.`,
+          warnings,
+        }
+      }
+
+      if (!imageCheck.hasRequiredRatio) {
+        return {
+          error: `Image "${url}" must use 4:1 aspect ratio. Current ratio is ${(imageCheck.width / imageCheck.height).toFixed(2)}:1.`,
+          warnings,
+        }
+      }
+    }
+
+    return { error: '', warnings }
+  }
+
+  const validateForm = async () => {
     const requiredFields = ['title', 'platform', 'position', 'displayOrder', 'startDate']
     const missingField = requiredFields.find((field) => !formData[field] && formData[field] !== 0)
     if (missingField) {
       return 'Please fill all required fields.'
-    }
-
-    const imageUrls = parseUrlLines(formData.imageUrlsText)
-    if (!imageUrls.length) {
-      return 'At least one image URL is required.'
     }
 
     if (formData.clickAction === 'url') {
@@ -182,15 +362,62 @@ const Ads = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault()
-    const validationError = validateForm()
+    setFormError('')
+    setUploadWarning('')
+
+    const existingImageUrls = parseUrlLines(formData.imageUrlsText)
+    const existingThumbUrls = parseUrlLines(formData.thumbnailUrlsText)
+
+    if (!existingImageUrls.length && imageFiles.length === 0) {
+      setFormError('Please upload at least one image or provide at least one image URL.')
+      return
+    }
+
+    const fileValidationError = await validateSelectedFiles([...imageFiles, ...thumbnailFiles])
+    if (fileValidationError) {
+      setFormError(fileValidationError)
+      return
+    }
+
+    const largeFile = [...imageFiles, ...thumbnailFiles].find(
+      (file) => file.size > RECOMMENDED_MAX_SIZE && file.size <= HARD_MAX_SIZE
+    )
+    if (largeFile) {
+      setUploadWarning(
+        `"${largeFile.name}" is above recommended 300KB but within hard limit 500KB.`
+      )
+    }
+
+    const validationError = await validateForm()
     if (validationError) {
-      alert(validationError)
+      setFormError(validationError)
       return
     }
 
     try {
       setSaving(true)
+      const uploadedImageUrls = imageFiles.length ? await uploadFilesAndGetUrls(imageFiles) : []
+      const uploadedThumbUrls = thumbnailFiles.length
+        ? await uploadFilesAndGetUrls(thumbnailFiles)
+        : []
+      const finalImageUrls = [...existingImageUrls, ...uploadedImageUrls]
+      const finalThumbUrls = [...existingThumbUrls, ...uploadedThumbUrls]
+
+      const { error: imageSpecError, warnings: imageSpecWarnings } =
+        await validateImageSpecs(finalImageUrls)
+      if (imageSpecError) {
+        setFormError(imageSpecError)
+        return
+      }
+      if (imageSpecWarnings.length > 0) {
+        setUploadWarning((prev) =>
+          [prev, ...imageSpecWarnings].filter(Boolean).join('\n\n')
+        )
+      }
+
       const payload = buildPayload()
+      payload.imageUrls = finalImageUrls
+      payload.thumbnailUrls = finalThumbUrls
 
       if (selectedAd) {
         await advertisementsService.updateAdvertisement(
@@ -206,7 +433,7 @@ const Ads = () => {
       closeModal()
       fetchAll()
     } catch (err) {
-      alert(err.message || 'Failed to save ad')
+      setFormError(err.message || 'Failed to save ad')
     } finally {
       setSaving(false)
     }
@@ -392,6 +619,7 @@ const Ads = () => {
 
       <div className="card mobile-preview-card">
         <h2>Mobile Endpoint Preview (`GET /api/advertisement/app?enabledOnly=true`)</h2>
+        {previewError && <div className="preview-error">{previewError}</div>}
         <div className="mobile-preview-grid">
           {mobileAds.length === 0 ? (
             <p>No enabled mobile ads returned.</p>
@@ -566,14 +794,49 @@ const Ads = () => {
 
               <h3>Media</h3>
               <div className="form-group">
-                <label>Image URLs * (one URL per line)</label>
+                <label>Upload Images * (JPG/PNG/WEBP)</label>
+                <label className="upload-input">
+                  <FiUpload /> Select one or more image files
+                  <input
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                    multiple
+                    onChange={(e) => setImageFiles(Array.from(e.target.files || []))}
+                  />
+                </label>
+                {imageFiles.length > 0 && (
+                  <p className="file-summary">{imageFiles.length} image file(s) selected</p>
+                )}
+              </div>
+              <div className="form-group">
+                <label>Upload Thumbnails (optional)</label>
+                <label className="upload-input">
+                  <FiUpload /> Select thumbnail file(s)
+                  <input
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                    multiple
+                    onChange={(e) => setThumbnailFiles(Array.from(e.target.files || []))}
+                  />
+                </label>
+                {thumbnailFiles.length > 0 && (
+                  <p className="file-summary">{thumbnailFiles.length} thumbnail file(s) selected</p>
+                )}
+              </div>
+              <div className="form-group">
+                <label>Image URLs (optional, one URL per line)</label>
                 <textarea
                   rows={4}
                   value={formData.imageUrlsText}
                   onChange={(e) => setFormData((prev) => ({ ...prev, imageUrlsText: e.target.value }))}
                   placeholder="https://cdn.example.com/ad-main.jpg"
-                  required
                 />
+                <small className="spec-note">
+                  Display size in app: 96px height (full width). Required: 4:1 ratio, minimum
+                  800x200, recommended 1200x300, JPG/PNG/WEBP. If the URL is valid but verification
+                  fails, some extensions block paths like <code>/ads/</code> — use file upload or
+                  allowlist this domain.
+                </small>
               </div>
               <div className="form-group">
                 <label>Thumbnail URLs (one URL per line)</label>
@@ -583,6 +846,10 @@ const Ads = () => {
                   onChange={(e) => setFormData((prev) => ({ ...prev, thumbnailUrlsText: e.target.value }))}
                   placeholder="https://cdn.example.com/ad-thumb.jpg"
                 />
+                <small className="spec-note">
+                  File size policy: target 300KB max, hard limit 500KB (must be enforced by your
+                  uploader/backend).
+                </small>
               </div>
 
               {parseUrlLines(formData.imageUrlsText)[0] && (
@@ -591,6 +858,9 @@ const Ads = () => {
                   <img src={parseUrlLines(formData.imageUrlsText)[0]} alt="Primary ad preview" />
                 </div>
               )}
+
+              {formError && <div className="form-error">{formError}</div>}
+              {uploadWarning && <div className="upload-warning">{uploadWarning}</div>}
 
               <div className="modal-footer">
                 <button type="button" className="btn btn-outline" onClick={closeModal}>

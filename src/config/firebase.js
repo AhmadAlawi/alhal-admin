@@ -1,6 +1,8 @@
 import { initializeApp } from 'firebase/app';
-import { getAnalytics } from 'firebase/analytics';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
+
+// Analytics is loaded dynamically so ad blockers (ERR_BLOCKED_BY_CLIENT) do not
+// break the whole app when they block firebase_analytics.js.
 
 // Firebase configuration
 // You can also use environment variables for security (recommended for production)
@@ -17,14 +19,23 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Analytics (only in browser environment)
+// Initialize Analytics lazily (browser only). Static import of firebase/analytics
+// is avoided so a blocked chunk does not fail the entire bundle load.
 let analytics = null;
 if (typeof window !== 'undefined') {
-  try {
-    analytics = getAnalytics(app);
-  } catch (error) {
-    console.error('Firebase Analytics initialization error:', error);
-  }
+  import('firebase/analytics')
+    .then(({ getAnalytics }) => {
+      try {
+        analytics = getAnalytics(app);
+      } catch (error) {
+        console.warn('Firebase Analytics initialization skipped:', error?.message || error);
+      }
+    })
+    .catch(() => {
+      console.warn(
+        'Firebase Analytics could not load (often blocked by ad blockers / privacy extensions). The app will run without analytics.'
+      );
+    });
 }
 
 // Initialize Firebase Cloud Messaging and get a reference to the service
