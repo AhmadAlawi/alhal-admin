@@ -56,6 +56,59 @@ const toDateInputValue = (isoString) => {
   return `${year}-${month}-${day}T${hours}:${minutes}`
 }
 
+/** Normalize API list/detail shapes into string URLs */
+const collectMediaUrls = (value) => {
+  if (!value) return []
+  if (typeof value === 'string') {
+    const t = value.trim()
+    return t ? [t] : []
+  }
+  if (Array.isArray(value)) {
+    return value
+      .flatMap((item) => {
+        if (typeof item === 'string') {
+          const t = item.trim()
+          return t ? [t] : []
+        }
+        if (item && typeof item === 'object') {
+          const u = item.url || item.imageUrl || item.thumbnailUrl || item.uri || item.href
+          return typeof u === 'string' && u.trim() ? [u.trim()] : []
+        }
+        return []
+      })
+      .filter(Boolean)
+  }
+  return []
+}
+
+const getImageUrlsFromAd = (ad) => {
+  if (!ad || typeof ad !== 'object') return []
+  const candidates = [
+    ad.imageUrls,
+    ad.ImageUrls,
+    ad.images,
+    ad.Images,
+    ad.imageUrl,
+    ad.imageURL,
+    ad.ImageUrl,
+  ]
+  for (const c of candidates) {
+    const urls = collectMediaUrls(c)
+    if (urls.length) return urls
+  }
+  return []
+}
+
+const getThumbnailUrlsFromAd = (ad) => {
+  if (!ad || typeof ad !== 'object') return []
+  const candidates = [ad.thumbnailUrls, ad.ThumbnailUrls, ad.thumbnailUrl, ad.thumbnailURL, ad.ThumbnailUrl]
+  for (const c of candidates) {
+    const urls = collectMediaUrls(c)
+    if (urls.length) return urls
+  }
+  return []
+}
+
 const Ads = () => {
   const [ads, setAds] = useState([])
   const [mobileAds, setMobileAds] = useState([])
@@ -129,12 +182,31 @@ const Ads = () => {
     setShowModal(true)
   }
 
-  const openEditModal = (ad) => {
-    setSelectedAd(ad)
+  const openEditModal = async (ad) => {
     setFormError('')
     setImageFiles([])
     setThumbnailFiles([])
     setUploadWarning('')
+
+    let imageUrls = getImageUrlsFromAd(ad)
+    let thumbnailUrls = getThumbnailUrlsFromAd(ad)
+    const adId = ad.advertisementId ?? ad.id
+
+    if ((!imageUrls.length || !thumbnailUrls.length) && adId != null) {
+      try {
+        const detail = await advertisementsService.getAdvertisementById(adId)
+        const record =
+          detail && typeof detail === 'object' && !Array.isArray(detail) ? detail : ad
+        if (!imageUrls.length) imageUrls = getImageUrlsFromAd(record)
+        if (!thumbnailUrls.length) thumbnailUrls = getThumbnailUrlsFromAd(record)
+      } catch {
+        // keep list-row values
+      }
+    }
+
+    // Keep resolved URLs on selectedAd so updates can reuse media without re-uploading
+    setSelectedAd({ ...ad, imageUrls, thumbnailUrls })
+
     setFormData({
       title: ad.title || '',
       description: ad.description || '',
@@ -148,8 +220,8 @@ const Ads = () => {
       startDate: toDateInputValue(ad.startDate),
       endDate: toDateInputValue(ad.endDate),
       isActive: ad.isActive ?? true,
-      imageUrlsText: Array.isArray(ad.imageUrls) ? ad.imageUrls.join('\n') : '',
-      thumbnailUrlsText: Array.isArray(ad.thumbnailUrls) ? ad.thumbnailUrls.join('\n') : '',
+      imageUrlsText: imageUrls.join('\n'),
+      thumbnailUrlsText: thumbnailUrls.join('\n'),
     })
     setShowModal(true)
   }
@@ -365,8 +437,13 @@ const Ads = () => {
     setFormError('')
     setUploadWarning('')
 
-    const existingImageUrls = parseUrlLines(formData.imageUrlsText)
-    const existingThumbUrls = parseUrlLines(formData.thumbnailUrlsText)
+    const fromFormImages = parseUrlLines(formData.imageUrlsText)
+    const fromFormThumbs = parseUrlLines(formData.thumbnailUrlsText)
+    const persistedImages = selectedAd ? getImageUrlsFromAd(selectedAd) : []
+    const persistedThumbs = selectedAd ? getThumbnailUrlsFromAd(selectedAd) : []
+
+    const existingImageUrls = fromFormImages.length > 0 ? fromFormImages : persistedImages
+    const existingThumbUrls = fromFormThumbs.length > 0 ? fromFormThumbs : persistedThumbs
 
     if (!existingImageUrls.length && imageFiles.length === 0) {
       setFormError('Please upload at least one image or provide at least one image URL.')
@@ -793,8 +870,15 @@ const Ads = () => {
               </div>
 
               <h3>Media</h3>
+              {selectedAd && (
+                <p className="spec-note edit-media-hint">
+                  Existing images stay on the ad until you upload new files or change the URL list below.
+                </p>
+              )}
               <div className="form-group">
-                <label>Upload Images * (JPG/PNG/WEBP)</label>
+                <label>
+                  {selectedAd ? 'Upload new images (optional)' : 'Upload Images * (JPG/PNG/WEBP)'}
+                </label>
                 <label className="upload-input">
                   <FiUpload /> Select one or more image files
                   <input
