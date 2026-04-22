@@ -16,6 +16,40 @@ import './Ads.css'
 const PLATFORM_OPTIONS = ['web', 'mobile', 'all']
 const POSITION_OPTIONS = ['header', 'sidebar', 'footer', 'banner', 'popup']
 const CLICK_ACTION_OPTIONS = ['url', 'product', 'category', 'auction', 'tender', 'listing']
+
+/** Internal app routes from click action + target id (mobile/web deep links). */
+const INTERNAL_ROUTE_BY_ACTION = {
+  product: (id) => `/product/${id}`,
+  category: (id) => `/category/${id}`,
+  auction: (id) => `/auctions/${id}`,
+  tender: (id) => `/tenders/${id}`,
+  listing: (id) => `/listings/${id}`,
+}
+
+const INTERNAL_ROUTE_TEMPLATE_BY_ACTION = {
+  product: '/product/{productId}',
+  category: '/category/{categoryId}',
+  auction: '/auctions/{auctionId}',
+  tender: '/tenders/{tenderId}',
+  listing: '/listings/{listingId}',
+}
+
+const buildInternalClickUrl = (clickAction, clickTargetId) => {
+  if (!clickAction || clickAction === 'url') return null
+  const id =
+    clickTargetId === '' || clickTargetId === null || clickTargetId === undefined
+      ? ''
+      : String(clickTargetId).trim()
+  if (!id) return INTERNAL_ROUTE_TEMPLATE_BY_ACTION[clickAction] || null
+  const build = INTERNAL_ROUTE_BY_ACTION[clickAction]
+  return build ? build(id) : null
+}
+
+const internalRoutePlaceholder = (clickAction) => {
+  if (clickAction === 'url') return 'https://partner.example.com'
+  return INTERNAL_ROUTE_TEMPLATE_BY_ACTION[clickAction] || '/product/{productId}'
+}
+
 const RECOMMENDED_IMAGE_WIDTH = 1200
 const RECOMMENDED_IMAGE_HEIGHT = 300
 const MIN_IMAGE_WIDTH = 800
@@ -411,6 +445,12 @@ const Ads = () => {
     const imageUrls = parseUrlLines(formData.imageUrlsText)
     const thumbnailUrls = parseUrlLines(formData.thumbnailUrlsText)
 
+    let clickUrl = formData.clickUrl?.trim() || null
+    if (formData.clickAction && formData.clickAction !== 'url') {
+      const auto = buildInternalClickUrl(formData.clickAction, formData.clickTargetId)
+      if (auto) clickUrl = auto
+    }
+
     return {
       title: formData.title.trim(),
       description: formData.description?.trim() || null,
@@ -418,7 +458,7 @@ const Ads = () => {
       position: formData.position,
       isSlider: Boolean(formData.isSlider),
       displayOrder: Number(formData.displayOrder),
-      clickUrl: formData.clickUrl?.trim() || null,
+      clickUrl,
       clickAction: formData.clickAction?.trim() || null,
       clickTargetId:
         formData.clickTargetId === '' || formData.clickTargetId === null
@@ -836,7 +876,16 @@ const Ads = () => {
                   <label>Click Action *</label>
                   <select
                     value={formData.clickAction}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, clickAction: e.target.value }))}
+                    onChange={(e) => {
+                      const clickAction = e.target.value
+                      setFormData((prev) => {
+                        const next = { ...prev, clickAction }
+                        if (clickAction === 'url') return next
+                        const built = buildInternalClickUrl(clickAction, prev.clickTargetId)
+                        next.clickUrl = built || ''
+                        return next
+                      })
+                    }}
                   >
                     {CLICK_ACTION_OPTIONS.map((action) => (
                       <option key={action} value={action}>
@@ -851,11 +900,7 @@ const Ads = () => {
                     type="text"
                     value={formData.clickUrl}
                     onChange={(e) => setFormData((prev) => ({ ...prev, clickUrl: e.target.value }))}
-                    placeholder={
-                      formData.clickAction === 'url'
-                        ? 'https://partner.example.com'
-                        : '/product/12345'
-                    }
+                    placeholder={internalRoutePlaceholder(formData.clickAction)}
                   />
                 </div>
                 <div className="form-group">
@@ -863,11 +908,26 @@ const Ads = () => {
                   <input
                     type="number"
                     value={formData.clickTargetId}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, clickTargetId: e.target.value }))}
+                    onChange={(e) => {
+                      const clickTargetId = e.target.value
+                      setFormData((prev) => {
+                        const next = { ...prev, clickTargetId }
+                        if (prev.clickAction === 'url') return next
+                        const built = buildInternalClickUrl(prev.clickAction, clickTargetId)
+                        next.clickUrl = built || ''
+                        return next
+                      })
+                    }}
                     placeholder="12345"
                   />
                 </div>
               </div>
+              {formData.clickAction !== 'url' && (
+                <p className="spec-note">
+                  Internal route is filled automatically from Target ID (e.g. auction →{' '}
+                  <code>/auctions/3</code>). You can still edit the route field if needed.
+                </p>
+              )}
 
               <h3>Media</h3>
               {selectedAd && (
