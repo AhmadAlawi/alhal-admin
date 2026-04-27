@@ -6,6 +6,7 @@ import { useTranslation } from '../hooks/useTranslation'
 import Chart from '../components/Chart/Chart'
 import Table from '../components/Table/Table'
 import { useAutoFillData, useRealTimeData, useMapData } from '../hooks/useDashboardData'
+import { useAnalyticsLogger } from '../hooks/useAnalyticsLogger'
 import { useNotifications } from '../contexts/NotificationContext'
 import authService from '../services/authService'
 import analyticsService from '../services/analyticsService'
@@ -21,6 +22,7 @@ const Dashboard = () => {
   const [analyticsWidgetsLoading, setAnalyticsWidgetsLoading] = useState(false)
   const [analyticsWidgetsError, setAnalyticsWidgetsError] = useState('')
   const { registerDevice, fcmToken, permission, isInitialized } = useNotifications()
+  const { logScreenView, logButtonClick, logApiError } = useAnalyticsLogger('Dashboard/Home')
   
   // Register device when dashboard loads
   useEffect(() => {
@@ -108,6 +110,7 @@ const Dashboard = () => {
   const { data: mapData, loading: mapLoading } = useMapData()
 
   const handleRefresh = () => {
+    logButtonClick('refresh_dashboard', { source: 'header_action' })
     window.location.reload()
   }
 
@@ -156,6 +159,10 @@ const Dashboard = () => {
   }
 
   useEffect(() => {
+    logScreenView({ source: 'initial_load' })
+  }, [logScreenView])
+
+  useEffect(() => {
     const loadAnalyticsWidgets = async () => {
       try {
         setAnalyticsWidgetsLoading(true)
@@ -193,16 +200,28 @@ const Dashboard = () => {
           heatmapRes.status === 'rejected'
         ) {
           setAnalyticsWidgetsError('Failed to load analytics widgets.')
+          logApiError('Failed to load analytics widgets', {
+            endpoints: ['line-chart', 'bar-chart', 'sales-heatmap'],
+          })
         }
       } catch (error) {
         setAnalyticsWidgetsError(error.message || 'Failed to load analytics widgets.')
+        logApiError(error.message || 'Failed to load analytics widgets', {
+          endpoints: ['line-chart', 'bar-chart', 'sales-heatmap'],
+        })
       } finally {
         setAnalyticsWidgetsLoading(false)
       }
     }
 
     loadAnalyticsWidgets()
-  }, [selectedDays])
+  }, [selectedDays, logApiError])
+
+  useEffect(() => {
+    if (dashboardError) {
+      logApiError(dashboardError, { endpoint: '/api/gov/dashboard/auto-fill', days: selectedDays })
+    }
+  }, [dashboardError, selectedDays, logApiError])
 
   // Format revenue sparkline data for chart
   const formatRevenueData = (data) => {
@@ -364,7 +383,11 @@ const Dashboard = () => {
           <select 
             className="filter-select" 
             value={selectedDays} 
-            onChange={(e) => setSelectedDays(Number(e.target.value))}
+            onChange={(e) => {
+              const days = Number(e.target.value)
+              setSelectedDays(days)
+              logButtonClick('change_dashboard_range', { days })
+            }}
           >
             <option value={7}>{t('dashboard.last7Days')}</option>
             <option value={30}>{t('dashboard.last30Days')}</option>
