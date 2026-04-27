@@ -65,7 +65,7 @@
 }
 
 .loading-message {
-  background-color: rgba(99, 102, 241, 0.1);
+  background-color: rgba(34, 197, 94, 0.1);
   border-left: 4px solid var(--primary-color);
 }
 
@@ -111,7 +111,7 @@
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background-color: rgba(99, 102, 241, 0.1);
+  background-color: rgba(34, 197, 94, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -186,7 +186,7 @@
 }
 
 .realtime-stat:hover {
-  background-color: rgba(99, 102, 241, 0.1);
+  background-color: rgba(34, 197, 94, 0.1);
 }
 
 .realtime-label {
@@ -242,6 +242,68 @@
   background: rgba(239, 68, 68, 0.58);
 }
 
+.analytics-trace {
+  margin-bottom: 2rem;
+}
+
+.trace-empty {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.trace-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.trace-item {
+  display: grid;
+  grid-template-columns: 80px minmax(180px, 1.5fr) 2fr 100px;
+  gap: 0.65rem;
+  align-items: center;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  background: var(--bg-tertiary);
+}
+
+.trace-badge {
+  border-radius: 999px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  text-align: center;
+  padding: 0.2rem 0.5rem;
+}
+
+.trace-ok {
+  background: rgba(34, 197, 94, 0.18);
+  color: #166534;
+}
+
+.trace-fail {
+  background: rgba(239, 68, 68, 0.18);
+  color: #b91c1c;
+}
+
+.trace-source {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+}
+
+.trace-details {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+.trace-time {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-align: right;
+}
+
 .section {
   margin-bottom: 2rem;
 }
@@ -283,7 +345,7 @@
 .btn-outline:hover {
   border-color: var(--primary-color);
   color: var(--primary-color);
-  background-color: rgba(99, 102, 241, 0.1);
+  background-color: rgba(34, 197, 94, 0.1);
 }
 
 .low-stock-section {

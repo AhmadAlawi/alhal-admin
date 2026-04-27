@@ -120,12 +120,12 @@
 
 .menu-item:hover {
   color: var(--text-primary);
-  background-color: rgba(99, 102, 241, 0.1);
+  background-color: rgba(34, 197, 94, 0.1);
 }
 
 .menu-item.active {
   color: var(--text-primary);
-  background-color: rgba(99, 102, 241, 0.15);
+  background-color: rgba(34, 197, 94, 0.15);
 }
 
 .menu-item.active::before {

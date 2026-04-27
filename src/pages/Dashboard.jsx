@@ -21,6 +21,7 @@ const Dashboard = () => {
   const [heatmapData, setHeatmapData] = useState([])
   const [analyticsWidgetsLoading, setAnalyticsWidgetsLoading] = useState(false)
   const [analyticsWidgetsError, setAnalyticsWidgetsError] = useState('')
+  const [analyticsTraces, setAnalyticsTraces] = useState([])
   const { registerDevice, fcmToken, permission, isInitialized } = useNotifications()
   const { logScreenView, logButtonClick, logApiError } = useAnalyticsLogger('Dashboard/Home')
   
@@ -121,6 +122,16 @@ const Dashboard = () => {
     return { from: from.toISOString(), to: to.toISOString() }
   }
 
+  const appendTrace = (entry) => {
+    setAnalyticsTraces((prev) => [
+      {
+        at: new Date().toISOString(),
+        ...entry,
+      },
+      ...prev,
+    ].slice(0, 30))
+  }
+
   const normalizeLineChart = (response) => {
     const payload = response?.data || response || {}
     const series = payload.series || {}
@@ -178,20 +189,50 @@ const Dashboard = () => {
 
         if (lineRes.status === 'fulfilled') {
           setLineChartData(normalizeLineChart(lineRes.value))
+          appendTrace({
+            source: '/api/analytics/line-chart',
+            status: 'success',
+            details: `Loaded ${normalizeLineChart(lineRes.value).length} points`,
+          })
         } else {
           setLineChartData([])
+          appendTrace({
+            source: '/api/analytics/line-chart',
+            status: 'error',
+            details: lineRes.reason?.message || 'Request failed',
+          })
         }
 
         if (barRes.status === 'fulfilled') {
           setBarChartData(normalizeBarChart(barRes.value))
+          appendTrace({
+            source: '/api/analytics/bar-chart',
+            status: 'success',
+            details: `Loaded ${normalizeBarChart(barRes.value).length} bars`,
+          })
         } else {
           setBarChartData([])
+          appendTrace({
+            source: '/api/analytics/bar-chart',
+            status: 'error',
+            details: barRes.reason?.message || 'Request failed',
+          })
         }
 
         if (heatmapRes.status === 'fulfilled') {
           setHeatmapData(normalizeHeatmap(heatmapRes.value))
+          appendTrace({
+            source: '/api/MarketAnalysis/charts/sales-heatmap',
+            status: 'success',
+            details: `Loaded ${normalizeHeatmap(heatmapRes.value).length} heatmap cells`,
+          })
         } else {
           setHeatmapData([])
+          appendTrace({
+            source: '/api/MarketAnalysis/charts/sales-heatmap',
+            status: 'error',
+            details: heatmapRes.reason?.message || 'Request failed',
+          })
         }
 
         if (
@@ -453,7 +494,7 @@ const Dashboard = () => {
             <div className="overview-grid">
               <div className="overview-card card">
                 <div className="overview-icon">
-                  <FiUsers color="#6366f1" size={24} />
+                  <FiUsers color="#16a34a" size={24} />
                 </div>
                 <div className="overview-content">
                   <span className="overview-label">{t('dashboard.totalUsers')}</span>
@@ -463,7 +504,7 @@ const Dashboard = () => {
               </div>
               <div className="overview-card card">
                 <div className="overview-icon">
-                  <FiGlobe color="#10b981" size={24} />
+                  <FiGlobe color="#22c55e" size={24} />
                 </div>
                 <div className="overview-content">
                   <span className="overview-label">{t('dashboard.totalFarms')}</span>
@@ -473,7 +514,7 @@ const Dashboard = () => {
               </div>
               <div className="overview-card card">
                 <div className="overview-icon">
-                  <FiActivity color="#f59e0b" size={24} />
+                  <FiActivity color="#15803d" size={24} />
                 </div>
                 <div className="overview-content">
                   <span className="overview-label">{t('dashboard.openAuctions')}</span>
@@ -483,7 +524,7 @@ const Dashboard = () => {
               </div>
               <div className="overview-card card">
                 <div className="overview-icon">
-                  <FiPackage color="#ef4444" size={24} />
+                  <FiPackage color="#059669" size={24} />
                 </div>
                 <div className="overview-content">
                   <span className="overview-label">{t('dashboard.activeListings')}</span>
@@ -533,7 +574,7 @@ const Dashboard = () => {
           {/* Charts Section */}
           <div className="section">
             <div className="section-header">
-              <h2 className="section-title">Core Analytics</h2>
+              <h2 className="section-title">Mobile Analytics</h2>
             </div>
             {analyticsWidgetsLoading && (
               <div className="loading-message card">
@@ -551,9 +592,9 @@ const Dashboard = () => {
                   type="line"
                   data={lineChartData}
                   dataKeys={[
-                    { dataKey: 'auctions', name: 'Auctions', color: '#6366f1' },
-                    { dataKey: 'tenders', name: 'Tenders', color: '#10b981' },
-                    { dataKey: 'orders', name: 'Orders', color: '#f59e0b' },
+                    { dataKey: 'auctions', name: 'Auctions', color: '#16a34a' },
+                    { dataKey: 'tenders', name: 'Tenders', color: '#22c55e' },
+                    { dataKey: 'orders', name: 'Orders', color: '#15803d' },
                   ]}
                   xAxisKey="date"
                   title="Auctions, Tenders, Orders (Daily)"
@@ -567,7 +608,7 @@ const Dashboard = () => {
                   dataKey="value"
                   xAxisKey="label"
                   title="Totals in Selected Range"
-                  color="#8b5cf6"
+                  color="#16a34a"
                   height={320}
                 />
               )}
@@ -588,6 +629,25 @@ const Dashboard = () => {
                 </div>
               </div>
             )}
+            <div className="analytics-trace card">
+              <h3 className="chart-title">Mobile Analytics Trace</h3>
+              {analyticsTraces.length === 0 ? (
+                <p className="trace-empty">No traces yet.</p>
+              ) : (
+                <div className="trace-list">
+                  {analyticsTraces.map((trace, index) => (
+                    <div key={`${trace.at}-${index}`} className="trace-item">
+                      <span className={`trace-badge ${trace.status === 'success' ? 'trace-ok' : 'trace-fail'}`}>
+                        {trace.status}
+                      </span>
+                      <span className="trace-source">{trace.source}</span>
+                      <span className="trace-details">{trace.details}</span>
+                      <span className="trace-time">{new Date(trace.at).toLocaleTimeString()}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="charts-grid">
@@ -598,7 +658,7 @@ const Dashboard = () => {
                 dataKey="value"
                 xAxisKey="date"
                 title={t('dashboard.revenueTrends')}
-                color="#6366f1"
+                color="#16a34a"
               />
             )}
             {priceTrendsData.length > 0 && (
@@ -608,7 +668,7 @@ const Dashboard = () => {
                 dataKey="price"
                 xAxisKey="date"
                 title={t('dashboard.priceTrends')}
-                color="#10b981"
+                color="#22c55e"
               />
             )}
           </div>
@@ -621,7 +681,7 @@ const Dashboard = () => {
                 dataKey="revenue"
                 xAxisKey="name"
                 title="Top 5 Products by Revenue"
-                color="#f59e0b"
+                color="#15803d"
               />
             )}
             {marketShareData.length > 0 && (
@@ -631,7 +691,7 @@ const Dashboard = () => {
                 dataKey="value"
                 xAxisKey="name"
                 title={t('dashboard.transactionsByType')}
-                color="#ef4444"
+                color="#059669"
               />
             )}
           </div>

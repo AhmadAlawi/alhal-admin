@@ -19,7 +19,7 @@ import {
 } from 'recharts'
 import './Chart.css'
 
-const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#14b8a6', '#f97316', '#84cc16']
+const COLORS = ['#16a34a', '#22c55e', '#059669', '#65a30d', '#15803d', '#34d399', '#0d9488', '#84cc16', '#4ade80', '#2f855a']
 
 const Chart = ({ 
   type = 'line', 
@@ -28,7 +28,7 @@ const Chart = ({
   dataKeys = [], // For multi-line/multi-bar charts
   xAxisKey, 
   title, 
-  color = '#6366f1',
+  color = '#16a34a',
   colors = COLORS,
   height = 300,
   showLegend = true,
@@ -64,7 +64,7 @@ const Chart = ({
               labelLine={pieLabelLine}
               label={pieLabel ? ({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%` : false}
               outerRadius={80}
-              fill="#8884d8"
+              fill="#16a34a"
               dataKey={dataKey}
             >
               {data && data.map((entry, index) => (
