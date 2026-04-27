@@ -20,6 +20,7 @@ import TransportRequests from './pages/TransportRequests'
 import TransportPriceLines from './pages/TransportPriceLines'
 import TransportVehicles from './pages/TransportVehicles'
 import Ads from './pages/Ads'
+import MobileAnalytics from './pages/MobileAnalytics'
 import './App.css'
 
 function App() {
@@ -122,6 +123,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Ads />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/mobile-analytics"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <MobileAnalytics />
                 </Layout>
               </ProtectedRoute>
             }

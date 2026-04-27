@@ -1,0 +1,79 @@
+.mobile-analytics-page {
+  animation: fadeIn 0.3s ease-in;
+}
+
+.mobile-filters h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.85rem;
+}
+
+.filters-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+}
+
+.filters-grid input {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.45rem;
+  color: var(--text-primary);
+  padding: 0.55rem 0.65rem;
+}
+
+.filters-grid input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+}
+
+.filters-actions {
+  margin-top: 1rem;
+}
+
+.heatmap-card {
+  margin-bottom: 2rem;
+}
+
+.heatmap-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(28px, 1fr));
+  gap: 0.45rem;
+  margin-top: 1rem;
+}
+
+.heatmap-cell {
+  border-radius: 0.35rem;
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  color: #e2e8f0;
+}
+
+.heatmap-low {
+  background: rgba(100, 116, 139, 0.35);
+}
+
+.heatmap-medium {
+  background: rgba(245, 158, 11, 0.45);
+}
+
+.heatmap-high {
+  background: rgba(239, 68, 68, 0.58);
+}
+
+.empty-text {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}

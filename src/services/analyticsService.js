@@ -33,6 +33,33 @@ export const analyticsService = {
     return apiClient.get('/api/analytics/bar-chart', query)
   },
 
+  getEventsQuery: async (params = {}) => {
+    const query = {}
+    const from = toIsoOrNull(params.from)
+    const to = toIsoOrNull(params.to)
+    if (from) query.from = from
+    if (to) query.to = to
+    if (params.type) query.type = params.type
+    if (params.screen) query.screen = params.screen
+    if (params.userId !== undefined && params.userId !== null && params.userId !== '') {
+      query.userId = params.userId
+    }
+    if (params.sessionId) query.sessionId = params.sessionId
+    if (params.page) query.page = params.page
+    if (params.pageSize) query.pageSize = params.pageSize
+    return apiClient.get('/api/analytics/events/query', query)
+  },
+
+  getEventsSummary: async (params = {}) => {
+    const query = {}
+    const from = toIsoOrNull(params.from)
+    const to = toIsoOrNull(params.to)
+    if (from) query.from = from
+    if (to) query.to = to
+    if (params.groupBy) query.groupBy = params.groupBy
+    return apiClient.get('/api/analytics/events/summary', query)
+  },
+
   logEvents: async (events = []) => {
     if (!Array.isArray(events) || events.length === 0) {
       throw new Error('events must be a non-empty array')
