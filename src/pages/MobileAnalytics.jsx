@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { FiFilter, FiRefreshCw, FiSmartphone } from 'react-icons/fi'
 import Chart from '../components/Chart/Chart'
 import Table from '../components/Table/Table'
+import StatCard from '../components/StatCard/StatCard'
 import analyticsService from '../services/analyticsService'
 import marketAnalysisService from '../services/marketAnalysisService'
 import './MobileAnalytics.css'
@@ -13,6 +14,11 @@ const MobileAnalytics = () => {
   const [barData, setBarData] = useState([])
   const [heatmapData, setHeatmapData] = useState([])
   const [loggerRows, setLoggerRows] = useState([])
+  const [statsData, setStatsData] = useState(null)
+  const [eventsTrendData, setEventsTrendData] = useState([])
+  const [topEventTypesData, setTopEventTypesData] = useState([])
+  const [topScreensData, setTopScreensData] = useState([])
+  const [pagination, setPagination] = useState({ page: 1, pageSize: 100, total: 0, totalPages: 0 })
   const [loggerUnavailable, setLoggerUnavailable] = useState('')
 
   const [filters, setFilters] = useState({
@@ -22,8 +28,19 @@ const MobileAnalytics = () => {
     productId: '',
     governorate: '',
     year: new Date().getFullYear(),
+    userId: '',
+    sessionId: '',
     eventType: '',
+    eventLevel: '',
     screen: '',
+    platform: '',
+    appVersion: '',
+    search: '',
+    page: 1,
+    pageSize: 100,
+    sortBy: 'createdAt',
+    sortOrder: 'desc',
+    top: 10,
   })
 
   const normalizeLineChart = (response) => {
@@ -73,7 +90,16 @@ const MobileAnalytics = () => {
       : Array.isArray(payload)
       ? payload
       : []
+    const paginationInfo = payload.pagination || {}
+    setPagination({
+      page: paginationInfo.page || filters.page || 1,
+      pageSize: paginationInfo.pageSize || filters.pageSize || 100,
+      total: paginationInfo.total || rows.length || 0,
+      totalPages: paginationInfo.totalPages || 1,
+    })
     return rows.map((row) => ({
+      id: row.id || '-',
+      createdAt: row.createdAt || '-',
       at: row.clientTimestamp || row.timestamp || row.createdAt || '-',
       type: row.eventType || row.type || '-',
       level: row.eventLevel || row.level || '-',
@@ -81,7 +107,39 @@ const MobileAnalytics = () => {
       message: row.message || '-',
       userId: row.userId ?? '-',
       sessionId: row.sessionId || '-',
+      platform: row.platform || '-',
+      appVersion: row.appVersion || '-',
     }))
+  }
+
+  const normalizeStats = (response) => {
+    const payload = response?.data || response || {}
+    const totals = payload.totals || {}
+    const top = payload.top || {}
+    const trend = payload.trend || {}
+    setStatsData({
+      totalEvents: totals.totalEvents || 0,
+      uniqueUsers: totals.uniqueUsers || 0,
+      uniqueSessions: totals.uniqueSessions || 0,
+    })
+    setTopEventTypesData(
+      (Array.isArray(top.eventTypes) ? top.eventTypes : []).map((item) => ({
+        name: item.key || item.name || item.label || '-',
+        value: item.value || item.count || 0,
+      }))
+    )
+    setTopScreensData(
+      (Array.isArray(top.screens) ? top.screens : []).map((item) => ({
+        name: item.key || item.name || item.label || '-',
+        value: item.value || item.count || 0,
+      }))
+    )
+    setEventsTrendData(
+      (Array.isArray(trend.byDay) ? trend.byDay : []).map((item) => ({
+        date: item.date,
+        value: item.value || item.count || 0,
+      }))
+    )
   }
 
   const load = async () => {
@@ -90,7 +148,7 @@ const MobileAnalytics = () => {
       setError('')
       setLoggerUnavailable('')
 
-      const [lineRes, barRes, heatRes, loggerRes] = await Promise.allSettled([
+      const [lineRes, barRes, heatRes, loggerRes, statsRes] = await Promise.allSettled([
         analyticsService.getLineChart({
           from: filters.from,
           to: filters.to,
@@ -106,13 +164,34 @@ const MobileAnalytics = () => {
           governorate: filters.governorate || undefined,
           year: filters.year || undefined,
         }),
-        analyticsService.getEventsQuery({
+        analyticsService.getEvents({
           from: filters.from,
           to: filters.to,
-          type: filters.eventType || undefined,
+          userId: filters.userId || undefined,
+          sessionId: filters.sessionId || undefined,
+          eventType: filters.eventType || undefined,
+          eventLevel: filters.eventLevel || undefined,
           screen: filters.screen || undefined,
-          page: 1,
-          pageSize: 100,
+          platform: filters.platform || undefined,
+          appVersion: filters.appVersion || undefined,
+          search: filters.search || undefined,
+          page: filters.page,
+          pageSize: filters.pageSize,
+          sortBy: filters.sortBy,
+          sortOrder: filters.sortOrder,
+        }),
+        analyticsService.getEventsStats({
+          from: filters.from,
+          to: filters.to,
+          userId: filters.userId || undefined,
+          sessionId: filters.sessionId || undefined,
+          eventType: filters.eventType || undefined,
+          eventLevel: filters.eventLevel || undefined,
+          screen: filters.screen || undefined,
+          platform: filters.platform || undefined,
+          appVersion: filters.appVersion || undefined,
+          search: filters.search || undefined,
+          top: filters.top,
         }),
       ])
 
@@ -131,8 +210,17 @@ const MobileAnalytics = () => {
         setLoggerRows([])
         setLoggerUnavailable(
           loggerRes.reason?.message ||
-            'Logger query endpoint is unavailable. Add /api/analytics/events/query on backend.'
+            'Logger endpoint is unavailable. Ensure /api/analytics/events is enabled on backend.'
         )
+      }
+
+      if (statsRes.status === 'fulfilled') {
+        normalizeStats(statsRes.value)
+      } else {
+        setStatsData(null)
+        setTopEventTypesData([])
+        setTopScreensData([])
+        setEventsTrendData([])
       }
 
       if (
@@ -154,6 +242,13 @@ const MobileAnalytics = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  useEffect(() => {
+    if (filters.page > 1) {
+      load()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.page])
+
   const loggerColumns = useMemo(
     () => [
       {
@@ -167,6 +262,8 @@ const MobileAnalytics = () => {
       { header: 'Message', accessor: 'message' },
       { header: 'User', accessor: 'userId' },
       { header: 'Session', accessor: 'sessionId' },
+      { header: 'Platform', accessor: 'platform' },
+      { header: 'Version', accessor: 'appVersion' },
     ],
     []
   )
@@ -252,6 +349,15 @@ const MobileAnalytics = () => {
             />
           </label>
           <label>
+            Event Level
+            <input
+              type="text"
+              placeholder="info, warning, error"
+              value={filters.eventLevel}
+              onChange={(e) => setFilters((prev) => ({ ...prev, eventLevel: e.target.value }))}
+            />
+          </label>
+          <label>
             Screen
             <input
               type="text"
@@ -259,6 +365,71 @@ const MobileAnalytics = () => {
               value={filters.screen}
               onChange={(e) => setFilters((prev) => ({ ...prev, screen: e.target.value }))}
             />
+          </label>
+          <label>
+            User ID
+            <input
+              type="number"
+              value={filters.userId}
+              onChange={(e) => setFilters((prev) => ({ ...prev, userId: e.target.value }))}
+            />
+          </label>
+          <label>
+            Session ID
+            <input
+              type="text"
+              value={filters.sessionId}
+              onChange={(e) => setFilters((prev) => ({ ...prev, sessionId: e.target.value }))}
+            />
+          </label>
+          <label>
+            Platform
+            <input
+              type="text"
+              value={filters.platform}
+              onChange={(e) => setFilters((prev) => ({ ...prev, platform: e.target.value }))}
+            />
+          </label>
+          <label>
+            App Version
+            <input
+              type="text"
+              value={filters.appVersion}
+              onChange={(e) => setFilters((prev) => ({ ...prev, appVersion: e.target.value }))}
+            />
+          </label>
+          <label>
+            Search
+            <input
+              type="text"
+              value={filters.search}
+              onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
+            />
+          </label>
+          <label>
+            Sort By
+            <select
+              value={filters.sortBy}
+              onChange={(e) => setFilters((prev) => ({ ...prev, sortBy: e.target.value }))}
+            >
+              <option value="createdAt">createdAt</option>
+              <option value="clientTimestamp">clientTimestamp</option>
+              <option value="eventType">eventType</option>
+              <option value="eventLevel">eventLevel</option>
+              <option value="screen">screen</option>
+              <option value="platform">platform</option>
+              <option value="appVersion">appVersion</option>
+            </select>
+          </label>
+          <label>
+            Sort Order
+            <select
+              value={filters.sortOrder}
+              onChange={(e) => setFilters((prev) => ({ ...prev, sortOrder: e.target.value }))}
+            >
+              <option value="desc">desc</option>
+              <option value="asc">asc</option>
+            </select>
           </label>
         </div>
         <div className="filters-actions">
@@ -278,6 +449,52 @@ const MobileAnalytics = () => {
           <p>⚠️ {error}</p>
         </div>
       )}
+
+      {statsData && (
+        <div className="stats-grid">
+          <StatCard title="Total Events" value={String(statsData.totalEvents)} color="primary" />
+          <StatCard title="Unique Users" value={String(statsData.uniqueUsers)} color="success" />
+          <StatCard title="Unique Sessions" value={String(statsData.uniqueSessions)} color="warning" />
+        </div>
+      )}
+
+      <div className="charts-grid">
+        {eventsTrendData.length > 0 && (
+          <Chart
+            type="line"
+            data={eventsTrendData}
+            dataKey="value"
+            xAxisKey="date"
+            title="Logger Trend by Day"
+            color="#16a34a"
+            height={280}
+          />
+        )}
+        {topEventTypesData.length > 0 && (
+          <Chart
+            type="bar"
+            data={topEventTypesData}
+            dataKey="value"
+            xAxisKey="name"
+            title="Top Event Types"
+            color="#22c55e"
+            height={280}
+          />
+        )}
+      </div>
+      <div className="charts-grid">
+        {topScreensData.length > 0 && (
+          <Chart
+            type="bar"
+            data={topScreensData}
+            dataKey="value"
+            xAxisKey="name"
+            title="Top Screens"
+            color="#15803d"
+            height={280}
+          />
+        )}
+      </div>
 
       <div className="charts-grid">
         {lineData.length > 0 && (
@@ -336,7 +553,35 @@ const MobileAnalytics = () => {
           </div>
         )}
         {loggerRows.length > 0 ? (
-          <Table columns={loggerColumns} data={loggerRows} />
+          <>
+            <Table columns={loggerColumns} data={loggerRows} />
+            <div className="pagination-info">
+              <span>
+                Page {pagination.page} / {pagination.totalPages} — Total: {pagination.total}
+              </span>
+              <div className="pagination-actions">
+                <button
+                  className="btn btn-outline"
+                  disabled={filters.page <= 1}
+                  onClick={() => setFilters((prev) => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
+                >
+                  Prev
+                </button>
+                <button
+                  className="btn btn-outline"
+                  disabled={filters.page >= pagination.totalPages}
+                  onClick={() =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      page: Math.min(pagination.totalPages || prev.page + 1, prev.page + 1),
+                    }))
+                  }
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </>
         ) : (
           <div className="card">
             <p className="empty-text">No logger rows returned for current filters.</p>

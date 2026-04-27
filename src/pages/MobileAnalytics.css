@@ -31,6 +31,14 @@
   padding: 0.55rem 0.65rem;
 }
 
+.filters-grid select {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.45rem;
+  color: var(--text-primary);
+  padding: 0.55rem 0.65rem;
+}
+
 .filters-grid input[type='checkbox'] {
   width: 18px;
   height: 18px;
@@ -76,4 +84,17 @@
 .empty-text {
   color: var(--text-muted);
   font-size: 0.9rem;
+}
+
+.pagination-info {
+  margin-top: 0.9rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.pagination-actions {
+  display: flex;
+  gap: 0.5rem;
 }

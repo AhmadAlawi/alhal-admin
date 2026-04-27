@@ -33,31 +33,43 @@ export const analyticsService = {
     return apiClient.get('/api/analytics/bar-chart', query)
   },
 
-  getEventsQuery: async (params = {}) => {
+  getEvents: async (params = {}) => {
     const query = {}
     const from = toIsoOrNull(params.from)
     const to = toIsoOrNull(params.to)
     if (from) query.from = from
     if (to) query.to = to
-    if (params.type) query.type = params.type
-    if (params.screen) query.screen = params.screen
-    if (params.userId !== undefined && params.userId !== null && params.userId !== '') {
-      query.userId = params.userId
-    }
+    if (params.userId !== undefined && params.userId !== null && params.userId !== '') query.userId = params.userId
     if (params.sessionId) query.sessionId = params.sessionId
+    if (params.eventType) query.eventType = params.eventType
+    if (params.eventLevel) query.eventLevel = params.eventLevel
+    if (params.screen) query.screen = params.screen
+    if (params.platform) query.platform = params.platform
+    if (params.appVersion) query.appVersion = params.appVersion
+    if (params.search) query.search = params.search
     if (params.page) query.page = params.page
     if (params.pageSize) query.pageSize = params.pageSize
-    return apiClient.get('/api/analytics/events/query', query)
+    if (params.sortBy) query.sortBy = params.sortBy
+    if (params.sortOrder) query.sortOrder = params.sortOrder
+    return apiClient.get('/api/analytics/events', query)
   },
 
-  getEventsSummary: async (params = {}) => {
+  getEventsStats: async (params = {}) => {
     const query = {}
     const from = toIsoOrNull(params.from)
     const to = toIsoOrNull(params.to)
     if (from) query.from = from
     if (to) query.to = to
-    if (params.groupBy) query.groupBy = params.groupBy
-    return apiClient.get('/api/analytics/events/summary', query)
+    if (params.userId !== undefined && params.userId !== null && params.userId !== '') query.userId = params.userId
+    if (params.sessionId) query.sessionId = params.sessionId
+    if (params.eventType) query.eventType = params.eventType
+    if (params.eventLevel) query.eventLevel = params.eventLevel
+    if (params.screen) query.screen = params.screen
+    if (params.platform) query.platform = params.platform
+    if (params.appVersion) query.appVersion = params.appVersion
+    if (params.search) query.search = params.search
+    if (params.top) query.top = params.top
+    return apiClient.get('/api/analytics/events/stats', query)
   },
 
   logEvents: async (events = []) => {
