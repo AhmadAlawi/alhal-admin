@@ -8,11 +8,18 @@ import Table from '../components/Table/Table'
 import { useAutoFillData, useRealTimeData, useMapData } from '../hooks/useDashboardData'
 import { useNotifications } from '../contexts/NotificationContext'
 import authService from '../services/authService'
+import analyticsService from '../services/analyticsService'
+import marketAnalysisService from '../services/marketAnalysisService'
 import './Dashboard.css'
 
 const Dashboard = () => {
   const { t } = useTranslation()
   const [selectedDays, setSelectedDays] = useState(30)
+  const [lineChartData, setLineChartData] = useState([])
+  const [barChartData, setBarChartData] = useState([])
+  const [heatmapData, setHeatmapData] = useState([])
+  const [analyticsWidgetsLoading, setAnalyticsWidgetsLoading] = useState(false)
+  const [analyticsWidgetsError, setAnalyticsWidgetsError] = useState('')
   const { registerDevice, fcmToken, permission, isInitialized } = useNotifications()
   
   // Register device when dashboard loads
@@ -103,6 +110,99 @@ const Dashboard = () => {
   const handleRefresh = () => {
     window.location.reload()
   }
+
+  const getRangeByDays = (days) => {
+    const to = new Date()
+    const from = new Date()
+    from.setDate(from.getDate() - days)
+    return { from: from.toISOString(), to: to.toISOString() }
+  }
+
+  const normalizeLineChart = (response) => {
+    const payload = response?.data || response || {}
+    const series = payload.series || {}
+    const byDate = new Map()
+
+    ;['auctions', 'tenders', 'orders'].forEach((key) => {
+      const arr = Array.isArray(series[key]) ? series[key] : []
+      arr.forEach((item) => {
+        const date = item.date
+        if (!date) return
+        if (!byDate.has(date)) byDate.set(date, { date, auctions: 0, tenders: 0, orders: 0 })
+        byDate.get(date)[key] = item.value || 0
+      })
+    })
+
+    return Array.from(byDate.values()).sort((a, b) => new Date(a.date) - new Date(b.date))
+  }
+
+  const normalizeBarChart = (response) => {
+    const payload = response?.data || response || {}
+    const bars = Array.isArray(payload.bars) ? payload.bars : []
+    return bars.map((item) => ({ label: item.label || '-', value: item.value || 0 }))
+  }
+
+  const normalizeHeatmap = (response) => {
+    const payload = response?.data || response || {}
+    const points = Array.isArray(payload.data) ? payload.data : []
+    return points
+      .slice()
+      .sort((a, b) => new Date(a.date) - new Date(b.date))
+      .map((item) => ({
+        date: item.date,
+        value: item.value || 0,
+        intensity: item.intensity || 'low',
+      }))
+  }
+
+  useEffect(() => {
+    const loadAnalyticsWidgets = async () => {
+      try {
+        setAnalyticsWidgetsLoading(true)
+        setAnalyticsWidgetsError('')
+        const range = getRangeByDays(selectedDays)
+        const currentYear = new Date().getFullYear()
+
+        const [lineRes, barRes, heatmapRes] = await Promise.allSettled([
+          analyticsService.getLineChart({ from: range.from, to: range.to, allTime: false }),
+          analyticsService.getBarChart({ from: range.from, to: range.to, allTime: false }),
+          marketAnalysisService.getSalesHeatmap({ year: currentYear }),
+        ])
+
+        if (lineRes.status === 'fulfilled') {
+          setLineChartData(normalizeLineChart(lineRes.value))
+        } else {
+          setLineChartData([])
+        }
+
+        if (barRes.status === 'fulfilled') {
+          setBarChartData(normalizeBarChart(barRes.value))
+        } else {
+          setBarChartData([])
+        }
+
+        if (heatmapRes.status === 'fulfilled') {
+          setHeatmapData(normalizeHeatmap(heatmapRes.value))
+        } else {
+          setHeatmapData([])
+        }
+
+        if (
+          lineRes.status === 'rejected' &&
+          barRes.status === 'rejected' &&
+          heatmapRes.status === 'rejected'
+        ) {
+          setAnalyticsWidgetsError('Failed to load analytics widgets.')
+        }
+      } catch (error) {
+        setAnalyticsWidgetsError(error.message || 'Failed to load analytics widgets.')
+      } finally {
+        setAnalyticsWidgetsLoading(false)
+      }
+    }
+
+    loadAnalyticsWidgets()
+  }, [selectedDays])
 
   // Format revenue sparkline data for chart
   const formatRevenueData = (data) => {
@@ -408,6 +508,65 @@ const Dashboard = () => {
           )}
 
           {/* Charts Section */}
+          <div className="section">
+            <div className="section-header">
+              <h2 className="section-title">Core Analytics</h2>
+            </div>
+            {analyticsWidgetsLoading && (
+              <div className="loading-message card">
+                <p>Loading analytics widgets...</p>
+              </div>
+            )}
+            {analyticsWidgetsError && (
+              <div className="error-message card">
+                <p>⚠️ {analyticsWidgetsError}</p>
+              </div>
+            )}
+            <div className="charts-grid">
+              {lineChartData.length > 0 && (
+                <Chart
+                  type="line"
+                  data={lineChartData}
+                  dataKeys={[
+                    { dataKey: 'auctions', name: 'Auctions', color: '#6366f1' },
+                    { dataKey: 'tenders', name: 'Tenders', color: '#10b981' },
+                    { dataKey: 'orders', name: 'Orders', color: '#f59e0b' },
+                  ]}
+                  xAxisKey="date"
+                  title="Auctions, Tenders, Orders (Daily)"
+                  height={320}
+                />
+              )}
+              {barChartData.length > 0 && (
+                <Chart
+                  type="bar"
+                  data={barChartData}
+                  dataKey="value"
+                  xAxisKey="label"
+                  title="Totals in Selected Range"
+                  color="#8b5cf6"
+                  height={320}
+                />
+              )}
+            </div>
+            {heatmapData.length > 0 && (
+              <div className="heatmap-card card">
+                <h3 className="chart-title">Sales Heatmap (Day Intensity)</h3>
+                <div className="heatmap-grid">
+                  {heatmapData.map((point, index) => (
+                    <div
+                      key={`${point.date}-${index}`}
+                      className={`heatmap-cell heatmap-${point.intensity || 'low'}`}
+                      title={`${point.date}: ${point.value}`}
+                    >
+                      <span>{new Date(point.date).getDate()}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="charts-grid">
             {revenueData.length > 0 && (
               <Chart
