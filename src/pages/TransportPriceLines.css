@@ -1,83 +1,108 @@
+/* Matches app theme (index.css :root) — dark text on light cards/background */
+
 .transport-price-lines-page {
   padding: 2rem;
   max-width: 1600px;
   margin: 0 auto;
+  color: var(--text-primary);
 }
 
-.page-header {
+.transport-price-lines-page .page-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 2rem;
 }
 
-.page-title {
+.transport-price-lines-page .page-title {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   font-size: 2rem;
   font-weight: 700;
-  color: #e2e8f0;
+  color: var(--text-primary);
   margin: 0 0 0.5rem 0;
 }
 
-.page-subtitle {
-  color: #94a3b8;
+.transport-price-lines-page .page-title svg {
+  color: var(--primary-color);
+}
+
+.transport-price-lines-page .page-subtitle {
+  color: var(--text-muted);
   font-size: 0.95rem;
   margin: 0;
 }
 
-.header-actions {
+.transport-price-lines-page .header-actions {
   display: flex;
   gap: 1rem;
 }
 
-.price-lines-layout {
+.transport-price-lines-page .price-lines-layout {
   display: grid;
   grid-template-columns: 350px 1fr;
   gap: 1.5rem;
 }
 
-.providers-panel,
-.price-lines-panel {
+.transport-price-lines-page .providers-panel,
+.transport-price-lines-page .price-lines-panel {
   padding: 1.5rem;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
 }
 
-.providers-panel h3 {
-  color: #e2e8f0;
+.transport-price-lines-page .providers-panel h3 {
+  color: var(--text-primary);
   margin-bottom: 1rem;
   font-size: 1.25rem;
 }
 
-.search-box {
+.transport-price-lines-page .search-box {
   position: relative;
   display: flex;
   align-items: center;
   margin-bottom: 1rem;
 }
 
-.search-box svg {
+.transport-price-lines-page .search-box svg {
   position: absolute;
   left: 1rem;
-  color: #94a3b8;
+  color: var(--text-muted);
+  pointer-events: none;
 }
 
-.search-input {
+.rtl .transport-price-lines-page .search-box svg {
+  left: auto;
+  right: 1rem;
+}
+
+.transport-price-lines-page .search-input {
   width: 100%;
   padding: 0.75rem 1rem 0.75rem 2.5rem;
-  background: #1e293b;
-  border: 1px solid #334155;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
   border-radius: 0.5rem;
-  color: #e2e8f0;
+  color: var(--text-primary);
   font-size: 0.95rem;
 }
 
-.search-input:focus {
-  outline: none;
-  border-color: #6366f1;
+.rtl .transport-price-lines-page .search-input {
+  padding: 0.75rem 2.5rem 0.75rem 1rem;
 }
 
-.providers-list {
+.transport-price-lines-page .search-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.85;
+}
+
+.transport-price-lines-page .search-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.2);
+}
+
+.transport-price-lines-page .providers-list {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -85,65 +110,66 @@
   overflow-y: auto;
 }
 
-.provider-item {
+.transport-price-lines-page .provider-item {
   padding: 1rem;
-  background: #1e293b;
-  border: 1px solid #334155;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
   border-radius: 0.5rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.provider-item:hover {
-  background: #0f172a;
-  border-color: #6366f1;
+.transport-price-lines-page .provider-item:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--primary-light);
 }
 
-.provider-item.active {
-  background: #0f172a;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+.transport-price-lines-page .provider-item.active {
+  background: var(--bg-tertiary);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.18);
 }
 
-.provider-info {
+.transport-price-lines-page .provider-info {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
 }
 
-.provider-info strong {
-  color: #e2e8f0;
+.transport-price-lines-page .provider-info strong {
+  color: var(--text-primary);
   font-size: 0.95rem;
 }
 
-.provider-meta {
-  color: #94a3b8;
+.transport-price-lines-page .provider-meta {
+  color: var(--text-muted);
   font-size: 0.875rem;
 }
 
-.panel-header {
+.transport-price-lines-page .panel-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 1.5rem;
 }
 
-.panel-header h3 {
-  color: #e2e8f0;
+.transport-price-lines-page .panel-header h3 {
+  color: var(--text-primary);
   margin: 0 0 0.25rem 0;
   font-size: 1.25rem;
 }
 
-.panel-subtitle {
-  color: #94a3b8;
+.transport-price-lines-page .panel-subtitle {
+  color: var(--text-muted);
   font-size: 0.875rem;
   margin: 0;
 }
 
-.btn {
+/* Buttons: scoped so they align with dashboard primary green */
+.transport-price-lines-page .btn {
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 0.375rem;
@@ -155,130 +181,137 @@
   gap: 0.5rem;
 }
 
-.btn-primary {
-  background: #6366f1;
-  color: white;
+.transport-price-lines-page .btn-primary {
+  background: var(--primary-color);
+  color: #ffffff;
 }
 
-.btn-primary:hover {
-  background: #4f46e5;
+.transport-price-lines-page .btn-primary:hover {
+  background: var(--primary-dark);
 }
 
-.btn-outline {
-  background: transparent;
-  border: 1px solid #334155;
-  color: #cbd5e1;
+.transport-price-lines-page .btn-outline {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
 }
 
-.btn-outline:hover {
-  background: #1e293b;
-  border-color: #6366f1;
+.transport-price-lines-page .btn-outline:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--primary-color);
+  color: var(--text-secondary);
 }
 
-.btn-sm {
+.transport-price-lines-page .btn-sm {
   padding: 0.375rem 0.75rem;
   font-size: 0.875rem;
 }
 
-.btn-icon {
+.transport-price-lines-page .btn-icon {
   padding: 0.5rem;
   min-width: auto;
 }
 
-.btn-danger {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+.transport-price-lines-page .btn-danger {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--danger-color);
+  border: 1px solid rgba(239, 68, 68, 0.25);
 }
 
-.btn-danger:hover {
+.transport-price-lines-page .btn-danger:hover {
   background: rgba(239, 68, 68, 0.2);
 }
 
-.table-container {
+.transport-price-lines-page .table-container {
   overflow-x: auto;
   margin-top: 1rem;
 }
 
-.data-table {
+.transport-price-lines-page .data-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.data-table thead {
-  background: #1e293b;
+.transport-price-lines-page .data-table thead {
+  background: var(--bg-tertiary);
 }
 
-.data-table th {
+.transport-price-lines-page .data-table th {
   padding: 1rem;
   text-align: left;
   font-weight: 600;
-  color: #cbd5e1;
-  border-bottom: 2px solid #334155;
+  color: var(--text-secondary);
+  border-bottom: 2px solid var(--border-color);
 }
 
-.data-table td {
+.transport-price-lines-page .data-table td {
   padding: 1rem;
-  border-bottom: 1px solid #334155;
-  color: #cbd5e1;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
 }
 
-.data-table tbody tr:hover {
-  background: #1e293b;
+.transport-price-lines-page .data-table tbody tr:hover {
+  background: var(--bg-primary);
 }
 
-.no-data {
+.transport-price-lines-page .no-data {
   text-align: center;
   padding: 3rem !important;
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
-.badge {
+.transport-price-lines-page .badge {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
   padding: 0.25rem 0.75rem;
   border-radius: 0.375rem;
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 
-.badge-success {
-  background: rgba(16, 185, 129, 0.1);
-  color: #10b981;
+.transport-price-lines-page .badge-success {
+  background: rgba(22, 163, 74, 0.18);
+  color: var(--secondary-color);
 }
 
-.badge-warning {
-  background: rgba(245, 158, 11, 0.1);
-  color: #f59e0b;
+.transport-price-lines-page .badge-warning {
+  background: rgba(245, 158, 11, 0.2);
+  color: #b45309;
 }
 
-.action-buttons {
+.transport-price-lines-page .action-buttons {
   display: flex;
   gap: 0.5rem;
 }
 
-.empty-state {
+.transport-price-lines-page .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 4rem;
-  color: #94a3b8;
+  color: var(--text-muted);
   text-align: center;
 }
 
-.empty-state svg {
+.transport-price-lines-page .empty-state svg {
   margin-bottom: 1rem;
-  opacity: 0.5;
+  color: var(--text-muted);
+  opacity: 0.45;
 }
 
-.modal-overlay {
+.transport-price-lines-page .empty-state p {
+  color: var(--text-secondary);
+}
+
+.transport-price-lines-page .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(15, 23, 42, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -286,31 +319,35 @@
   padding: 2rem;
 }
 
-.modal-content {
-  background: #1e293b;
+.transport-price-lines-page .modal-content {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 0.75rem;
   max-width: 500px;
   width: 100%;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-lg);
+  color: var(--text-primary);
 }
 
-.modal-header {
+.transport-price-lines-page .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem;
-  border-bottom: 1px solid #334155;
+  border-bottom: 1px solid var(--border-color);
 }
 
-.modal-header h2 {
+.transport-price-lines-page .modal-header h2 {
   margin: 0;
-  color: #e2e8f0;
+  color: var(--text-primary);
+  font-size: 1.25rem;
 }
 
-.modal-close {
-  background: none;
-  border: none;
-  color: #94a3b8;
+.transport-price-lines-page .modal-close {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  color: var(--text-secondary);
   cursor: pointer;
   padding: 0.5rem;
   display: flex;
@@ -318,175 +355,206 @@
   justify-content: center;
 }
 
-.modal-close:hover {
-  color: #e2e8f0;
+.transport-price-lines-page .modal-close:hover {
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
-.modal-body {
+.transport-price-lines-page .modal-body {
   padding: 1.5rem;
 }
 
-.form-group {
+.transport-price-lines-page .form-group {
   margin-bottom: 1.5rem;
 }
 
-.form-group label {
+.transport-price-lines-page .form-group label {
   display: block;
-  color: #cbd5e1;
+  color: var(--text-secondary);
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
   margin-bottom: 0.5rem;
 }
 
-.form-group input[type="text"],
-.form-group input[type="number"] {
+.transport-price-lines-page .form-group input[type='text'],
+.transport-price-lines-page .form-group input[type='number'] {
   width: 100%;
   padding: 0.75rem;
-  background: #0f172a;
-  border: 1px solid #334155;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
   border-radius: 0.5rem;
-  color: #e2e8f0;
+  color: var(--text-primary);
   font-size: 0.95rem;
 }
 
-.form-group input:focus,
-.form-group select:focus {
-  outline: none;
-  border-color: #6366f1;
+.transport-price-lines-page .form-group input::placeholder {
+  color: var(--text-muted);
 }
 
-.form-group select {
+.transport-price-lines-page .form-group input:focus,
+.transport-price-lines-page .form-group select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.15);
+}
+
+.transport-price-lines-page .form-group select {
+  width: 100%;
   padding: 0.75rem;
-  background: #0f172a;
-  border: 1px solid #334155;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
   border-radius: 0.5rem;
-  color: #e2e8f0;
+  color: var(--text-primary);
   font-size: 0.95rem;
   cursor: pointer;
 }
 
-.input-error {
-  border-color: #ef4444 !important;
+.transport-price-lines-page .form-group select option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
-.gov-price-info {
+.transport-price-lines-page .input-error {
+  border-color: var(--danger-color) !important;
+}
+
+.transport-price-lines-page .gov-price-info {
   padding: 1rem;
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: rgba(22, 163, 74, 0.08);
+  border: 1px solid var(--border-color);
   border-radius: 0.5rem;
   margin-bottom: 1rem;
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
-  color: #3b82f6;
+  color: var(--text-secondary);
 }
 
-.gov-price-info svg {
+.transport-price-lines-page .gov-price-info svg {
   margin-top: 0.125rem;
   flex-shrink: 0;
+  color: var(--primary-color);
 }
 
-.gov-price-info div {
+.transport-price-lines-page .gov-price-info div {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
 }
 
-.gov-price-info strong {
+.transport-price-lines-page .gov-price-info strong {
   font-size: 0.875rem;
+  color: var(--text-primary);
 }
 
-.gov-price-detail {
+.transport-price-lines-page .gov-price-info span:not(.gov-price-detail) {
+  color: var(--secondary-color);
+  font-weight: 600;
+}
+
+.transport-price-lines-page .gov-price-detail {
   font-size: 0.75rem;
-  opacity: 0.8;
+  color: var(--text-muted);
 }
 
-.checking-price,
-.price-error,
-.price-ok {
-  display: block;
+.transport-price-lines-page .checking-price,
+.transport-price-lines-page .price-error,
+.transport-price-lines-page .price-ok {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin-top: 0.5rem;
   font-size: 0.875rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
-.checking-price {
-  color: #94a3b8;
+.transport-price-lines-page .checking-price {
+  color: var(--text-muted);
 }
 
-.price-error {
-  color: #ef4444;
+.transport-price-lines-page .price-error {
+  color: var(--danger-color);
 }
 
-.price-ok {
-  color: #10b981;
+.transport-price-lines-page .price-ok {
+  color: var(--secondary-color);
 }
 
-.checkbox-label {
+.transport-price-lines-page .checkbox-label {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
+  color: var(--text-primary);
 }
 
-.checkbox-label input[type="checkbox"] {
+.transport-price-lines-page .checkbox-label input[type='checkbox'] {
   width: auto;
   cursor: pointer;
+  accent-color: var(--primary-color);
 }
 
-.form-actions {
+.transport-price-lines-page .form-actions {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
   margin-top: 2rem;
 }
 
-.error-message {
+.transport-price-lines-page .error-message {
   padding: 1rem;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.35);
   border-radius: 0.5rem;
-  color: #ef4444;
+  color: #991b1b;
   display: flex;
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 1.5rem;
 }
 
-.loading-container {
+.transport-price-lines-page .error-message svg {
+  flex-shrink: 0;
+  color: var(--danger-color);
+}
+
+.transport-price-lines-page .loading-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 4rem;
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
-.spinner {
+.transport-price-lines-page .loading-container p {
+  color: var(--text-secondary);
+}
+
+.transport-price-lines-page .spinner {
   width: 3rem;
   height: 3rem;
-  border: 3px solid #334155;
-  border-top-color: #6366f1;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--primary-color);
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: transport-price-lines-spin 1s linear infinite;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+@keyframes transport-price-lines-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 1024px) {
-  .price-lines-layout {
+  .transport-price-lines-page .price-lines-layout {
     grid-template-columns: 1fr;
   }
 
-  .providers-panel {
+  .transport-price-lines-page .providers-panel {
     max-height: 300px;
   }
 
-  .providers-list {
+  .transport-price-lines-page .providers-list {
     max-height: 250px;
   }
 }
@@ -496,12 +564,12 @@
     padding: 1rem;
   }
 
-  .page-header {
+  .transport-price-lines-page .page-header {
     flex-direction: column;
     gap: 1rem;
   }
 
-  .panel-header {
+  .transport-price-lines-page .panel-header {
     flex-direction: column;
     gap: 1rem;
   }
