@@ -60,6 +60,193 @@ const ALLOWED_IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp']
 const RECOMMENDED_MAX_SIZE = 300 * 1024
 const HARD_MAX_SIZE = 500 * 1024
 
+/** Matches mobile APP_AD_DEFAULT_COLORS (BannerCarousel / BottomAdStrip) */
+const APP_AD_DEFAULT_COLORS = {
+  title: '#4ade80',
+  subtitle: '#ffffff',
+  ctaBg: '#047857',
+  ctaText: '#ffffff',
+}
+
+const DEFAULT_TITLE_COLOR = APP_AD_DEFAULT_COLORS.title
+const DEFAULT_SUBTITLE_COLOR = APP_AD_DEFAULT_COLORS.subtitle
+const DEFAULT_CTA_BG = APP_AD_DEFAULT_COLORS.ctaBg
+const DEFAULT_CTA_TEXT = APP_AD_DEFAULT_COLORS.ctaText
+const DEFAULT_BUTTON_LABEL = 'اعرف المزيد'
+
+const previewVariantFromAd = (ad) => {
+  const p = String(ad?.position ?? ad?.Position ?? '').toLowerCase()
+  if (p === 'footer' || p === 'bottom') return 'bottom'
+  return 'banner'
+}
+
+const pickAdString = (ad, camel, pascal, fallback = '') => {
+  const raw = ad?.[camel] ?? ad?.[pascal]
+  if (raw === null || raw === undefined) return fallback
+  const s = String(raw).trim()
+  return s || fallback
+}
+
+const pickAdColor = (ad, camel, pascal, fallback) =>
+  pickAdString(ad, camel, pascal, fallback)
+
+const hexForColorInput = (val) => {
+  const s = String(val || '').trim()
+  if (/^#[0-9A-Fa-f]{6}$/.test(s)) return s
+  if (/^#[0-9A-Fa-f]{3}$/.test(s)) {
+    return `#${s[1]}${s[1]}${s[2]}${s[2]}${s[3]}${s[3]}`
+  }
+  return '#000000'
+}
+
+const formatAdMetric = (ad, camel, pascal) => {
+  const v = ad?.[camel] ?? ad?.[pascal]
+  if (v === null || v === undefined) return '—'
+  const n = Number(v)
+  return Number.isFinite(n) ? n.toLocaleString() : '—'
+}
+
+/** Normalize admin row or public AppAdView into preview props */
+const toAppPreviewProps = (ad) => {
+  if (!ad || typeof ad !== 'object') return null
+  const imageUrl =
+    ad.imageUrl ||
+    ad.ImageUrl ||
+    getImageUrlsFromAd(ad)[0] ||
+    ''
+  return {
+    advertisementId: ad.advertisementId ?? ad.id ?? ad.Id,
+    title: pickAdString(ad, 'title', 'Title', ''),
+    description: pickAdString(ad, 'description', 'Description', ''),
+    imageUrl,
+    titleColor: pickAdColor(ad, 'titleColor', 'TitleColor', DEFAULT_TITLE_COLOR),
+    subtitleColor: pickAdColor(ad, 'subtitleColor', 'SubtitleColor', DEFAULT_SUBTITLE_COLOR),
+    ctaBackgroundColor: pickAdColor(ad, 'ctaBackgroundColor', 'CtaBackgroundColor', DEFAULT_CTA_BG),
+    ctaTextColor: pickAdColor(ad, 'ctaTextColor', 'CtaTextColor', DEFAULT_CTA_TEXT),
+    buttonLabel: pickAdString(ad, 'buttonLabel', 'ButtonLabel', DEFAULT_BUTTON_LABEL),
+    navigationType: ad.navigationType ?? ad.NavigationType,
+    navigationValue: ad.navigationValue ?? ad.NavigationValue,
+  }
+}
+
+/** BannerCarousel: h-24, mx-4, rounded-2xl, overlay 30%, RTL row + CTA */
+const AppAdPreviewBanner = ({
+  title,
+  description,
+  imageUrl,
+  titleColor,
+  subtitleColor,
+  ctaBackgroundColor,
+  ctaTextColor,
+  buttonLabel,
+  placeholder,
+}) => {
+  const tColor = titleColor || APP_AD_DEFAULT_COLORS.title
+  const sColor = subtitleColor || APP_AD_DEFAULT_COLORS.subtitle
+  const bg = ctaBackgroundColor || APP_AD_DEFAULT_COLORS.ctaBg
+  const tc = ctaTextColor || APP_AD_DEFAULT_COLORS.ctaText
+
+  return (
+    <div className="ad-prev-banner">
+      <div className="ad-prev-banner__mx">
+        <div className="ad-prev-banner__my">
+          <div className="ad-prev-banner__card">
+            {imageUrl ? (
+              <img
+                className="ad-prev-banner__img"
+                src={imageUrl}
+                alt=""
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <div className="ad-prev-banner__ph">{placeholder || 'أضف صورة للمعاينة'}</div>
+            )}
+            <div className="ad-prev-banner__shade" />
+            <div className="ad-prev-banner__row" dir="rtl">
+              <div className="ad-prev-banner__copy">
+                <h2 className="ad-prev-banner__title cairo-banner-title" style={{ color: tColor }}>
+                  {title || 'عنوان'}
+                </h2>
+                <p className="ad-prev-banner__sub" style={{ color: sColor }}>
+                  {description || 'وصف قصير'}
+                </p>
+              </div>
+              <div className="ad-prev-banner__cta-col">
+                <button
+                  type="button"
+                  className="ad-prev-banner__cta cairo-banner-btn"
+                  style={{ backgroundColor: bg, color: tc }}
+                >
+                  {buttonLabel || DEFAULT_BUTTON_LABEL}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/** BottomAdStrip: 260×76, overlay 35%, text only, no button */
+const AppAdPreviewBottom = ({
+  title,
+  description,
+  imageUrl,
+  titleColor,
+  subtitleColor,
+  placeholder,
+}) => {
+  const tColor = titleColor || APP_AD_DEFAULT_COLORS.title
+  const sColor = subtitleColor || APP_AD_DEFAULT_COLORS.subtitle
+
+  return (
+    <div className="ad-prev-bottom-wrap">
+      <div className="ad-prev-bottom-scroll">
+        <div className="ad-prev-bottom-card">
+          {imageUrl ? (
+            <img
+              className="ad-prev-bottom__img"
+              src={imageUrl}
+              alt=""
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <div className="ad-prev-bottom__ph">{placeholder || 'أضف صورة للمعاينة'}</div>
+          )}
+          <div className="ad-prev-bottom__shade" />
+          <div className="ad-prev-bottom__copy" dir="rtl">
+            <p className="ad-prev-bottom__title cairo-bottom-title" style={{ color: tColor }}>
+              {title || 'عنوان'}
+            </p>
+            <p className="ad-prev-bottom__desc" style={{ color: sColor }}>
+              {description || 'وصف قصير قد يمتد لسطر ثاني في الشريط السفلي'}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const AppAdPreviewByVariant = ({ variant, navigationType, navigationValue, ...rest }) => (
+  <>
+    {variant === 'bottom' ? (
+      <AppAdPreviewBottom {...rest} />
+    ) : (
+      <AppAdPreviewBanner {...rest} />
+    )}
+    {(navigationType != null || navigationValue != null) &&
+      String(navigationType || navigationValue || '').length > 0 && (
+        <div className="ad-prev-meta">
+          {navigationType != null && navigationValue != null
+            ? `${navigationType}: ${navigationValue}`
+            : String(navigationValue ?? navigationType ?? '')}
+        </div>
+      )}
+  </>
+)
+
 const createEmptyForm = () => ({
   title: '',
   description: '',
@@ -75,6 +262,11 @@ const createEmptyForm = () => ({
   isActive: true,
   imageUrlsText: '',
   thumbnailUrlsText: '',
+  titleColor: DEFAULT_TITLE_COLOR,
+  subtitleColor: DEFAULT_SUBTITLE_COLOR,
+  ctaBackgroundColor: DEFAULT_CTA_BG,
+  ctaTextColor: DEFAULT_CTA_TEXT,
+  buttonLabel: DEFAULT_BUTTON_LABEL,
 })
 
 const toDateInputValue = (isoString) => {
@@ -89,6 +281,12 @@ const toDateInputValue = (isoString) => {
   const minutes = String(date.getMinutes()).padStart(2, '0')
   return `${year}-${month}-${day}T${hours}:${minutes}`
 }
+
+const parseUrlLines = (text) =>
+  String(text || '')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
 
 /** Normalize API list/detail shapes into string URLs */
 const collectMediaUrls = (value) => {
@@ -158,6 +356,8 @@ const Ads = () => {
   const [imageFiles, setImageFiles] = useState([])
   const [thumbnailFiles, setThumbnailFiles] = useState([])
   const [uploadWarning, setUploadWarning] = useState('')
+  const [filePreviewUrl, setFilePreviewUrl] = useState('')
+  const [modalPreviewVariant, setModalPreviewVariant] = useState('banner')
 
   const [filters, setFilters] = useState({
     platform: 'all',
@@ -171,6 +371,52 @@ const Ads = () => {
   useEffect(() => {
     fetchAll()
   }, [])
+
+  useEffect(() => {
+    if (!imageFiles.length) {
+      setFilePreviewUrl('')
+      return undefined
+    }
+    const url = URL.createObjectURL(imageFiles[0])
+    setFilePreviewUrl(url)
+    return () => URL.revokeObjectURL(url)
+  }, [imageFiles])
+
+  useEffect(() => {
+    if (!showModal) return
+    setModalPreviewVariant(previewVariantFromAd({ position: formData.position }))
+  }, [formData.position, showModal])
+
+  const primaryPreviewUrl = useMemo(() => {
+    const line = parseUrlLines(formData.imageUrlsText)[0]
+    if (line) return line
+    if (filePreviewUrl) return filePreviewUrl
+    if (selectedAd) return getImageUrlsFromAd(selectedAd)[0] || ''
+    return ''
+  }, [formData.imageUrlsText, filePreviewUrl, selectedAd])
+
+  const modalLivePreview = useMemo(
+    () => ({
+      title: formData.title,
+      description: formData.description,
+      imageUrl: primaryPreviewUrl,
+      titleColor: formData.titleColor || DEFAULT_TITLE_COLOR,
+      subtitleColor: formData.subtitleColor || DEFAULT_SUBTITLE_COLOR,
+      ctaBackgroundColor: formData.ctaBackgroundColor || DEFAULT_CTA_BG,
+      ctaTextColor: formData.ctaTextColor || DEFAULT_CTA_TEXT,
+      buttonLabel: formData.buttonLabel || DEFAULT_BUTTON_LABEL,
+    }),
+    [
+      formData.title,
+      formData.description,
+      formData.titleColor,
+      formData.subtitleColor,
+      formData.ctaBackgroundColor,
+      formData.ctaTextColor,
+      formData.buttonLabel,
+      primaryPreviewUrl,
+    ]
+  )
 
   const fetchAll = async () => {
     try {
@@ -256,6 +502,16 @@ const Ads = () => {
       isActive: ad.isActive ?? true,
       imageUrlsText: imageUrls.join('\n'),
       thumbnailUrlsText: thumbnailUrls.join('\n'),
+      titleColor: pickAdColor(ad, 'titleColor', 'TitleColor', DEFAULT_TITLE_COLOR),
+      subtitleColor: pickAdColor(ad, 'subtitleColor', 'SubtitleColor', DEFAULT_SUBTITLE_COLOR),
+      ctaBackgroundColor: pickAdColor(
+        ad,
+        'ctaBackgroundColor',
+        'CtaBackgroundColor',
+        DEFAULT_CTA_BG
+      ),
+      ctaTextColor: pickAdColor(ad, 'ctaTextColor', 'CtaTextColor', DEFAULT_CTA_TEXT),
+      buttonLabel: pickAdString(ad, 'buttonLabel', 'ButtonLabel', DEFAULT_BUTTON_LABEL),
     })
     setShowModal(true)
   }
@@ -269,12 +525,6 @@ const Ads = () => {
     setUploadWarning('')
     setFormData(createEmptyForm())
   }
-
-  const parseUrlLines = (text) =>
-    text
-      .split('\n')
-      .map((line) => line.trim())
-      .filter(Boolean)
 
   const isAllowedImageFormat = (url) => {
     const sanitized = url.split('?')[0].toLowerCase()
@@ -451,6 +701,11 @@ const Ads = () => {
       if (auto) clickUrl = auto
     }
 
+    const optionalTrim = (v) => {
+      const t = String(v ?? '').trim()
+      return t || null
+    }
+
     return {
       title: formData.title.trim(),
       description: formData.description?.trim() || null,
@@ -469,6 +724,11 @@ const Ads = () => {
       isActive: Boolean(formData.isActive),
       imageUrls,
       thumbnailUrls,
+      titleColor: optionalTrim(formData.titleColor),
+      subtitleColor: optionalTrim(formData.subtitleColor),
+      ctaBackgroundColor: optionalTrim(formData.ctaBackgroundColor),
+      ctaTextColor: optionalTrim(formData.ctaTextColor),
+      buttonLabel: optionalTrim(formData.buttonLabel),
     }
   }
 
@@ -680,6 +940,8 @@ const Ads = () => {
                 <th>Platform</th>
                 <th>Position</th>
                 <th>Schedule</th>
+                <th>Views</th>
+                <th>Clicks</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -687,7 +949,7 @@ const Ads = () => {
             <tbody>
               {filteredAds.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="empty-row">
+                  <td colSpan={9} className="empty-row">
                     No ads found.
                   </td>
                 </tr>
@@ -707,6 +969,14 @@ const Ads = () => {
                       <span>{ad.startDate ? new Date(ad.startDate).toLocaleDateString() : '-'}</span>
                       <span> - </span>
                       <span>{ad.endDate ? new Date(ad.endDate).toLocaleDateString() : 'No expiry'}</span>
+                    </td>
+                    <td className="stats-cell">
+                      <strong>{formatAdMetric(ad, 'viewCount', 'ViewCount')}</strong>
+                      <span>impressions</span>
+                    </td>
+                    <td className="stats-cell">
+                      <strong>{formatAdMetric(ad, 'clickCount', 'ClickCount')}</strong>
+                      <span>taps</span>
                     </td>
                     <td>
                       <span className={`status-badge ${ad.isActive ? 'status-active' : 'status-inactive'}`}>
@@ -735,39 +1005,37 @@ const Ads = () => {
       )}
 
       <div className="card mobile-preview-card">
-        <h2>Mobile Endpoint Preview (`GET /api/advertisement/app?enabledOnly=true`)</h2>
+        <h2>Mobile app preview (`GET /api/Advertisement/app?enabledOnly=true`)</h2>
         {previewError && <div className="preview-error">{previewError}</div>}
         <div className="mobile-preview-grid">
           {mobileAds.length === 0 ? (
             <p>No enabled mobile ads returned.</p>
           ) : (
-            mobileAds.map((ad) => (
-              <div key={ad.advertisementId} className="mobile-ad-card">
-                <img src={ad.imageUrl} alt={ad.title || 'Ad image'} />
-                <div className="mobile-ad-content">
-                  <h3>{ad.title}</h3>
-                  <p>{ad.description || '-'}</p>
-                  <small>
-                    {ad.navigationType}: {ad.navigationValue}
-                  </small>
+            mobileAds.map((ad) => {
+              const preview = toAppPreviewProps(ad)
+              const variant = previewVariantFromAd(ad)
+              return (
+                <div key={preview?.advertisementId ?? ad.advertisementId} className="mobile-ad-card">
+                  <AppAdPreviewByVariant variant={variant} {...preview} />
                 </div>
-              </div>
-            ))
+              )
+            })
           )}
         </div>
       </div>
 
       {showModal && (
         <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal-content ad-modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>{selectedAd ? 'Edit Ad' : 'Create Ad'}</h2>
-              <button className="modal-close" onClick={closeModal}>
-                ×
-              </button>
-            </div>
+          <div className="ad-modal-layout" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-content ad-modal-content">
+              <div className="modal-header">
+                <h2>{selectedAd ? 'Edit Ad' : 'Create Ad'}</h2>
+                <button type="button" className="modal-close" onClick={closeModal}>
+                  ×
+                </button>
+              </div>
 
-            <form onSubmit={handleSubmit} className="modal-body">
+              <form onSubmit={handleSubmit} className="modal-body">
               <h3>Basic Info</h3>
               <div className="form-grid">
                 <div className="form-group">
@@ -929,10 +1197,114 @@ const Ads = () => {
                 </p>
               )}
 
+              <h3>Appearance (in-app card)</h3>
+              <p className="spec-note">
+                Colors and button label match the public app payload (e.g.{' '}
+                <code>titleColor</code>, <code>ctaBackgroundColor</code>).
+              </p>
+              <div className="form-grid">
+                <div className="form-group">
+                  <label>Title color</label>
+                  <div className="color-row">
+                    <input
+                      type="color"
+                      aria-label="Title color"
+                      value={hexForColorInput(formData.titleColor)}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, titleColor: e.target.value }))
+                      }
+                    />
+                    <input
+                      type="text"
+                      value={formData.titleColor}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, titleColor: e.target.value }))
+                      }
+                      placeholder="#4ade80"
+                    />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>Subtitle / description color</label>
+                  <div className="color-row">
+                    <input
+                      type="color"
+                      aria-label="Subtitle color"
+                      value={hexForColorInput(formData.subtitleColor)}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, subtitleColor: e.target.value }))
+                      }
+                    />
+                    <input
+                      type="text"
+                      value={formData.subtitleColor}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, subtitleColor: e.target.value }))
+                      }
+                      placeholder="#ffffff"
+                    />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>CTA background</label>
+                  <div className="color-row">
+                    <input
+                      type="color"
+                      aria-label="CTA background"
+                      value={hexForColorInput(formData.ctaBackgroundColor)}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, ctaBackgroundColor: e.target.value }))
+                      }
+                    />
+                    <input
+                      type="text"
+                      value={formData.ctaBackgroundColor}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, ctaBackgroundColor: e.target.value }))
+                      }
+                      placeholder="#047857"
+                    />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>CTA text</label>
+                  <div className="color-row">
+                    <input
+                      type="color"
+                      aria-label="CTA text color"
+                      value={hexForColorInput(formData.ctaTextColor)}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, ctaTextColor: e.target.value }))
+                      }
+                    />
+                    <input
+                      type="text"
+                      value={formData.ctaTextColor}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, ctaTextColor: e.target.value }))
+                      }
+                      placeholder="#ffffff"
+                    />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>Button label</label>
+                  <input
+                    type="text"
+                    value={formData.buttonLabel}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, buttonLabel: e.target.value }))
+                    }
+                    placeholder={DEFAULT_BUTTON_LABEL}
+                  />
+                </div>
+              </div>
+
               <h3>Media</h3>
               {selectedAd && (
                 <p className="spec-note edit-media-hint">
-                  Existing images stay on the ad until you upload new files or change the URL list below.
+                  Existing images stay on the ad until you upload new files or change the URL list
+                  below.
                 </p>
               )}
               <div className="form-group">
@@ -972,14 +1344,14 @@ const Ads = () => {
                 <textarea
                   rows={4}
                   value={formData.imageUrlsText}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, imageUrlsText: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, imageUrlsText: e.target.value }))
+                  }
                   placeholder="https://cdn.example.com/ad-main.jpg"
                 />
                 <small className="spec-note">
-                  Display size in app: 96px height (full width). Required: 4:1 ratio, minimum
-                  800x200, recommended 1200x300, JPG/PNG/WEBP. If the URL is valid but verification
-                  fails, some extensions block paths like <code>/ads/</code> — use file upload or
-                  allowlist this domain.
+                  Banner height in app: 96px (h-24). Required: 4:1 ratio, minimum 800×200. Bottom
+                  strip tile: 260×76.
                 </small>
               </div>
               <div className="form-group">
@@ -987,7 +1359,9 @@ const Ads = () => {
                 <textarea
                   rows={3}
                   value={formData.thumbnailUrlsText}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, thumbnailUrlsText: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, thumbnailUrlsText: e.target.value }))
+                  }
                   placeholder="https://cdn.example.com/ad-thumb.jpg"
                 />
                 <small className="spec-note">
@@ -995,13 +1369,6 @@ const Ads = () => {
                   uploader/backend).
                 </small>
               </div>
-
-              {parseUrlLines(formData.imageUrlsText)[0] && (
-                <div className="ad-preview">
-                  <p>Primary image preview (first image URL):</p>
-                  <img src={parseUrlLines(formData.imageUrlsText)[0]} alt="Primary ad preview" />
-                </div>
-              )}
 
               {formError && <div className="form-error">{formError}</div>}
               {uploadWarning && <div className="upload-warning">{uploadWarning}</div>}
@@ -1015,6 +1382,41 @@ const Ads = () => {
                 </button>
               </div>
             </form>
+            </div>
+
+            <aside className="ad-modal-floating-preview" aria-label="App preview">
+              <div className="ad-modal-floating-preview__inner">
+                <p className="floating-preview-title">معاينة التطبيق</p>
+                <div className="preview-variant-toggle" role="tablist">
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={modalPreviewVariant === 'banner'}
+                    className={`preview-variant-toggle__btn ${modalPreviewVariant === 'banner' ? 'is-active' : ''}`}
+                    onClick={() => setModalPreviewVariant('banner')}
+                  >
+                    سلايدر علوي
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={modalPreviewVariant === 'bottom'}
+                    className={`preview-variant-toggle__btn ${modalPreviewVariant === 'bottom' ? 'is-active' : ''}`}
+                    onClick={() => setModalPreviewVariant('bottom')}
+                  >
+                    شريط سفلي
+                  </button>
+                </div>
+                <AppAdPreviewByVariant
+                  variant={modalPreviewVariant}
+                  {...modalLivePreview}
+                  placeholder="أضف رابط صورة أو ارفع ملفًا"
+                />
+                <p className="spec-note floating-preview-hint">
+                  العلوي: h-24، هوامش mx-4، overlay 30%. السفلي: 260×76، overlay 35%، بدون زر.
+                </p>
+              </div>
+            </aside>
           </div>
         </div>
       )}

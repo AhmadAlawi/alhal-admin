@@ -29,12 +29,12 @@ const advertisementsService = {
   },
 
   getAppAdvertisements: async (enabledOnly = true) => {
-    const response = await apiClient.get('/api/advertisement/app', { enabledOnly })
+    const response = await apiClient.get('/api/Advertisement/app', { enabledOnly })
     return unwrapResponse(response)
   },
 
   getMobileHeaderAds: async () => {
-    const response = await apiClient.get('/api/advertisement/mobile/header')
+    const response = await apiClient.get('/api/Advertisement/mobile/header')
     return unwrapResponse(response)
   },
 }
