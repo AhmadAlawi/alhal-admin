@@ -1,7 +1,10 @@
 import React from 'react'
+import { formatCellValue } from '../../utils/apiNormalize'
 import './Table.css'
 
 const Table = ({ columns, data }) => {
+  const rows = Array.isArray(data) ? data : []
+
   return (
     <div className="table-container">
       <table className="table">
@@ -13,13 +16,15 @@ const Table = ({ columns, data }) => {
           </tr>
         </thead>
         <tbody>
-          {data.map((row, rowIndex) => (
+          {rows.map((row, rowIndex) => (
             <tr key={rowIndex}>
-              {columns.map((column, colIndex) => (
-                <td key={colIndex}>
-                  {column.render ? column.render(row[column.accessor], row) : row[column.accessor]}
-                </td>
-              ))}
+              {columns.map((column, colIndex) => {
+                const raw = row[column.accessor]
+                const content = column.render
+                  ? column.render(raw, row)
+                  : formatCellValue(raw)
+                return <td key={colIndex}>{content}</td>
+              })}
             </tr>
           ))}
         </tbody>

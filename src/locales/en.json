@@ -167,6 +167,15 @@
     "directSales": "Direct Sales",
     "auctions": "Auctions",
     "lowStockProducts": "Low Stock Products",
+    "allGovernorates": "All governorates",
+    "filterGovernorate": "Filter by governorate",
+    "revenueToday": "Today's revenue",
+    "revenueYesterday": "Yesterday's revenue",
+    "revenueChange": "Change vs yesterday",
+    "daysLabel": "days",
+    "openNow": "Open now",
+    "listings": "listings",
+    "crops": "crops",
     "items": "items",
     "unknown": "Unknown"
   },
@@ -730,6 +739,56 @@
       "searchProviders": "Search providers...",
       "searchVehicles": "Search vehicles..."
     }
+  },
+  "nav": {
+    "govDashboard": "Government Dashboard",
+    "govReports": "Reports",
+    "marketAnalysis": "Market Analysis",
+    "marketAlerts": "Market Alerts",
+    "marketControl": "Market Control",
+    "govProductPrices": "Product Prices",
+    "govTransportPrices": "Transport Prices",
+    "rbac": "Roles & Permissions"
+  },
+  "access": {
+    "deniedTitle": "Access Denied",
+    "deniedMessage": "You do not have permission to access this page"
+  },
+  "rbac": {
+    "subtitle": "Manage roles and permissions for government staff and platform admins",
+    "permissionsTab": "Permissions",
+    "rolesTab": "Roles",
+    "usersTab": "User Access",
+    "addPermission": "Add Permission",
+    "editPermission": "Edit Permission",
+    "addRole": "Add Role",
+    "editRole": "Edit Role",
+    "code": "Code",
+    "nameAr": "Name (Arabic)",
+    "nameEn": "Name (English)",
+    "module": "Module",
+    "roleName": "Role Name",
+    "scope": "Scope",
+    "scopeGovernment": "Government",
+    "scopePlatform": "Platform",
+    "scopeMarket": "Market",
+    "allScopes": "All scopes",
+    "permissionsCount": "Permissions",
+    "permissionsMatrix": "Permission matrix",
+    "systemLocked": "System item — locked",
+    "confirmDeletePermission": "Delete this permission?",
+    "confirmDeleteRole": "Delete this role?",
+    "userIdPlaceholder": "User ID",
+    "currentAccess": "Current access",
+    "roles": "Roles",
+    "effectivePermissions": "Effective permissions",
+    "assignRoles": "Assign roles",
+    "assignRolesHint": "Replaces all current roles for this user",
+    "reloginReminder": "User must sign in again for permissions to refresh.",
+    "roleSuperadmin": "Super Admin"
+  },
+  "gov": {
+    "placeholderMessage": "This screen will be connected to the API soon"
   }
 }
 

@@ -167,6 +167,15 @@
     "directSales": "المبيعات المباشرة",
     "auctions": "المزادات",
     "lowStockProducts": "منتجات منخفضة المخزون",
+    "allGovernorates": "كل المحافظات",
+    "filterGovernorate": "تصفية حسب المحافظة",
+    "revenueToday": "إيرادات اليوم",
+    "revenueYesterday": "إيرادات أمس",
+    "revenueChange": "التغير عن أمس",
+    "daysLabel": "يوم",
+    "openNow": "مفتوح الآن",
+    "listings": "قوائم",
+    "crops": "محاصيل",
     "items": "عناصر",
     "unknown": "غير معروف"
   },
@@ -731,6 +740,56 @@
       "searchProviders": "البحث عن المزودين...",
       "searchVehicles": "البحث عن المركبات..."
     }
+  },
+  "nav": {
+    "govDashboard": "لوحة الحكومة",
+    "govReports": "التقارير",
+    "marketAnalysis": "تحليل السوق",
+    "marketAlerts": "تنبيهات السوق",
+    "marketControl": "رقابة السوق",
+    "govProductPrices": "أسعار المنتجات",
+    "govTransportPrices": "أسعار النقل",
+    "rbac": "الأدوار والصلاحيات"
+  },
+  "access": {
+    "deniedTitle": "غير مصرح",
+    "deniedMessage": "لا تملك صلاحية للوصول"
+  },
+  "rbac": {
+    "subtitle": "إدارة الأدوار والصلاحيات للموظفين الحكوميين ومنصة الإدارة",
+    "permissionsTab": "الصلاحيات",
+    "rolesTab": "الأدوار",
+    "usersTab": "صلاحيات المستخدمين",
+    "addPermission": "إضافة صلاحية",
+    "editPermission": "تعديل صلاحية",
+    "addRole": "إضافة دور",
+    "editRole": "تعديل دور",
+    "code": "الرمز",
+    "nameAr": "الاسم (عربي)",
+    "nameEn": "الاسم (إنجليزي)",
+    "module": "الوحدة",
+    "roleName": "اسم الدور",
+    "scope": "النطاق",
+    "scopeGovernment": "حكومي",
+    "scopePlatform": "منصة",
+    "scopeMarket": "سوق",
+    "allScopes": "كل النطاقات",
+    "permissionsCount": "الصلاحيات",
+    "permissionsMatrix": "مصفوفة الصلاحيات",
+    "systemLocked": "عنصر نظام — محمي",
+    "confirmDeletePermission": "حذف هذه الصلاحية؟",
+    "confirmDeleteRole": "حذف هذا الدور؟",
+    "userIdPlaceholder": "معرف المستخدم",
+    "currentAccess": "الصلاحيات الحالية",
+    "roles": "الأدوار",
+    "effectivePermissions": "الصلاحيات الفعالة",
+    "assignRoles": "تعيين الأدوار",
+    "assignRolesHint": "يستبدل جميع أدوار المستخدم الحالية",
+    "reloginReminder": "يجب على المستخدم تسجيل الدخول مرة أخرى لتفعيل الصلاحيات",
+    "roleSuperadmin": "مدير عام"
+  },
+  "gov": {
+    "placeholderMessage": "سيتم ربط هذه الشاشة بواجهة البرمجة قريباً"
   }
 }
 

@@ -4,8 +4,8 @@
   top: 0;
   height: 100vh;
   width: 260px;
-  background: linear-gradient(180deg, var(--bg-secondary) 0%, #1a2332 100%);
-  border-right: 1px solid var(--border-color);
+  background: var(--sidebar-green);
+  border-right: none;
   transition: transform 0.3s ease;
   z-index: 1000;
   display: flex;
@@ -16,8 +16,6 @@
 .rtl .sidebar {
   left: auto;
   right: 0;
-  border-right: none;
-  border-left: 1px solid var(--border-color);
 }
 
 .sidebar.closed {
@@ -31,14 +29,14 @@
 .sidebar-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.4);
   z-index: 999;
   display: none;
 }
 
 .sidebar-header {
   padding: 1.5rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -53,40 +51,39 @@
 .logo-icon {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
   font-size: 1.125rem;
-  color: white;
+  color: #fff;
 }
 
 .logo-text {
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #fff;
 }
 
 .close-btn {
   background: none;
   border: none;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.8);
   font-size: 1.5rem;
   cursor: pointer;
   display: none;
   padding: 0.25rem;
-  transition: color 0.2s;
 }
 
 .close-btn:hover {
-  color: var(--text-primary);
+  color: #fff;
 }
 
 .sidebar-nav {
   flex: 1;
-  padding: 1.5rem 0;
+  padding: 1rem 0;
 }
 
 .menu-list {
@@ -97,50 +94,40 @@
   display: flex;
   align-items: center;
   gap: 0.875rem;
-  padding: 0.875rem 1.5rem;
-  color: var(--text-secondary);
+  padding: 0.75rem 1.25rem;
+  margin: 0 0.5rem;
+  border-radius: 0.5rem;
+  color: rgba(255, 255, 255, 0.88);
   text-decoration: none;
-  transition: all 0.2s;
+  transition: background 0.15s, color 0.15s;
   font-size: 0.9375rem;
   font-weight: 500;
-  position: relative;
 }
 
 .menu-item::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background-color: var(--primary-color);
-  transform: scaleY(0);
-  transition: transform 0.2s;
+  display: none;
 }
 
 .menu-item:hover {
-  color: var(--text-primary);
-  background-color: rgba(34, 197, 94, 0.1);
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.12);
 }
 
 .menu-item.active {
-  color: var(--text-primary);
-  background-color: rgba(34, 197, 94, 0.15);
-}
-
-.menu-item.active::before {
-  transform: scaleY(1);
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.22);
+  font-weight: 600;
 }
 
 .menu-icon {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   display: flex;
   align-items: center;
 }
 
 .sidebar-footer {
-  padding: 1.5rem;
-  border-top: 1px solid var(--border-color);
+  padding: 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .user-info {
@@ -153,29 +140,29 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  background: rgba(255, 255, 255, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
   font-size: 0.875rem;
-  color: white;
-}
-
-.user-details {
-  flex: 1;
+  color: #fff;
 }
 
 .user-name {
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #fff;
   margin-bottom: 0.125rem;
 }
 
 .user-role {
   font-size: 0.75rem;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.75);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 160px;
 }
 
 @media (max-width: 768px) {
@@ -195,4 +182,3 @@
     transform: translateX(0);
   }
 }
-

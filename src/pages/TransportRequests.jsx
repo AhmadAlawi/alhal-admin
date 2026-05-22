@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { FiPackage, FiSearch, FiRefreshCw, FiEye, FiTrash2, FiBell, FiX, FiPlus } from 'react-icons/fi'
 import transportService from '../services/transportService'
 import { useTranslation } from '../hooks/useTranslation'
+import { parsePaginatedList } from '../utils/apiNormalize'
 import './TransportRequests.css'
 
 const TransportRequests = () => {
@@ -27,6 +28,7 @@ const TransportRequests = () => {
   const [pageSize, setPageSize] = useState(20)
   const [totalPages, setTotalPages] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
+  const [statusCounts, setStatusCounts] = useState(null)
 
   useEffect(() => {
     fetchRequests()
@@ -41,68 +43,25 @@ const TransportRequests = () => {
         pageSize: pageSize
       }
       const response = await transportService.getTransportRequests(params)
-      
-      console.log('Transport Requests API Response:', response)
-      
-      // Handle different response structures
-      let requestsData = []
-      let total = 0
-      let totalPagesCount = 1
-      
-      if (response) {
-        // Check if response has items directly (most common structure)
-        if (response.items && Array.isArray(response.items)) {
-          requestsData = response.items
-          total = response.total || response.totalCount || requestsData.length
-          totalPagesCount = response.totalPages || Math.ceil(total / pageSize) || 1
-        }
-        // Check if response has a data wrapper
-        else if (response.data) {
-          const data = response.data
-          if (data.items && Array.isArray(data.items)) {
-            requestsData = data.items
-            total = data.total || data.totalCount || requestsData.length
-            totalPagesCount = data.totalPages || Math.ceil(total / pageSize) || 1
-          } else if (Array.isArray(data)) {
-            requestsData = data
-            total = data.length
-            totalPagesCount = Math.ceil(total / pageSize) || 1
-          }
-        }
-        // Check if response is an array directly
-        else if (Array.isArray(response)) {
-          requestsData = response
-          total = response.length
-          totalPagesCount = Math.ceil(total / pageSize) || 1
-        }
-        // Check if response has status and data
-        else if (response.status === 'success' && response.data) {
-          const data = response.data
-          if (data.items && Array.isArray(data.items)) {
-            requestsData = data.items
-            total = data.total || data.totalCount || requestsData.length
-            totalPagesCount = data.totalPages || Math.ceil(total / pageSize) || 1
-          } else if (Array.isArray(data)) {
-            requestsData = data
-            total = data.length
-            totalPagesCount = Math.ceil(total / pageSize) || 1
-          }
-        }
-      }
-      
-      setRequests(requestsData)
-      setTotalPages(totalPagesCount)
-      setTotalCount(total)
-      
-      if (requestsData.length === 0 && !error) {
-        console.log('No transport requests found')
-      }
+      const parsed = parsePaginatedList(response)
+      const safeTotal = Number(parsed.total) || 0
+      const safePages = Math.max(1, Number(parsed.totalPages) || 1)
+
+      setRequests(parsed.items)
+      setTotalPages(safePages)
+      setTotalCount(safeTotal)
+      setStatusCounts(
+        parsed.statusCounts && typeof parsed.statusCounts === 'object'
+          ? parsed.statusCounts
+          : null
+      )
     } catch (err) {
       console.error('Failed to fetch requests:', err)
       setError(err.message || t('transport.error.loadRequests'))
       setRequests([])
       setTotalPages(1)
       setTotalCount(0)
+      setStatusCounts(null)
     } finally {
       setLoading(false)
     }
@@ -208,14 +167,18 @@ const TransportRequests = () => {
   }
 
   const getStatusBadge = (status) => {
+    const key = typeof status === 'string' ? status : ''
     const statusMap = {
       open: { class: 'badge-info', label: t('transport.requests.status.open') },
       pending: { class: 'badge-warning', label: t('transport.requests.status.pending') },
       negotiating: { class: 'badge-primary', label: t('transport.requests.status.negotiating') },
       completed: { class: 'badge-success', label: t('transport.requests.status.completed') },
-      cancelled: { class: 'badge-danger', label: t('transport.requests.status.cancelled') }
+      cancelled: { class: 'badge-danger', label: t('transport.requests.status.cancelled') },
     }
-    const statusInfo = statusMap[status] || { class: 'badge-secondary', label: status }
+    const statusInfo = statusMap[key] || {
+      class: 'badge-secondary',
+      label: key || '—',
+    }
     return <span className={`badge ${statusInfo.class}`}>{statusInfo.label}</span>
   }
 
@@ -263,22 +226,34 @@ const TransportRequests = () => {
       {error && (
         <div className="error-message card">
           <FiX /> {error}
-          <button 
-            className="btn btn-sm btn-outline" 
+          <button
+            type="button"
+            className="btn btn-sm btn-outline"
             onClick={fetchRequests}
             style={{ marginLeft: '1rem' }}
           >
-            {t('common.retry') || 'Retry'}
+            {t('common.retry')}
           </button>
         </div>
       )}
-      
-      {!loading && !error && requests.length === 0 ? (
+
+      {statusCounts && (
+        <div className="status-counts-bar card">
+          {Object.entries(statusCounts).map(([key, count]) => (
+            <span key={key} className="status-count-chip">
+              {getStatusBadge(key)} <strong>{Number(count) || 0}</strong>
+            </span>
+          ))}
+        </div>
+      )}
+
+      {!error && !loading && requests.length === 0 && !statusCounts && (
         <div className="empty-state card" style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>
           <FiPackage size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
           <p>{t('transport.requests.noRequests') || 'No transport requests found'}</p>
-          <button 
-            className="btn btn-primary" 
+          <button
+            type="button"
+            className="btn btn-primary"
             onClick={() => {
               setFormData({
                 contextId: '',
@@ -296,7 +271,9 @@ const TransportRequests = () => {
             <FiPlus /> {t('transport.requests.addRequest')}
           </button>
         </div>
-      ) : (
+      )}
+
+      {!error && (requests.length > 0 || statusCounts) && (
         <>
           <div className="filters-section card">
         <div className="search-box">
@@ -371,13 +348,25 @@ const TransportRequests = () => {
             ) : (
               filteredRequests.map((request) => (
                 <tr key={request.transportRequestId}>
-                  <td>{request.transportRequestId}</td>
-                  <td>{request.orderId || request.contextId || 'N/A'}</td>
-                  <td>{request.fromRegion || 'N/A'}</td>
-                  <td>{request.toRegion || 'N/A'}</td>
-                  <td>{request.distanceKm ? `${request.distanceKm} km` : 'N/A'}</td>
-                  <td>{request.weightKg ? `${request.weightKg} kg` : 'N/A'}</td>
-                  <td>{request.productType || 'N/A'}</td>
+                  <td>{request.transportRequestId ?? '—'}</td>
+                  <td>
+                    {typeof request.orderId === 'object' || typeof request.contextId === 'object'
+                      ? '—'
+                      : request.orderId || request.contextId || '—'}
+                  </td>
+                  <td>{typeof request.fromRegion === 'string' ? request.fromRegion : '—'}</td>
+                  <td>{typeof request.toRegion === 'string' ? request.toRegion : '—'}</td>
+                  <td>
+                    {request.distanceKm != null && typeof request.distanceKm !== 'object'
+                      ? `${request.distanceKm} km`
+                      : '—'}
+                  </td>
+                  <td>
+                    {request.weightKg != null && typeof request.weightKg !== 'object'
+                      ? `${request.weightKg} kg`
+                      : '—'}
+                  </td>
+                  <td>{typeof request.productType === 'string' ? request.productType : '—'}</td>
                   <td>{getStatusBadge(request.status)}</td>
                   <td>{formatDate(request.createdAt)}</td>
                   <td>
@@ -412,22 +401,25 @@ const TransportRequests = () => {
         </table>
       </div>
 
-      {totalPages > 1 && (
+      {!error && Number(totalPages) > 1 && (
         <div className="pagination">
           <button
+            type="button"
             className="btn btn-outline"
-            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
           >
             {t('common.previous')}
           </button>
           <span className="pagination-info">
-            {t('common.page')} {currentPage} {t('common.of')} {totalPages}
+            {t('common.page')} {currentPage} {t('common.of')} {Number(totalPages)}
+            {totalCount > 0 ? ` (${totalCount})` : ''}
           </span>
           <button
+            type="button"
             className="btn btn-outline"
-            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((p) => Math.min(Number(totalPages), p + 1))}
+            disabled={currentPage >= Number(totalPages)}
           >
             {t('common.next')}
           </button>

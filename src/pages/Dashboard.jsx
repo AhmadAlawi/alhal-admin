@@ -1,664 +1,418 @@
-import React, { useState, useEffect } from 'react'
-import { FiUsers, FiDollarSign, FiShoppingCart, FiTrendingUp, FiRefreshCw, FiPackage, FiActivity, FiGlobe, FiAlertCircle, FiClock } from 'react-icons/fi'
+import React, { useEffect, useMemo, useState } from 'react'
+import {
+  FiUsers,
+  FiDollarSign,
+  FiShoppingCart,
+  FiTrendingUp,
+  FiRefreshCw,
+  FiPackage,
+  FiActivity,
+  FiGlobe,
+  FiAlertCircle,
+  FiClock,
+  FiMapPin,
+} from 'react-icons/fi'
 import StatCard from '../components/StatCard/StatCard'
-import AdminPushNotifications from '../components/AdminPushNotifications/AdminPushNotifications'
+import DashboardErrorBoundary from '../components/DashboardErrorBoundary/DashboardErrorBoundary'
 import { useTranslation } from '../hooks/useTranslation'
 import Chart from '../components/Chart/Chart'
 import Table from '../components/Table/Table'
-import { useAutoFillData, useRealTimeData, useMapData } from '../hooks/useDashboardData'
-import { useAnalyticsLogger } from '../hooks/useAnalyticsLogger'
-import { useNotifications } from '../contexts/NotificationContext'
-import authService from '../services/authService'
-import analyticsService from '../services/analyticsService'
-import marketAnalysisService from '../services/marketAnalysisService'
+import { useAutoFillData, useRealTimeData } from '../hooks/useDashboardData'
+import governoratesService from '../services/governoratesService'
+import { fmtNum, safeNum } from '../utils/dashboardNormalize'
 import './Dashboard.css'
 
-const Dashboard = () => {
-  const { t } = useTranslation()
+const formatShortDate = (iso, locale = 'ar') => {
+  if (!iso) return ''
+  try {
+    return new Date(iso).toLocaleDateString(locale, { month: 'short', day: 'numeric' })
+  } catch {
+    return String(iso)
+  }
+}
+
+const DashboardContent = () => {
+  const { t, language } = useTranslation()
+  const locale = language === 'ar' ? 'ar' : 'en-US'
   const [selectedDays, setSelectedDays] = useState(30)
-  const [lineChartData, setLineChartData] = useState([])
-  const [barChartData, setBarChartData] = useState([])
-  const [heatmapData, setHeatmapData] = useState([])
-  const [analyticsWidgetsLoading, setAnalyticsWidgetsLoading] = useState(false)
-  const [analyticsWidgetsError, setAnalyticsWidgetsError] = useState('')
-  const [analyticsTraces, setAnalyticsTraces] = useState([])
-  const { registerDevice, fcmToken, permission, isInitialized } = useNotifications()
-  const { logScreenView, logButtonClick, logApiError } = useAnalyticsLogger('Dashboard/Home')
-  
-  // Register device when dashboard loads
+  const [governorateId, setGovernorateId] = useState('')
+  const [governorateOptions, setGovernorateOptions] = useState([])
+
   useEffect(() => {
-    const registerDeviceOnLoad = async () => {
-      try {
-        // Wait for notifications to be initialized
-        if (!isInitialized) {
-          return;
-        }
-
-        // Get userId from auth service or localStorage
-        let userId = authService.getUserId();
-        
-        // If userId not found, try to get from API
-        if (!userId && authService.isAuthenticated()) {
-          try {
-            const currentUser = await authService.getCurrentUser();
-            if (currentUser?.userId || currentUser?.data?.userId || currentUser?.data?.id) {
-              userId = currentUser?.userId || currentUser?.data?.userId || currentUser?.data?.id;
-              if (userId) {
-                localStorage.setItem('userId', userId.toString());
-                console.log('User ID stored from API:', userId);
-              }
-            }
-          } catch (error) {
-            console.warn('Could not get current user:', error);
-          }
-        }
-
-        // Register device if we have userId and permission is granted
-        if (userId && permission === 'granted') {
-          // Check if FCM token is available (required for registration)
-          if (!fcmToken) {
-            console.log('Waiting for FCM token...');
-            return;
-          }
-
-          // Check if device is already registered (avoid duplicate registrations)
-          const lastRegistration = localStorage.getItem('deviceRegistrationTime');
-          const lastRegistrationTime = lastRegistration ? parseInt(lastRegistration, 10) : 0;
-          const now = Date.now();
-          const registrationCooldown = 5 * 60 * 1000; // 5 minutes cooldown
-
-          // Only register if not recently registered
-          if (now - lastRegistrationTime > registrationCooldown) {
-            try {
-              await registerDevice(userId);
-              localStorage.setItem('deviceRegistrationTime', now.toString());
-              console.log('Device registered successfully on dashboard load');
-            } catch (error) {
-              console.error('Failed to register device on dashboard load:', error);
-            }
-          } else {
-            console.log('Device registration skipped (recently registered)');
-          }
-        } else if (userId && permission === 'default') {
-          // If permission is not granted yet, don't request automatically
-          // Let user decide to enable notifications through the UI
-          console.log('Notification permission not granted. User can enable notifications from the notification bell icon.');
-        } else if (!userId) {
-          console.warn('User ID not found. Device will not be registered. User may need to log in.');
-        }
-      } catch (error) {
-        console.error('Error in device registration on dashboard load:', error);
-      }
-    };
-
-    // Register device after a short delay to ensure notifications are initialized
-    const timeoutId = setTimeout(() => {
-      registerDeviceOnLoad();
-    }, 1500);
-
-    return () => {
-      clearTimeout(timeoutId);
-    };
-  }, [registerDevice, fcmToken, permission, isInitialized])
-  
-  // Fetch comprehensive dashboard data
-  const { data: dashboardData, loading: dashboardLoading, error: dashboardError } = useAutoFillData({ days: selectedDays })
-  
-  // Fetch real-time data
-  const { data: realTimeData, loading: realTimeLoading } = useRealTimeData()
-  
-  // Fetch map data for governorate table
-  const { data: mapData, loading: mapLoading } = useMapData()
-
-  const handleRefresh = () => {
-    logButtonClick('refresh_dashboard', { source: 'header_action' })
-    window.location.reload()
-  }
-
-  const getRangeByDays = (days) => {
-    const to = new Date()
-    const from = new Date()
-    from.setDate(from.getDate() - days)
-    return { from: from.toISOString(), to: to.toISOString() }
-  }
-
-  const appendTrace = (entry) => {
-    setAnalyticsTraces((prev) => [
-      {
-        at: new Date().toISOString(),
-        ...entry,
-      },
-      ...prev,
-    ].slice(0, 30))
-  }
-
-  const normalizeLineChart = (response) => {
-    const payload = response?.data || response || {}
-    const series = payload.series || {}
-    const byDate = new Map()
-
-    ;['auctions', 'tenders', 'orders'].forEach((key) => {
-      const arr = Array.isArray(series[key]) ? series[key] : []
-      arr.forEach((item) => {
-        const date = item.date
-        if (!date) return
-        if (!byDate.has(date)) byDate.set(date, { date, auctions: 0, tenders: 0, orders: 0 })
-        byDate.get(date)[key] = item.value || 0
-      })
+    let cancelled = false
+    governoratesService.getOptions().then((opts) => {
+      if (!cancelled) setGovernorateOptions(opts)
     })
-
-    return Array.from(byDate.values()).sort((a, b) => new Date(a.date) - new Date(b.date))
-  }
-
-  const normalizeBarChart = (response) => {
-    const payload = response?.data || response || {}
-    const bars = Array.isArray(payload.bars) ? payload.bars : []
-    return bars.map((item) => ({ label: item.label || '-', value: item.value || 0 }))
-  }
-
-  const normalizeHeatmap = (response) => {
-    const payload = response?.data || response || {}
-    const points = Array.isArray(payload.data) ? payload.data : []
-    return points
-      .slice()
-      .sort((a, b) => new Date(a.date) - new Date(b.date))
-      .map((item) => ({
-        date: item.date,
-        value: item.value || 0,
-        intensity: item.intensity || 'low',
-      }))
-  }
-
-  useEffect(() => {
-    logScreenView({ source: 'initial_load' })
-  }, [logScreenView])
-
-  useEffect(() => {
-    const loadAnalyticsWidgets = async () => {
-      try {
-        setAnalyticsWidgetsLoading(true)
-        setAnalyticsWidgetsError('')
-        const range = getRangeByDays(selectedDays)
-        const currentYear = new Date().getFullYear()
-
-        const [lineRes, barRes, heatmapRes] = await Promise.allSettled([
-          analyticsService.getLineChart({ from: range.from, to: range.to, allTime: false }),
-          analyticsService.getBarChart({ from: range.from, to: range.to, allTime: false }),
-          marketAnalysisService.getSalesHeatmap({ year: currentYear }),
-        ])
-
-        if (lineRes.status === 'fulfilled') {
-          setLineChartData(normalizeLineChart(lineRes.value))
-          appendTrace({
-            source: '/api/analytics/line-chart',
-            status: 'success',
-            details: `Loaded ${normalizeLineChart(lineRes.value).length} points`,
-          })
-        } else {
-          setLineChartData([])
-          appendTrace({
-            source: '/api/analytics/line-chart',
-            status: 'error',
-            details: lineRes.reason?.message || 'Request failed',
-          })
-        }
-
-        if (barRes.status === 'fulfilled') {
-          setBarChartData(normalizeBarChart(barRes.value))
-          appendTrace({
-            source: '/api/analytics/bar-chart',
-            status: 'success',
-            details: `Loaded ${normalizeBarChart(barRes.value).length} bars`,
-          })
-        } else {
-          setBarChartData([])
-          appendTrace({
-            source: '/api/analytics/bar-chart',
-            status: 'error',
-            details: barRes.reason?.message || 'Request failed',
-          })
-        }
-
-        if (heatmapRes.status === 'fulfilled') {
-          setHeatmapData(normalizeHeatmap(heatmapRes.value))
-          appendTrace({
-            source: '/api/MarketAnalysis/charts/sales-heatmap',
-            status: 'success',
-            details: `Loaded ${normalizeHeatmap(heatmapRes.value).length} heatmap cells`,
-          })
-        } else {
-          setHeatmapData([])
-          appendTrace({
-            source: '/api/MarketAnalysis/charts/sales-heatmap',
-            status: 'error',
-            details: heatmapRes.reason?.message || 'Request failed',
-          })
-        }
-
-        if (
-          lineRes.status === 'rejected' &&
-          barRes.status === 'rejected' &&
-          heatmapRes.status === 'rejected'
-        ) {
-          setAnalyticsWidgetsError('Failed to load analytics widgets.')
-          logApiError('Failed to load analytics widgets', {
-            endpoints: ['line-chart', 'bar-chart', 'sales-heatmap'],
-          })
-        }
-      } catch (error) {
-        setAnalyticsWidgetsError(error.message || 'Failed to load analytics widgets.')
-        logApiError(error.message || 'Failed to load analytics widgets', {
-          endpoints: ['line-chart', 'bar-chart', 'sales-heatmap'],
-        })
-      } finally {
-        setAnalyticsWidgetsLoading(false)
-      }
+    return () => {
+      cancelled = true
     }
+  }, [])
 
-    loadAnalyticsWidgets()
-  }, [selectedDays, logApiError])
+  const govParams = useMemo(
+    () => ({
+      days: selectedDays,
+      governorateId: governorateId ? Number(governorateId) : undefined,
+    }),
+    [selectedDays, governorateId]
+  )
 
-  useEffect(() => {
-    if (dashboardError) {
-      logApiError(dashboardError, { endpoint: '/api/gov/dashboard/auto-fill', days: selectedDays })
-    }
-  }, [dashboardError, selectedDays, logApiError])
+  const { data: dashboard, loading, error, refresh } = useAutoFillData(govParams, {
+    pollIntervalMs: 60000,
+  })
 
-  // Format revenue sparkline data for chart
-  const formatRevenueData = (data) => {
-    if (!data || !data.data || !data.data.marketAnalysis || !data.data.marketAnalysis.revenueSparkline) return []
-    return data.data.marketAnalysis.revenueSparkline.map(item => ({
-      date: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      value: item.value || 0
+  const { data: realTime, loading: rtLoading } = useRealTimeData(30000)
+
+  const market = dashboard?.marketAnalysis
+  const overview = dashboard?.overview
+  const sales = dashboard?.salesMetrics
+  const todayStats = realTime?.todayStats
+  const openNow = realTime?.openNow
+  const period = dashboard?.period
+
+  const revenueSparkline = useMemo(() => {
+    const rows = market?.revenueSparkline
+    if (!Array.isArray(rows)) return []
+    return rows.map((item) => ({
+      date: formatShortDate(item.date, locale),
+      value: safeNum(item.value),
     }))
-  }
+  }, [market, locale])
 
-  // Format price trends data for chart
-  const formatPriceTrendsData = (data) => {
-    if (!data || !data.data || !data.data.priceTrends) return []
-    return data.data.priceTrends.map(item => ({
-      date: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      price: item.avgPrice || 0
+  const priceTrendsData = useMemo(() => {
+    const rows = dashboard?.priceTrends
+    if (!Array.isArray(rows)) return []
+    return rows.map((item) => ({
+      date: formatShortDate(item.date, locale),
+      price: safeNum(item.avgPrice),
     }))
-  }
+  }, [dashboard, locale])
 
-  // Format top products data for chart
-  const formatTopProductsData = (data) => {
-    if (!data || !data.data || !data.data.topProducts) return []
-    return data.data.topProducts.slice(0, 5).map(item => ({
-      name: item.nameAr || item.nameEn || `Product ${item.productId}`,
-      revenue: item.totalRevenue || 0
+  const transactionsByType = useMemo(() => {
+    const rows = dashboard?.transactionsByType
+    if (!Array.isArray(rows)) return []
+    const labels = {
+      direct: t('dashboard.directSales'),
+      auction: t('dashboard.auctions'),
+      tender: t('dashboard.tenders'),
+    }
+    return rows.map((item) => ({
+      name: labels[item.type] || item.type,
+      value: safeNum(item.count),
     }))
-  }
+  }, [dashboard, t])
 
-  // Format market share data for chart
-  const formatMarketShareData = (data) => {
-    if (!data || !data.data || !data.data.transactionsByType) return []
-    return data.data.transactionsByType.map(item => ({
-      name: item.type === 'direct' ? t('dashboard.directSales') : item.type === 'auction' ? t('dashboard.auctions') : t('dashboard.tenders'),
-      value: item.count || 0,
-      revenue: item.value || 0
+  const topProducts = useMemo(() => {
+    const rows = dashboard?.topProducts
+    if (!Array.isArray(rows)) return []
+    return rows.slice(0, 10).map((p) => ({
+      name: p.nameAr || p.nameEn || `#${p.productId}`,
+      volume: fmtNum(p.totalVolume),
+      revenue: `$${fmtNum(p.totalRevenue)}`,
+      avgPrice: `$${fmtNum(p.avgPrice)}`,
+      transactions: fmtNum(p.transactions),
     }))
-  }
+  }, [dashboard])
 
-  // Format governorate data for table
-  const formatGovernorateData = (data) => {
-    if (!data || !data.data) return []
-    const apiData = data.data
-    
-    if (Array.isArray(apiData)) {
-      return apiData.map(item => ({
-        governorate: item.governorate || t('dashboard.unknown'),
-        offeredQty: item.offeredQty || 0,
-        soldQty: item.soldQty || 0,
-        avgPrices: item.avgPrices && item.avgPrices.length > 0 
-          ? item.avgPrices.map(p => `${p.product}: ${p.price}`).join(', ')
-          : 'N/A'
-      }))
-    }
-    return []
-  }
-
-  // Format recent activity data for table
-  const formatRecentActivity = (data) => {
-    if (!data || !data.data || !data.data.recentActivity) return []
-    const activity = data.data.recentActivity
-    const allItems = []
-    
-    if (activity.auctions) {
-      activity.auctions.slice(0, 5).forEach(item => {
-        allItems.push({
-          type: t('dashboard.auctions'),
-          id: `#${item.id}`,
-          title: item.title,
-          status: item.status,
-          createdAt: new Date(item.createdAt).toLocaleString('en-US', { 
-            month: 'short', 
-            day: 'numeric', 
-            hour: '2-digit', 
-            minute: '2-digit' 
-          })
-        })
-      })
-    }
-    
-    if (activity.tenders) {
-      activity.tenders.slice(0, 5).forEach(item => {
-        allItems.push({
-          type: t('dashboard.tenders'),
-          id: `#${item.id}`,
-          title: item.title,
-          status: item.status,
-          createdAt: new Date(item.createdAt).toLocaleString('en-US', { 
-            month: 'short', 
-            day: 'numeric', 
-            hour: '2-digit', 
-            minute: '2-digit' 
-          })
-        })
-      })
-    }
-    
-    return allItems.slice(0, 10)
-  }
-
-  // Table columns for governorate data
-  const governorateColumns = [
-    { header: t('dashboard.governorate'), accessor: 'governorate' },
-    { 
-      header: t('dashboard.offeredQty'), 
-      accessor: 'offeredQty',
-      render: (value) => <strong>{value.toLocaleString()}</strong>
-    },
-    { 
-      header: t('dashboard.soldQty'), 
-      accessor: 'soldQty',
-      render: (value) => <span className={value > 0 ? 'text-success' : ''}>{value.toLocaleString()}</span>
-    },
-    { 
-      header: t('dashboard.avgPrices'), 
-      accessor: 'avgPrices',
-      render: (value) => <span className="text-small">{value}</span>
-    },
+  const topProductsColumns = [
+    { header: t('common.name'), accessor: 'name' },
+    { header: t('dashboard.soldQty'), accessor: 'volume' },
+    { header: t('dashboard.totalRevenue'), accessor: 'revenue' },
+    { header: t('dashboard.averagePrice'), accessor: 'avgPrice' },
+    { header: t('dashboard.totalTransactions'), accessor: 'transactions' },
   ]
 
-  // Table columns for recent activity
+  const topGovernorates = useMemo(() => {
+    const rows = dashboard?.topGovernorates
+    if (!Array.isArray(rows)) return []
+    return rows.map((g) => ({
+      governorate: g.governorate || t('dashboard.unknown'),
+      totalValue: `$${fmtNum(g.totalValue)}`,
+      totalVolume: `${fmtNum(g.totalVolume)} kg`,
+      transactions: fmtNum(g.transactions),
+    }))
+  }, [dashboard, t])
+
+  const governorateColumns = [
+    { header: t('dashboard.governorate'), accessor: 'governorate' },
+    { header: t('dashboard.totalRevenue'), accessor: 'totalValue' },
+    { header: t('dashboard.soldQty'), accessor: 'totalVolume' },
+    { header: t('dashboard.totalTransactions'), accessor: 'transactions' },
+  ]
+
+  const recentActivity = useMemo(() => {
+    const activity = dashboard?.recentActivity
+    if (!activity) return []
+    const rows = []
+    const pushRows = (items, typeLabel) => {
+      if (!Array.isArray(items)) return
+      items.slice(0, 5).forEach((item) => {
+        rows.push({
+          type: typeLabel,
+          id: item.id != null ? `#${item.id}` : '—',
+          title: item.title || '—',
+          status: typeof item.status === 'string' ? item.status : '—',
+          createdAt: item.createdAt
+            ? new Date(item.createdAt).toLocaleString(locale)
+            : '—',
+        })
+      })
+    }
+    pushRows(activity.auctions, t('dashboard.auctions'))
+    pushRows(activity.tenders, t('dashboard.tenders'))
+    pushRows(activity.listings, t('dashboard.listings'))
+    return rows.slice(0, 12)
+  }, [dashboard, t, locale])
+
   const activityColumns = [
-    { 
-      header: t('dashboard.type'), 
+    {
+      header: t('dashboard.type'),
       accessor: 'type',
-      render: (value) => {
-        const badgeClass = value === t('dashboard.auctions') ? 'badge-primary' : 'badge-warning'
-        return <span className={`badge ${badgeClass}`}>{value}</span>
-      }
+      render: (v) => <span className="badge badge-primary">{v}</span>,
     },
     { header: 'ID', accessor: 'id' },
     { header: t('dashboard.columnTitle'), accessor: 'title' },
-    { 
-      header: 'Status', 
+    {
+      header: t('common.status'),
       accessor: 'status',
-      render: (value) => {
-        const statusClass = value === 'open' ? 'badge-success' : 
-                          value === 'closed' ? 'badge-danger' : 'badge-warning'
-        return <span className={`badge ${statusClass}`}>{value}</span>
-      }
+      render: (v) => <span className="badge badge-success">{v}</span>,
     },
     { header: t('dashboard.createdAt'), accessor: 'createdAt' },
   ]
 
-  const revenueData = formatRevenueData(dashboardData)
-  const priceTrendsData = formatPriceTrendsData(dashboardData)
-  const topProductsData = formatTopProductsData(dashboardData)
-  const marketShareData = formatMarketShareData(dashboardData)
-  const governorateTableData = formatGovernorateData(mapData)
-  const activityTableData = formatRecentActivity(dashboardData)
+  const lowStock = dashboard?.inventory?.lowStockProducts
+  const lowStockList = Array.isArray(lowStock) ? lowStock.slice(0, 5) : []
+
+  const revenueChange = safeNum(sales?.revenueChange ?? sales?.revenueChangePercent)
 
   return (
-    <div className="dashboard">
+    <div className="dashboard dashboard-light">
       <div className="page-header">
         <div>
           <h1 className="page-title">{t('dashboard.governmentDashboard')}</h1>
           <p className="page-subtitle">{t('dashboard.realtimeOverview')}</p>
+          {period && (
+            <p className="dashboard-period">
+              {formatShortDate(period.startDate, locale)} — {formatShortDate(period.endDate, locale)}
+              {' · '}
+              {period.days} {t('dashboard.daysLabel')}
+            </p>
+          )}
         </div>
         <div className="header-actions">
-          <select 
-            className="filter-select" 
-            value={selectedDays} 
-            onChange={(e) => {
-              const days = Number(e.target.value)
-              setSelectedDays(days)
-              logButtonClick('change_dashboard_range', { days })
-            }}
+          <select
+            className="filter-select"
+            value={governorateId}
+            onChange={(e) => setGovernorateId(e.target.value)}
+            title={t('dashboard.filterGovernorate')}
+          >
+            <option value="">{t('dashboard.allGovernorates')}</option>
+            {governorateOptions.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name}
+              </option>
+            ))}
+          </select>
+          <select
+            className="filter-select"
+            value={selectedDays}
+            onChange={(e) => setSelectedDays(Number(e.target.value))}
           >
             <option value={7}>{t('dashboard.last7Days')}</option>
             <option value={30}>{t('dashboard.last30Days')}</option>
             <option value={60}>{t('dashboard.last60Days')}</option>
             <option value={90}>{t('dashboard.last90Days')}</option>
           </select>
-          <button className="btn btn-outline" onClick={handleRefresh}>
-            <FiRefreshCw /> {t('common.refresh')}
+          <button type="button" className="btn btn-outline" onClick={refresh} disabled={loading}>
+            <FiRefreshCw className={loading ? 'spin' : ''} /> {t('common.refresh')}
           </button>
         </div>
       </div>
 
-      {dashboardError && (
+      {error && (
         <div className="error-message card">
-          <p>⚠️ {dashboardError}</p>
-          <p className="error-note">Unable to fetch dashboard data. Please check your connection.</p>
+          <p>⚠️ {error}</p>
+          <button type="button" className="btn btn-primary" onClick={refresh}>
+            {t('common.retry')}
+          </button>
         </div>
       )}
 
-      {/* Admin Push Notifications - send/schedule notifications to users */}
-      <AdminPushNotifications />
-
-      {dashboardLoading ? (
-        <div className="loading-message card">
-          <p>⏳ {t('dashboard.loadingData')}</p>
+      {loading && !dashboard && (
+        <div className="dashboard-skeleton">
+          <div className="skeleton-row" />
+          <div className="skeleton-row" />
+          <div className="skeleton-chart" />
         </div>
-      ) : dashboardData?.data && (
+      )}
+
+      {dashboard && (
         <>
-          {/* Main KPI Cards */}
+          {sales && (
+            <div className="sales-today-row">
+              <div className="sales-today-card card">
+                <span className="sales-label">{t('dashboard.revenueToday')}</span>
+                <span className="sales-value">
+                  ${fmtNum(sales.today?.revenue)}
+                </span>
+                <span className="sales-meta">
+                  {fmtNum(sales.today?.transactions)} {t('dashboard.totalTransactions')}
+                </span>
+              </div>
+              <div className="sales-today-card card">
+                <span className="sales-label">{t('dashboard.revenueYesterday')}</span>
+                <span className="sales-value">
+                  ${fmtNum(sales.yesterday?.revenue)}
+                </span>
+                <span className="sales-meta">
+                  {fmtNum(sales.yesterday?.transactions)} {t('dashboard.totalTransactions')}
+                </span>
+              </div>
+              <div className="sales-today-card card highlight">
+                <span className="sales-label">{t('dashboard.revenueChange')}</span>
+                <span className={`sales-value ${revenueChange >= 0 ? 'up' : 'down'}`}>
+                  {revenueChange >= 0 ? '↑' : '↓'} {Math.abs(revenueChange).toFixed(1)}%
+                </span>
+              </div>
+            </div>
+          )}
+
           <div className="stats-grid">
             <StatCard
-              title="Total Revenue"
-              value={`$${(dashboardData.data.marketAnalysis?.totalRevenue?.value || 0).toLocaleString()}`}
-              change={dashboardData.data.marketAnalysis?.totalRevenue?.changePercentage}
+              title={t('dashboard.totalRevenue')}
+              value={`$${fmtNum(market?.totalRevenue?.value)}`}
+              change={market?.totalRevenue?.changePercentage}
               icon={<FiDollarSign />}
               color="success"
             />
             <StatCard
               title={t('dashboard.totalTransactions')}
-              value={(dashboardData.data.marketAnalysis?.totalTransactions?.value || 0).toLocaleString()}
-              change={dashboardData.data.marketAnalysis?.totalTransactions?.changePercentage}
+              value={fmtNum(market?.totalTransactions?.value)}
+              change={market?.totalTransactions?.changePercentage}
               icon={<FiShoppingCart />}
               color="primary"
             />
             <StatCard
-              title="Total Volume"
-              value={`${(dashboardData.data.marketAnalysis?.totalVolume?.value || 0).toLocaleString()} kg`}
-              change={dashboardData.data.marketAnalysis?.totalVolume?.changePercentage}
+              title={t('dashboard.totalVolume')}
+              value={`${fmtNum(market?.totalVolume?.value)} kg`}
+              change={market?.totalVolume?.changePercentage}
               icon={<FiPackage />}
               color="warning"
             />
             <StatCard
               title={t('dashboard.averagePrice')}
-              value={`$${(dashboardData.data.marketAnalysis?.averagePrice?.value || 0).toLocaleString()}/kg`}
-              change={dashboardData.data.marketAnalysis?.averagePrice?.changePercentage}
+              value={`$${fmtNum(market?.averagePrice?.value)}/kg`}
+              change={market?.averagePrice?.changePercentage}
               icon={<FiTrendingUp />}
               color="danger"
             />
           </div>
 
-          {/* Overview Statistics */}
-          {dashboardData.data.overview && (
+          {overview && (
             <div className="overview-grid">
               <div className="overview-card card">
-                <div className="overview-icon">
-                  <FiUsers color="#16a34a" size={24} />
-                </div>
+                <FiUsers className="overview-icon-svg" />
                 <div className="overview-content">
                   <span className="overview-label">{t('dashboard.totalUsers')}</span>
-                  <span className="overview-value">{dashboardData.data.overview.totalUsers.toLocaleString()}</span>
-                  <span className="overview-detail">{t('dashboard.active30d')}: {dashboardData.data.overview.activeUsers30Days}</span>
+                  <span className="overview-value">{fmtNum(overview.totalUsers)}</span>
+                  <span className="overview-detail">
+                    {t('dashboard.active30d')}: {fmtNum(overview.activeUsers30Days)}
+                  </span>
                 </div>
               </div>
               <div className="overview-card card">
-                <div className="overview-icon">
-                  <FiGlobe color="#22c55e" size={24} />
-                </div>
+                <FiGlobe className="overview-icon-svg" />
                 <div className="overview-content">
                   <span className="overview-label">{t('dashboard.totalFarms')}</span>
-                  <span className="overview-value">{dashboardData.data.overview.totalFarms.toLocaleString()}</span>
-                  <span className="overview-detail">Inventory: {dashboardData.data.overview.totalInventory.toLocaleString()} kg</span>
+                  <span className="overview-value">{fmtNum(overview.totalFarms)}</span>
+                  <span className="overview-detail">
+                    {t('dashboard.inventory')}: {fmtNum(overview.totalInventory)} kg
+                  </span>
                 </div>
               </div>
               <div className="overview-card card">
-                <div className="overview-icon">
-                  <FiActivity color="#15803d" size={24} />
-                </div>
+                <FiActivity className="overview-icon-svg" />
                 <div className="overview-content">
                   <span className="overview-label">{t('dashboard.openAuctions')}</span>
-                  <span className="overview-value">{dashboardData.data.overview.openAuctions.toLocaleString()}</span>
-                  <span className="overview-detail">Tenders: {dashboardData.data.overview.openTenders}</span>
+                  <span className="overview-value">{fmtNum(overview.openAuctions)}</span>
+                  <span className="overview-detail">
+                    {t('dashboard.tenders')}: {fmtNum(overview.openTenders)}
+                  </span>
                 </div>
               </div>
               <div className="overview-card card">
-                <div className="overview-icon">
-                  <FiPackage color="#059669" size={24} />
-                </div>
+                <FiPackage className="overview-icon-svg" />
                 <div className="overview-content">
                   <span className="overview-label">{t('dashboard.activeListings')}</span>
-                  <span className="overview-value">{dashboardData.data.overview.activeListings.toLocaleString()}</span>
-                  <span className="overview-detail">New today: {dashboardData.data.overview.newUsersToday}</span>
+                  <span className="overview-value">{fmtNum(overview.activeListings)}</span>
+                  <span className="overview-detail">
+                    {t('dashboard.newToday')}: {fmtNum(overview.newUsersToday)}
+                  </span>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Real-time Activity */}
-          {realTimeData?.data && (
+          {(todayStats || openNow) && (
             <div className="realtime-section card">
               <div className="realtime-header">
-                <h3><FiClock /> {t('dashboard.todaysActivity')}</h3>
-                {!realTimeLoading && (
+                <h3>
+                  <FiClock /> {t('dashboard.todaysActivity')}
+                </h3>
+                {!rtLoading && realTime?.timestamp && (
                   <span className="realtime-timestamp">
-                    Last updated: {new Date(realTimeData.data.timestamp).toLocaleTimeString()}
+                    {t('dashboard.lastUpdated')}:{' '}
+                    {new Date(realTime.timestamp).toLocaleTimeString(locale)}
                   </span>
                 )}
               </div>
-              <div className="realtime-stats">
-                <div className="realtime-stat">
-                  <span className="realtime-label">{t('dashboard.newUsers')}</span>
-                  <span className="realtime-value">{realTimeData.data.todayStats.newUsers}</span>
+              {todayStats && (
+                <div className="realtime-stats">
+                  <div className="realtime-stat">
+                    <span className="realtime-label">{t('dashboard.newUsers')}</span>
+                    <span className="realtime-value">{fmtNum(todayStats.newUsers)}</span>
+                  </div>
+                  <div className="realtime-stat">
+                    <span className="realtime-label">{t('dashboard.newAuctions')}</span>
+                    <span className="realtime-value">{fmtNum(todayStats.newAuctions)}</span>
+                  </div>
+                  <div className="realtime-stat">
+                    <span className="realtime-label">{t('dashboard.newTenders')}</span>
+                    <span className="realtime-value">{fmtNum(todayStats.newTenders)}</span>
+                  </div>
+                  <div className="realtime-stat">
+                    <span className="realtime-label">{t('dashboard.totalBids')}</span>
+                    <span className="realtime-value">{fmtNum(todayStats.totalBids)}</span>
+                  </div>
+                  <div className="realtime-stat">
+                    <span className="realtime-label">{t('dashboard.totalOffers')}</span>
+                    <span className="realtime-value">{fmtNum(todayStats.totalOffers)}</span>
+                  </div>
                 </div>
-                <div className="realtime-stat">
-                  <span className="realtime-label">New Auctions</span>
-                  <span className="realtime-value">{realTimeData.data.todayStats.newAuctions}</span>
+              )}
+              {openNow && (
+                <div className="open-now-row">
+                  <FiMapPin />
+                  <span>
+                    {t('dashboard.openNow')}: {fmtNum(openNow.openAuctions)}{' '}
+                    {t('dashboard.auctions')} · {fmtNum(openNow.openTenders)}{' '}
+                    {t('dashboard.tenders')} · {fmtNum(openNow.activeListings)}{' '}
+                    {t('dashboard.listings')}
+                  </span>
                 </div>
-                <div className="realtime-stat">
-                  <span className="realtime-label">{t('dashboard.newTenders')}</span>
-                  <span className="realtime-value">{realTimeData.data.todayStats.newTenders}</span>
-                </div>
-                <div className="realtime-stat">
-                  <span className="realtime-label">Total Bids</span>
-                  <span className="realtime-value">{realTimeData.data.todayStats.totalBids}</span>
-                </div>
-                <div className="realtime-stat">
-                  <span className="realtime-label">{t('dashboard.totalOffers')}</span>
-                  <span className="realtime-value">{realTimeData.data.todayStats.totalOffers}</span>
-                </div>
-              </div>
+              )}
             </div>
           )}
 
-          {/* Charts Section */}
-          <div className="section">
-            <div className="section-header">
-              <h2 className="section-title">Mobile Analytics</h2>
-            </div>
-            {analyticsWidgetsLoading && (
-              <div className="loading-message card">
-                <p>Loading analytics widgets...</p>
-              </div>
-            )}
-            {analyticsWidgetsError && (
-              <div className="error-message card">
-                <p>⚠️ {analyticsWidgetsError}</p>
-              </div>
-            )}
-            <div className="charts-grid">
-              {lineChartData.length > 0 && (
-                <Chart
-                  type="line"
-                  data={lineChartData}
-                  dataKeys={[
-                    { dataKey: 'auctions', name: 'Auctions', color: '#16a34a' },
-                    { dataKey: 'tenders', name: 'Tenders', color: '#22c55e' },
-                    { dataKey: 'orders', name: 'Orders', color: '#15803d' },
-                  ]}
-                  xAxisKey="date"
-                  title="Auctions, Tenders, Orders (Daily)"
-                  height={320}
-                />
-              )}
-              {barChartData.length > 0 && (
-                <Chart
-                  type="bar"
-                  data={barChartData}
-                  dataKey="value"
-                  xAxisKey="label"
-                  title="Totals in Selected Range"
-                  color="#16a34a"
-                  height={320}
-                />
-              )}
-            </div>
-            {heatmapData.length > 0 && (
-              <div className="heatmap-card card">
-                <h3 className="chart-title">Sales Heatmap (Day Intensity)</h3>
-                <div className="heatmap-grid">
-                  {heatmapData.map((point, index) => (
-                    <div
-                      key={`${point.date}-${index}`}
-                      className={`heatmap-cell heatmap-${point.intensity || 'low'}`}
-                      title={`${point.date}: ${point.value}`}
-                    >
-                      <span>{new Date(point.date).getDate()}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            <div className="analytics-trace card">
-              <h3 className="chart-title">Mobile Analytics Trace</h3>
-              {analyticsTraces.length === 0 ? (
-                <p className="trace-empty">No traces yet.</p>
-              ) : (
-                <div className="trace-list">
-                  {analyticsTraces.map((trace, index) => (
-                    <div key={`${trace.at}-${index}`} className="trace-item">
-                      <span className={`trace-badge ${trace.status === 'success' ? 'trace-ok' : 'trace-fail'}`}>
-                        {trace.status}
-                      </span>
-                      <span className="trace-source">{trace.source}</span>
-                      <span className="trace-details">{trace.details}</span>
-                      <span className="trace-time">{new Date(trace.at).toLocaleTimeString()}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="charts-grid">
-            {revenueData.length > 0 && (
+          <div className="charts-grid charts-grid-compact">
+            {revenueSparkline.length > 0 && (
               <Chart
                 type="area"
-                data={revenueData}
+                data={revenueSparkline}
                 dataKey="value"
                 xAxisKey="date"
                 title={t('dashboard.revenueTrends')}
-                color="#16a34a"
+                color="#15803d"
+                height={260}
               />
             )}
             {priceTrendsData.length > 0 && (
@@ -668,69 +422,62 @@ const Dashboard = () => {
                 dataKey="price"
                 xAxisKey="date"
                 title={t('dashboard.priceTrends')}
-                color="#22c55e"
+                color="#16a34a"
+                height={260}
               />
             )}
-          </div>
-
-          <div className="charts-grid">
-            {topProductsData.length > 0 && (
+            {transactionsByType.length > 0 && (
               <Chart
                 type="bar"
-                data={topProductsData}
-                dataKey="revenue"
-                xAxisKey="name"
-                title="Top 5 Products by Revenue"
-                color="#15803d"
-              />
-            )}
-            {marketShareData.length > 0 && (
-              <Chart
-                type="bar"
-                data={marketShareData}
+                data={transactionsByType}
                 dataKey="value"
                 xAxisKey="name"
                 title={t('dashboard.transactionsByType')}
                 color="#059669"
+                height={260}
               />
             )}
           </div>
 
-          {/* Recent Activity Table */}
-          {activityTableData.length > 0 && (
+          {topProducts.length > 0 && (
             <div className="section">
-              <div className="section-header">
-                <h2 className="section-title">Recent Activity</h2>
-              </div>
-              <Table columns={activityColumns} data={activityTableData} />
+              <h2 className="section-title">{t('dashboard.topProductsByRevenue')}</h2>
+              <Table columns={topProductsColumns} data={topProducts} />
             </div>
           )}
 
-          {/* Governorate Data Table */}
-          {governorateTableData.length > 0 && (
+          {topGovernorates.length > 0 && (
             <div className="section">
-              <div className="section-header">
-                <h2 className="section-title">{t('dashboard.activityByGovernorate')}</h2>
-                <div className="section-actions">
-                  {mapLoading && <span className="loading-text">{t('common.loading')}</span>}
-                </div>
-              </div>
-              <Table columns={governorateColumns} data={governorateTableData} />
+              <h2 className="section-title">{t('dashboard.activityByGovernorate')}</h2>
+              <Table columns={governorateColumns} data={topGovernorates} />
             </div>
           )}
 
-          {/* Low Stock Alert */}
-          {dashboardData.data.inventory && dashboardData.data.inventory.lowStockProducts && dashboardData.data.inventory.lowStockProducts.length > 0 && (
+          {recentActivity.length > 0 && (
+            <div className="section">
+              <h2 className="section-title">{t('dashboard.recentActivity')}</h2>
+              <Table columns={activityColumns} data={recentActivity} />
+            </div>
+          )}
+
+          {lowStockList.length > 0 && (
             <div className="low-stock-section card">
               <div className="low-stock-header">
-                <h3><FiAlertCircle /> {t('dashboard.lowStockProducts')}</h3>
-                <span className="low-stock-count">{dashboardData.data.inventory.lowStockProducts.length} items</span>
+                <h3>
+                  <FiAlertCircle /> {t('dashboard.lowStockProducts')}
+                </h3>
+                <span className="low-stock-count">{lowStockList.length}</span>
               </div>
               <div className="low-stock-list">
-                {dashboardData.data.inventory.lowStockProducts.slice(0, 5).map((product, index) => (
-                  <div className="low-stock-item" key={index}>
-                    <span className="product-name">{product.productName || `Product ${product.productId}`}</span>
-                    <span className="stock-qty">{product.quantityOnHand} kg ({product.cropsCount} crops)</span>
+                {lowStockList.map((product, index) => (
+                  <div className="low-stock-item" key={product.productId ?? index}>
+                    <span className="product-name">
+                      {product.productName || `Product ${product.productId}`}
+                    </span>
+                    <span className="stock-qty">
+                      {fmtNum(product.quantityOnHand)} kg ({fmtNum(product.cropsCount)}{' '}
+                      {t('dashboard.crops')})
+                    </span>
                   </div>
                 ))}
               </div>
@@ -739,6 +486,15 @@ const Dashboard = () => {
         </>
       )}
     </div>
+  )
+}
+
+const Dashboard = () => {
+  const [retryKey, setRetryKey] = useState(0)
+  return (
+    <DashboardErrorBoundary onRetry={() => setRetryKey((k) => k + 1)} key={retryKey}>
+      <DashboardContent />
+    </DashboardErrorBoundary>
   )
 }
 

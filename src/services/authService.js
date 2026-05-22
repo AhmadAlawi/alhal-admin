@@ -1,4 +1,5 @@
 import apiClient from './api';
+import { extractAccessFromToken, persistAccessToStorage } from '../utils/jwtUtils';
 
 /**
  * Auth Service
@@ -78,19 +79,29 @@ export const authService = {
         console.log('User ID stored:', userId);
       }
       
-      // Store user info
+      const jwtAccess = token ? extractAccessFromToken(token) : { roles: [], permissions: [] };
+      const rolesFromResponse = responseData.roles || [];
+      const roles =
+        jwtAccess.roles.length > 0 ? jwtAccess.roles : rolesFromResponse;
+      const permissions = jwtAccess.permissions || [];
+
       const user = {
         userId: userId,
         fullName: responseData.fullName || responseData.name,
         email: responseData.email,
         phone: responseData.phone,
-        roles: responseData.roles || []
+        roles,
+        permissions,
       };
-      
-      // Only store user if we have at least userId
+
       if (user.userId) {
         localStorage.setItem('user', JSON.stringify(user));
+        persistAccessToStorage({ roles, permissions, userId });
         console.log('User data stored:', user);
+      }
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('auth-login'));
       }
       
       return response;
@@ -123,7 +134,11 @@ export const authService = {
     localStorage.removeItem('tokenExpiresAt');
     localStorage.removeItem('userId');
     localStorage.removeItem('user');
+    localStorage.removeItem('userAccess');
     localStorage.removeItem('fcmToken');
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('auth-logout'));
+    }
     console.log('User logged out - all auth data cleared');
   },
 

@@ -63,6 +63,7 @@ class ApiClient {
         localStorage.removeItem('tokenExpiresAt');
         localStorage.removeItem('userId');
         localStorage.removeItem('user');
+        localStorage.removeItem('userAccess');
         sessionStorage.removeItem('authLastCheck');
         
         // Only redirect if not already on login page
@@ -97,6 +98,13 @@ class ApiClient {
         throw new Error(errorMessage);
       }
       
+      if (response.status === 403) {
+        const error = await response.json().catch(() => ({ message: 'لا تملك صلاحية للوصول' }));
+        const errorMessage =
+          error.message || error.error?.detail || 'لا تملك صلاحية للوصول';
+        throw new Error(errorMessage);
+      }
+
       if (!response.ok) {
         const error = await response.json().catch(() => ({ message: 'API request failed' }));
         const errorMessage = error.message || error.error?.detail || error.error?.message || 'API request failed';

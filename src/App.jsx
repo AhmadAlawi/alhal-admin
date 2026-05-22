@@ -1,8 +1,9 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { NotificationProvider } from './contexts/NotificationContext'
-import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'
-import Layout from './components/Layout/Layout'
+import { AccessProvider } from './contexts/AccessContext'
+import GuardedPage from './components/GuardedPage/GuardedPage'
+import { PERMISSIONS } from './utils/accessControl'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Users from './pages/Users'
@@ -21,6 +22,12 @@ import TransportPriceLines from './pages/TransportPriceLines'
 import TransportVehicles from './pages/TransportVehicles'
 import Ads from './pages/Ads'
 import MobileAnalytics from './pages/MobileAnalytics'
+import GovPlaceholder from './pages/GovPlaceholder'
+import RbacLayout from './pages/rbac/RbacLayout'
+import RbacPermissions from './pages/rbac/RbacPermissions'
+import RbacRoles from './pages/rbac/RbacRoles'
+import RbacUserAccess from './pages/rbac/RbacUserAccess'
+import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'
 import './App.css'
 
 function App() {
@@ -32,206 +39,200 @@ function App() {
           v7_relativeSplatPath: true,
         }}
       >
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/login" element={<Login />} />
-          
-          {/* Protected Routes */}
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Layout>
+        <AccessProvider>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
                   <Navigate to="/dashboard" replace />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Layout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/dashboard"
+              element={
+                <GuardedPage permission={PERMISSIONS.GOV_DASHBOARD}>
                   <Dashboard />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/users"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <Users />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/analytics"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <Analytics />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/reports"
-            element={
-              <ProtectedRoute>
-                <Layout>
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/reports"
+              element={
+                <GuardedPage permission={PERMISSIONS.GOV_REPORTS}>
                   <Reports />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/products"
-            element={
-              <ProtectedRoute>
-                <Layout>
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/analytics"
+              element={
+                <GuardedPage permission={PERMISSIONS.GOV_MARKET_ANALYSIS}>
+                  <Analytics />
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/gov/alerts"
+              element={
+                <GuardedPage permission={PERMISSIONS.GOV_ALERTS}>
+                  <GovPlaceholder titleKey="nav.marketAlerts" />
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/gov/market-control"
+              element={
+                <GuardedPage permission={PERMISSIONS.GOV_MARKET_CONTROL}>
+                  <GovPlaceholder titleKey="nav.marketControl" />
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/products"
+              element={
+                <GuardedPage permission={PERMISSIONS.GOV_PRODUCT_PRICES}>
                   <Products />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/categories"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <Categories />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/orders"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <Orders />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/ads"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <Ads />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/mobile-analytics"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <MobileAnalytics />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <Settings />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/chat-reports"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <ChatReports />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/tickets"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <Tickets />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/feedback"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <Feedback />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/transport/providers"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <TransportProviders />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/transport/requests"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <TransportRequests />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/transport/price-lines"
-            element={
-              <ProtectedRoute>
-                <Layout>
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/transport/price-lines"
+              element={
+                <GuardedPage permission={PERMISSIONS.GOV_TRANSPORT_PRICES}>
                   <TransportPriceLines />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/transport/vehicles"
-            element={
-              <ProtectedRoute>
-                <Layout>
+                </GuardedPage>
+              }
+            />
+
+            <Route
+              path="/rbac"
+              element={
+                <GuardedPage rbacAdmin>
+                  <RbacLayout />
+                </GuardedPage>
+              }
+            >
+              <Route index element={<Navigate to="permissions" replace />} />
+              <Route path="permissions" element={<RbacPermissions />} />
+              <Route path="roles" element={<RbacRoles />} />
+              <Route path="users" element={<RbacUserAccess />} />
+            </Route>
+
+            <Route
+              path="/users"
+              element={
+                <GuardedPage legacyAdmin>
+                  <Users />
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/categories"
+              element={
+                <GuardedPage legacyAdmin>
+                  <Categories />
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/orders"
+              element={
+                <GuardedPage legacyAdmin>
+                  <Orders />
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/chat-reports"
+              element={
+                <GuardedPage legacyAdmin>
+                  <ChatReports />
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/tickets"
+              element={
+                <GuardedPage legacyAdmin>
+                  <Tickets />
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/feedback"
+              element={
+                <GuardedPage legacyAdmin>
+                  <Feedback />
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/transport/providers"
+              element={
+                <GuardedPage legacyAdmin>
+                  <TransportProviders />
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/transport/vehicles"
+              element={
+                <GuardedPage legacyAdmin>
                   <TransportVehicles />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          
-          {/* Catch all - redirect to dashboard only if authenticated */}
-          <Route 
-            path="*" 
-            element={
-              <ProtectedRoute>
-                <Navigate to="/dashboard" replace />
-              </ProtectedRoute>
-            } 
-          />
-        </Routes>
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/transport/requests"
+              element={
+                <GuardedPage legacyAdmin>
+                  <TransportRequests />
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/ads"
+              element={
+                <GuardedPage legacyAdmin>
+                  <Ads />
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/mobile-analytics"
+              element={
+                <GuardedPage legacyAdmin>
+                  <MobileAnalytics />
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <GuardedPage legacyAdmin>
+                  <Settings />
+                </GuardedPage>
+              }
+            />
+
+            <Route
+              path="*"
+              element={
+                <ProtectedRoute>
+                  <Navigate to="/dashboard" replace />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </AccessProvider>
       </Router>
     </NotificationProvider>
   )
 }
 
 export default App
-

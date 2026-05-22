@@ -2,25 +2,20 @@
   display: flex;
   flex-direction: row;
   min-height: 100vh;
-  background-color: var(--bg-primary);
-}
-
-/* RTL: keep sidebar on right, main content on left - don't reverse flex order */
-.rtl .layout {
-  flex-direction: row;
+  background-color: var(--workspace-bg);
 }
 
 .main-content {
   flex: 1;
   transition: margin-left 0.3s ease;
   margin-left: 260px;
+  background: var(--workspace-bg);
 }
 
 .main-content.sidebar-closed {
   margin-left: 0;
 }
 
-/* RTL: sidebar is on the right, so use margin-right for main content */
 .rtl .main-content {
   margin-left: 0;
   margin-right: 260px;
@@ -32,30 +27,19 @@
 }
 
 .content-wrapper {
-  padding: 2rem;
+  padding: 1.5rem 2rem;
   min-height: calc(100vh - 70px);
-}
-
-/* RTL: align dashboard content to the left more - reduce right padding so content extends left */
-.rtl .content-wrapper {
-  padding: 2rem 1.5rem 2rem 1rem;
+  background: var(--workspace-bg);
 }
 
 @media (max-width: 768px) {
-  .main-content {
-    margin-left: 0;
-  }
-
+  .main-content,
   .rtl .main-content {
+    margin-left: 0;
     margin-right: 0;
   }
 
   .content-wrapper {
     padding: 1rem;
   }
-
-  .rtl .content-wrapper {
-    padding: 1rem;
-  }
 }
-

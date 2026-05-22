@@ -5,21 +5,24 @@
 }
 
 :root {
-  --primary-color: #16a34a;
-  --primary-dark: #15803d;
+  --primary-color: #15803d;
+  --primary-dark: #166534;
   --primary-light: #22c55e;
-  --secondary-color: #059669;
+  --secondary-color: #16a34a;
+  --sidebar-green: #15803d;
+  --sidebar-green-dark: #14532d;
+  --workspace-bg: #ffffff;
   --danger-color: #ef4444;
   --warning-color: #f59e0b;
-  --bg-primary: #f6fff9;
+  --bg-primary: #ffffff;
   --bg-secondary: #ffffff;
-  --bg-tertiary: #ecfdf3;
+  --bg-tertiary: #f0fdf4;
   --text-primary: #14532d;
   --text-secondary: #166534;
-  --text-muted: #4d7c57;
-  --border-color: #bbf7d0;
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+  --text-muted: #4b5563;
+  --border-color: #e5e7eb;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 body {
@@ -28,13 +31,11 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
+  background-color: var(--workspace-bg);
+  color: #1f2937;
   line-height: 1.6;
-  transition: all 0.3s ease;
 }
 
-/* RTL Support */
 body.rtl {
   direction: rtl;
   font-family: 'Segoe UI', 'Tahoma', 'Arial', 'Helvetica Neue', sans-serif;
@@ -44,7 +45,6 @@ body.ltr {
   direction: ltr;
 }
 
-/* RTL-specific adjustments */
 .rtl .text-left {
   text-align: right;
 }
@@ -53,41 +53,28 @@ body.ltr {
   text-align: left;
 }
 
-.rtl .ml-auto {
-  margin-left: 0;
-  margin-right: auto;
-}
-
-.rtl .mr-auto {
-  margin-right: 0;
-  margin-left: auto;
-}
-
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 
-/* Scrollbar Styling */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-secondary);
+  background: #f3f4f6;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--bg-tertiary);
+  background: #bbf7d0;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #86efac;
 }
 
-/* Utility Classes */
 .btn {
   padding: 0.625rem 1.25rem;
   border: none;
@@ -108,30 +95,20 @@ code {
 
 .btn-primary:hover {
   background-color: var(--primary-dark);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-lg);
 }
 
-.btn-secondary {
-  background-color: var(--bg-tertiary);
+.btn-outline {
+  background: #fff;
+  border: 1px solid var(--border-color);
   color: var(--text-primary);
 }
 
-.btn-secondary:hover {
-  background-color: #475569;
-}
-
 .card {
-  background-color: var(--bg-secondary);
+  background-color: #fff;
   border-radius: 0.75rem;
   padding: 1.5rem;
   box-shadow: var(--shadow);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-color);
 }
 
 .badge {
@@ -140,26 +117,56 @@ code {
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 600;
-  text-transform: uppercase;
 }
 
 .badge-success {
-  background-color: rgba(16, 185, 129, 0.2);
-  color: var(--secondary-color);
+  background-color: #dcfce7;
+  color: #166534;
 }
 
 .badge-warning {
-  background-color: rgba(245, 158, 11, 0.2);
-  color: var(--warning-color);
+  background-color: #fef3c7;
+  color: #b45309;
 }
 
 .badge-danger {
-  background-color: rgba(239, 68, 68, 0.2);
-  color: var(--danger-color);
+  background-color: #fee2e2;
+  color: #b91c1c;
 }
 
 .badge-primary {
-  background-color: rgba(34, 197, 94, 0.2);
-  color: var(--primary-light);
+  background-color: #dcfce7;
+  color: #15803d;
 }
 
+.text-muted {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.page-error-boundary {
+  text-align: center;
+  padding: 2.5rem;
+  margin: 2rem auto;
+  max-width: 480px;
+}
+
+.page-error-boundary h2 {
+  margin: 1rem 0 0.5rem;
+  color: #14532d;
+}
+
+.page-error-boundary p {
+  color: #6b7280;
+  margin-bottom: 1.25rem;
+}
