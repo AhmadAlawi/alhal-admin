@@ -4,6 +4,7 @@ import transportService from '../services/transportService'
 import citiesService from '../services/citiesService'
 import { useTranslation } from '../hooks/useTranslation'
 import './TransportPriceLines.css'
+import './transport-shared.css'
 
 const TransportPriceLines = () => {
   const { t } = useTranslation()

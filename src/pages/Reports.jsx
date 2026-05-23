@@ -2,14 +2,23 @@ import React, { useState, useEffect } from 'react'
 import { FiFilter, FiRefreshCw, FiDownload, FiTrendingUp, FiBarChart2, FiPieChart, FiActivity, FiDatabase, FiUsers, FiPackage, FiTruck, FiFileText, FiAward, FiDollarSign, FiBox, FiZap, FiTrendingDown, FiShoppingCart, FiMapPin } from 'react-icons/fi'
 import StatCard from '../components/StatCard/StatCard'
 import Chart from '../components/Chart/Chart'
-import Table from '../components/Table/Table'
 import reportsService from '../services/reportsService'
 import adminService from '../services/adminService'
 import { useTranslation } from '../hooks/useTranslation'
+import { useLocale } from '../contexts/LocaleContext'
+import { buildReportChartConfig } from '../utils/reportChartNormalize'
 import './Reports.css'
+
+const SUMMARY_SKIP = new Set(['page', 'pageSize', 'totalPages', 'totalCount', 'success', 'message', 'data'])
+
+function formatMetricLabel(key) {
+  return key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')
+}
 
 const Reports = () => {
   const { t } = useTranslation()
+  const { language } = useLocale()
+  const chartLocale = language === 'ar' ? 'ar-SY' : 'en-US'
   
   // Report categories (names from t via nameKey)
   const reportCategories = [
@@ -160,9 +169,9 @@ const Reports = () => {
         adminService.getUsers().catch(() => ({ data: [] }))
       ])
       
-      setProducts(productsRes.data || [])
-      setProductCategories(categoriesRes.data || [])
-      setUsers(usersRes.data || [])
+      setProducts(Array.isArray(productsRes.data) ? productsRes.data : [])
+      setProductCategories(Array.isArray(categoriesRes.data) ? categoriesRes.data : [])
+      setUsers(Array.isArray(usersRes.data) ? usersRes.data : [])
       
       // Try to get governorates
       try {
@@ -229,32 +238,123 @@ const Reports = () => {
     return date.toISOString()
   }
 
-  const formatReportData = (data, reportId) => {
-    if (!data) return null
-    
-    // Handle different response formats
-    const reportData = data.data || data
-    
-    // Format based on report type
-    if (reportId.includes('trend') || reportId.includes('activity') || reportId.includes('movement')) {
-      // Time series data
-      return Array.isArray(reportData) ? reportData : (reportData.data || [])
-    } else if (reportId.includes('distribution') || reportId.includes('category') || reportId.includes('type')) {
-      // Distribution data
-      return Array.isArray(reportData) ? reportData : (reportData.distribution || reportData.data || [])
-    } else if (reportId.includes('performance') || reportId.includes('top')) {
-      // List data
-      return Array.isArray(reportData) ? reportData : (reportData.items || reportData.data || [])
+  const renderSummaryCards = (summary) => {
+    if (!summary || typeof summary !== 'object' || Array.isArray(summary)) return null
+
+    const entries = Object.entries(summary).filter(
+      ([key, value]) => typeof value === 'number' && !SUMMARY_SKIP.has(key)
+    )
+    if (!entries.length) return null
+
+    return (
+      <div className="stats-grid">
+        {entries.slice(0, 6).map(([key, value]) => (
+          <StatCard
+            key={key}
+            title={formatMetricLabel(key)}
+            value={value.toLocaleString(chartLocale)}
+            icon={<FiBarChart2 />}
+            color="primary"
+          />
+        ))}
+      </div>
+    )
+  }
+
+  const renderChartFromConfig = (config, reportDef) => {
+    const title = t('reports.reportNames.' + reportDef.id) || reportDef.name
+
+    if (config.kind === 'empty') {
+      return (
+        <div className="report-content">
+          {renderSummaryCards(config.summary)}
+          <div className="no-data">{t('reports.noDataAvailable')}</div>
+        </div>
+      )
     }
-    
-    return Array.isArray(reportData) ? reportData : (reportData.data || [])
+
+    if (config.kind === 'composed') {
+      return (
+        <div className="report-content">
+          {renderSummaryCards(config.summary)}
+          <Chart
+            type="composed"
+            data={config.rows}
+            dataKeys={config.dataKeys.map((item) => ({
+              ...item,
+              name: formatMetricLabel(item.dataKey),
+            }))}
+            xAxisKey={config.periodKey}
+            title={title}
+            height={400}
+          />
+        </div>
+      )
+    }
+
+    if (config.kind === 'area') {
+      return (
+        <div className="report-content">
+          {renderSummaryCards(config.summary)}
+          <Chart
+            type="area"
+            data={config.rows}
+            dataKey={config.dataKey}
+            xAxisKey={config.periodKey}
+            title={title}
+            height={400}
+          />
+        </div>
+      )
+    }
+
+    if (config.kind === 'distribution') {
+      return (
+        <div className="report-content">
+          {renderSummaryCards(config.summary)}
+          <div className="charts-grid">
+            <Chart
+              type="pie"
+              data={config.rows}
+              dataKey={config.valueKey}
+              nameKey={config.nameKey}
+              title={title}
+              height={400}
+              pieLabel={true}
+            />
+            <Chart
+              type="bar"
+              data={config.rows}
+              dataKey={config.valueKey}
+              xAxisKey={config.nameKey}
+              title={title}
+              height={400}
+            />
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div className="report-content">
+        {renderSummaryCards(config.summary)}
+        <Chart
+          type="bar"
+          data={config.rows}
+          dataKey={config.valueKey}
+          xAxisKey={config.nameKey}
+          title={title}
+          height={400}
+        />
+      </div>
+    )
   }
 
   const renderReportContent = () => {
     if (!activeReport) {
       return (
         <div className="no-report-selected">
-          <p>Please select a report from the list above</p>
+          <p>{t('reports.pleaseSelectReport')}</p>
         </div>
       )
     }
@@ -262,7 +362,7 @@ const Reports = () => {
     if (loading) {
       return (
         <div className="loading-state">
-          <p>Loading report data...</p>
+          <p>{t('reports.loadingReportData')}</p>
         </div>
       )
     }
@@ -270,9 +370,9 @@ const Reports = () => {
     if (error) {
       return (
         <div className="error-state">
-          <p>Error: {error}</p>
-          <button className="btn btn-primary" onClick={fetchReportData}>
-            <FiRefreshCw /> Retry
+          <p>{t('reports.errorLabel')}: {error}</p>
+          <button type="button" className="btn btn-primary" onClick={fetchReportData}>
+            <FiRefreshCw /> {t('reports.retry')}
           </button>
         </div>
       )
@@ -281,197 +381,14 @@ const Reports = () => {
     if (!reportData) {
       return (
         <div className="no-data-state">
-          <p>No data available for this report</p>
+          <p>{t('reports.noDataForReport')}</p>
         </div>
       )
     }
 
     const reportDef = reportDefinitions[activeCategory].find(r => r.id === activeReport)
-    const formattedData = formatReportData(reportData, activeReport)
-    const summary = reportData.summary || reportData
-
-    // Render based on report type
-    if (activeReport.includes('trend') || activeReport.includes('activity') || activeReport.includes('movement')) {
-      return renderTimeSeriesReport(formattedData, summary, reportDef)
-    } else if (activeReport.includes('distribution') || activeReport.includes('category') || activeReport.includes('type')) {
-      return renderDistributionReport(formattedData, summary, reportDef)
-    } else if (activeReport.includes('performance') || activeReport.includes('top') || activeReport.includes('list')) {
-      return renderListReport(formattedData, summary, reportDef)
-    } else {
-      return renderGenericReport(formattedData, summary, reportDef)
-    }
-  }
-
-  const renderTimeSeriesReport = (data, summary, reportDef) => {
-    if (!data || data.length === 0) {
-      return <div className="no-data">{t('reports.noDataAvailable')}</div>
-    }
-
-    // Determine data keys
-    const firstItem = data[0]
-    const keys = Object.keys(firstItem).filter(k => 
-      k !== 'period' && k !== 'date' && k !== 'time' && 
-      k !== 'id' && typeof firstItem[k] === 'number'
-    )
-    const periodKey = firstItem.period ? 'period' : (firstItem.date ? 'date' : (firstItem.time ? 'time' : Object.keys(firstItem)[0]))
-
-    // If multiple numeric keys, use composed chart
-    const useComposed = keys.length > 1
-
-    return (
-      <div className="report-content">
-        {summary && (
-          <div className="stats-grid">
-            {summary.totalSales !== undefined && (
-              <StatCard title={t('reports.totalSales')} value={`${Number(summary.totalSales).toLocaleString()} IQD`} icon={<FiDollarSign />} color="primary" />
-            )}
-            {summary.totalQuantity !== undefined && (
-              <StatCard title={t('reports.totalQuantity')} value={`${Number(summary.totalQuantity).toLocaleString()}`} icon={<FiPackage />} color="success" />
-            )}
-            {summary.totalTransactions !== undefined && (
-              <StatCard title={t('reports.totalTransactions')} value={Number(summary.totalTransactions).toLocaleString()} icon={<FiActivity />} color="info" />
-            )}
-            {summary.averagePrice !== undefined && (
-              <StatCard title={t('reports.averagePrice')} value={`${Number(summary.averagePrice).toLocaleString()} IQD`} icon={<FiTrendingUp />} color="warning" />
-            )}
-            {summary.totalRevenue !== undefined && (
-              <StatCard title={t('reports.totalRevenue')} value={`${Number(summary.totalRevenue).toLocaleString()} IQD`} icon={<FiDollarSign />} color="primary" />
-            )}
-            {summary.totalUsers !== undefined && (
-              <StatCard title={t('reports.totalUsers')} value={Number(summary.totalUsers).toLocaleString()} icon={<FiUsers />} color="success" />
-            )}
-          </div>
-        )}
-        
-        {useComposed ? (
-          <Chart
-            type="composed"
-            data={data}
-            dataKeys={keys.slice(0, 3).map(key => ({
-              dataKey: key,
-              name: key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1'),
-              type: keys.indexOf(key) === keys.length - 1 ? 'line' : 'bar',
-              color: ['#6366f1', '#10b981', '#f59e0b'][keys.indexOf(key) % 3]
-            }))}
-            xAxisKey={periodKey}
-            title={t('reports.reportNames.' + reportDef.id) || reportDef.name}
-            height={400}
-          />
-        ) : (
-          <Chart
-            type="area"
-            data={data}
-            dataKey={keys[0] || 'value'}
-            xAxisKey={periodKey}
-            title={t('reports.reportNames.' + reportDef.id) || reportDef.name}
-            height={400}
-          />
-        )}
-      </div>
-    )
-  }
-
-  const renderDistributionReport = (data, summary, reportDef) => {
-    if (!data || data.length === 0) {
-      return <div className="no-data">{t('reports.noDataAvailable')}</div>
-    }
-
-    const nameKey = data[0].name ? 'name' : (data[0].label ? 'label' : Object.keys(data[0])[0])
-    const valueKey = data[0].value ? 'value' : (data[0].count ? 'count' : Object.keys(data[0])[1])
-
-    return (
-      <div className="report-content">
-        <div className="charts-grid">
-          <Chart
-            type="pie"
-            data={data}
-            dataKey={valueKey}
-            title={t('reports.reportNames.' + reportDef.id) || reportDef.name}
-            height={400}
-            pieLabel={true}
-          />
-          <Chart
-            type="bar"
-            data={data}
-            dataKey={valueKey}
-            xAxisKey={nameKey}
-            title={t('reports.reportNames.' + reportDef.id) || reportDef.name}
-            height={400}
-          />
-        </div>
-      </div>
-    )
-  }
-
-  const renderListReport = (data, summary, reportDef) => {
-    if (!data || data.length === 0) {
-      return <div className="no-data">{t('reports.noDataAvailable')}</div>
-    }
-
-    const columns = Object.keys(data[0]).map(key => ({
-      header: key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1'),
-      accessor: key,
-      render: (value) => {
-        if (typeof value === 'number') {
-          return value.toLocaleString()
-        }
-        if (typeof value === 'boolean') {
-          return value ? t('common.yes') : t('common.no')
-        }
-        return value || '-'
-      }
-    }))
-
-    return (
-      <div className="report-content">
-        {summary && (
-          <div className="stats-grid">
-            {Object.entries(summary).slice(0, 4).map(([key, value]) => (
-              <StatCard
-                key={key}
-                title={key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}
-                value={typeof value === 'number' ? value.toLocaleString() : String(value)}
-                icon={<FiBarChart2 />}
-                color="primary"
-              />
-            ))}
-          </div>
-        )}
-        <div className="card">
-          <h3>{t('reports.reportNames.' + reportDef.id) || reportDef.name}</h3>
-          <Table columns={columns} data={data} />
-        </div>
-      </div>
-    )
-  }
-
-  const renderGenericReport = (data, summary, reportDef) => {
-    return (
-      <div className="report-content">
-        {summary && (
-          <div className="stats-grid">
-            {Object.entries(summary).slice(0, 4).map(([key, value]) => (
-              <StatCard
-                key={key}
-                title={key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}
-                value={typeof value === 'number' ? value.toLocaleString() : String(value)}
-                icon={<FiBarChart2 />}
-                color="primary"
-              />
-            ))}
-          </div>
-        )}
-        
-        {data && Array.isArray(data) && data.length > 0 && (
-          <div className="card">
-            <h3>{t('reports.data')}</h3>
-            <pre style={{ maxHeight: '500px', overflow: 'auto' }}>
-              {JSON.stringify(data, null, 2)}
-            </pre>
-          </div>
-        )}
-      </div>
-    )
+    const chartConfig = buildReportChartConfig(reportData, activeReport, chartLocale)
+    return renderChartFromConfig(chartConfig, reportDef)
   }
 
   return (

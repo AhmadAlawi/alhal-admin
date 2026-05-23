@@ -156,7 +156,7 @@ const RbacRoles = () => {
         <table className="rbac-table">
           <thead>
             <tr>
-              <th>ID</th>
+              <th>{t('common.id')}</th>
               <th>{t('rbac.roleName')}</th>
               <th>{t('rbac.scope')}</th>
               <th>{t('rbac.permissionsCount')}</th>

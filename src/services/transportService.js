@@ -1,111 +1,131 @@
-import apiClient from './api'
+import { TRANSPORT_API } from './transportApiPaths'
+import {
+  deleteWithFallback,
+  getWithFallback,
+  postWithFallback,
+  putWithFallback,
+  transportDirect,
+} from './transportApiClient'
 
 const transportService = {
-  // Transport Provider Management
   getProviders: async (params = {}) => {
-    return apiClient.get('/api/transport', params)
+    const { admin, public: pub } = TRANSPORT_API.providers
+    return getWithFallback(admin, pub, params)
   },
 
   getProviderById: async (id) => {
-    return apiClient.get(`/api/transport/${id}`)
+    const paths = TRANSPORT_API.providerById(id)
+    return getWithFallback(paths.admin, paths.public)
   },
 
   createProvider: async (providerData) => {
-    return apiClient.post('/api/transport', providerData)
+    const { admin, public: pub } = TRANSPORT_API.providers
+    return postWithFallback(admin, pub, providerData)
   },
 
   getProvidersByArea: async (area) => {
-    return apiClient.get(`/api/transport/area/${encodeURIComponent(area)}`)
+    return getWithFallback(
+      `/api/admin/transport/area/${encodeURIComponent(area)}`,
+      `/api/transport/area/${encodeURIComponent(area)}`
+    )
   },
 
   verifyProvider: async (id, isVerified) => {
-    return apiClient.put(`/api/transport/${id}/verify`, isVerified)
+    const paths = TRANSPORT_API.providerVerify(id)
+    return putWithFallback(paths.admin, paths.public, isVerified)
   },
 
-  // Vehicle Management
   getProviderVehicles: async (providerId) => {
-    return apiClient.get(`/api/transport/${providerId}/vehicles`)
+    const paths = TRANSPORT_API.providerVehicles(providerId)
+    return getWithFallback(paths.admin, paths.public)
   },
 
   addVehicle: async (providerId, vehicleData) => {
-    return apiClient.post(`/api/transport/${providerId}/vehicles`, vehicleData)
+    const paths = TRANSPORT_API.providerVehicles(providerId)
+    return postWithFallback(paths.admin, paths.public, vehicleData)
   },
 
   deleteVehicle: async (providerId, vehicleId) => {
-    return apiClient.delete(`/api/transport/${providerId}/vehicle/${vehicleId}`)
+    const paths = TRANSPORT_API.deleteVehicle(providerId, vehicleId)
+    return deleteWithFallback(paths.admin, paths.public)
   },
 
-  // Price Lines Management
   getPriceLines: async (providerId) => {
-    return apiClient.get(`/api/transport/${providerId}/price-lines/list`)
+    const paths = TRANSPORT_API.priceLinesList(providerId)
+    return getWithFallback(paths.admin, paths.public)
   },
 
   createPriceLine: async (priceLineData) => {
-    return apiClient.post('/api/transport/price-lines', priceLineData)
+    return transportDirect.post(TRANSPORT_API.priceLines, priceLineData)
   },
 
   updatePriceLine: async (priceLineId, priceLineData) => {
-    return apiClient.put(`/api/transport/price-lines/${priceLineId}`, priceLineData)
+    return transportDirect.put(TRANSPORT_API.priceLineById(priceLineId), priceLineData)
   },
 
   deletePriceLine: async (priceLineId) => {
-    return apiClient.delete(`/api/transport/price-lines/${priceLineId}`)
+    return transportDirect.delete(TRANSPORT_API.priceLineById(priceLineId))
   },
 
   getProvidersWithPriceLines: async () => {
-    return apiClient.get('/api/transport/with-price-lines')
+    const { admin, public: pub } = TRANSPORT_API.withPriceLines
+    return getWithFallback(admin, pub)
   },
 
   getProviderWithPriceLines: async (providerId) => {
-    return apiClient.get(`/api/transport/${providerId}/price-lines`)
+    const paths = TRANSPORT_API.providerPriceLines(providerId)
+    return getWithFallback(paths.admin, paths.public)
   },
 
-  // Transport Requests Management
   getTransportRequests: async (params = {}) => {
-    return apiClient.get('/api/transport/requests', params)
+    const { admin, public: pub } = TRANSPORT_API.requests
+    return getWithFallback(admin, pub, params)
   },
 
   getTransportRequestById: async (requestId) => {
-    return apiClient.get(`/api/transport/requests/${requestId}`)
+    const paths = TRANSPORT_API.requestById(requestId)
+    return getWithFallback(paths.admin, paths.public)
   },
 
   createTransportRequest: async (requestData) => {
-    return apiClient.post('/api/transport/requests', requestData)
+    const { admin, public: pub } = TRANSPORT_API.requests
+    return postWithFallback(admin, pub, requestData)
   },
 
   deleteTransportRequest: async (requestId) => {
-    return apiClient.delete(`/api/transport/requests/${requestId}`)
+    const paths = TRANSPORT_API.requestById(requestId)
+    return deleteWithFallback(paths.admin, paths.public)
   },
 
   notifyTransporters: async (requestId) => {
-    return apiClient.post(`/api/transport/requests/${requestId}/notify`)
+    const paths = TRANSPORT_API.requestNotify(requestId)
+    return postWithFallback(paths.admin, paths.public, {})
   },
 
-  // Transport Offers Management
   getOffers: async (requestId) => {
-    return apiClient.get(`/api/transport/requests/${requestId}/offers`)
+    const paths = TRANSPORT_API.requestOffers(requestId)
+    return getWithFallback(paths.admin, paths.public)
   },
 
   submitOffer: async (offerData) => {
-    return apiClient.post('/api/transport/offers', offerData)
+    return transportDirect.post(TRANSPORT_API.offers, offerData)
   },
 
   acceptOffer: async (offerId) => {
-    return apiClient.post(`/api/transport/offers/${offerId}/accept`)
+    return transportDirect.post(TRANSPORT_API.offerAccept(offerId), {})
   },
 
-  // Transport Pricing
   getOfficialPrice: async (priceRequest) => {
-    return apiClient.post('/api/transport-prices/official', priceRequest)
+    return transportDirect.post(TRANSPORT_API.officialPrice, priceRequest)
   },
 
   getCheapestPrice: async (fromRegion, toRegion) => {
-    return apiClient.post('/api/transport-prices/cheapest', { fromRegion, toRegion })
+    return transportDirect.post(TRANSPORT_API.cheapestPrice, { fromRegion, toRegion })
   },
 
   getRegions: async () => {
-    return apiClient.get('/api/transport-prices/regions')
-  }
+    return transportDirect.get(TRANSPORT_API.regions)
+  },
 }
 
 export default transportService

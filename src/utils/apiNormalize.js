@@ -109,3 +109,105 @@ export function formatCellValue(value) {
   if (typeof value === 'object') return 'N/A'
   return String(value)
 }
+
+/** Unwrap ApiResponse { success, data } or legacy shapes into a list array. */
+export function unwrapApiList(response, arrayKeys = ['products', 'items', 'categories', 'subCategories', 'data']) {
+  if (Array.isArray(response)) return response
+
+  if (response?.success === false) {
+    const msg =
+      response.message ||
+      response.error?.detail ||
+      response.error?.message ||
+      'فشل تحميل البيانات'
+    throw new Error(msg)
+  }
+
+  let data = response?.data?.data ?? response?.data ?? response
+
+  if (Array.isArray(data)) return data
+
+  if (data && typeof data === 'object') {
+    for (const key of arrayKeys) {
+      if (Array.isArray(data[key])) return data[key]
+    }
+  }
+
+  return []
+}
+
+export function unwrapApiData(response) {
+  if (response == null) return null
+  if (response.success === false) {
+    throw new Error(response.message || response.error?.detail || 'فشل الطلب')
+  }
+  if (response.success === true && response.data !== undefined) {
+    return response.data?.data ?? response.data
+  }
+  return response.data ?? response
+}
+
+export function getEntityId(entity, ...keys) {
+  if (!entity) return null
+  for (const key of keys) {
+    if (entity[key] != null) return entity[key]
+  }
+  return null
+}
+
+export function getProductId(product) {
+  return getEntityId(product, 'productId', 'id', 'ProductId')
+}
+
+export function extractImageUrl(uploadResponse) {
+  const candidates = [
+    uploadResponse?.data?.data?.url,
+    uploadResponse?.data?.url,
+    uploadResponse?.data?.imageUrl,
+    uploadResponse?.url,
+    typeof uploadResponse?.data === 'string' ? uploadResponse.data : null,
+    typeof uploadResponse?.data?.data === 'string' ? uploadResponse.data.data : null,
+  ]
+  for (const url of candidates) {
+    if (typeof url === 'string' && url.trim().length > 0) return url.trim()
+  }
+  return null
+}
+
+export function buildProductPayload(form, { isEdit = false, isActive = true } = {}) {
+  const categoryId = Number(form.categoryId)
+  if (!Number.isFinite(categoryId) || categoryId <= 0) {
+    throw new Error('يرجى اختيار الفئة')
+  }
+
+  const imageUrl = (form.imageUrl || '').trim()
+  if (!imageUrl) {
+    throw new Error('يرجى رفع صورة أو إدخال رابط الصورة')
+  }
+
+  const payload = {
+    nameAr: (form.nameAr || '').trim(),
+    nameEn: (form.nameEn || '').trim(),
+    categoryId,
+    imageUrl,
+  }
+
+  const subId = Number(form.subCategoryId)
+  if (Number.isFinite(subId) && subId > 0) {
+    payload.subCategoryId = subId
+  }
+
+  const desc = (form.description || '').trim()
+  if (desc) payload.description = desc
+
+  const color = (form.cardColor || '').trim()
+  if (/^#[0-9A-Fa-f]{6}$/.test(color)) {
+    payload.cardColor = color
+  }
+
+  if (isEdit) {
+    payload.isActive = isActive !== false
+  }
+
+  return payload
+}

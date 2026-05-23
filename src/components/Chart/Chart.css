@@ -9,3 +9,17 @@
   margin-bottom: 1.5rem;
 }
 
+.chart-empty {
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.chart-empty-text {
+  color: var(--text-secondary, #64748b);
+  font-size: 0.9rem;
+  margin: 0;
+  text-align: center;
+}
+

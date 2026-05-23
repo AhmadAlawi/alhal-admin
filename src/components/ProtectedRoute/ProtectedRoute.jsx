@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import authService from '../../services/authService'
+import { useTranslation } from '../../hooks/useTranslation'
 import './ProtectedRoute.css'
 
 const ProtectedRoute = ({ children }) => {
+  const { t } = useTranslation()
   const location = useLocation()
   const [isAuthenticated, setIsAuthenticated] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -96,7 +98,7 @@ const ProtectedRoute = ({ children }) => {
       <div className="protected-route-loading">
         <div className="loading-container">
           <div className="loading-spinner"></div>
-          <p className="loading-text">Loading...</p>
+          <p className="loading-text">{t('common.loading')}</p>
         </div>
       </div>
     )

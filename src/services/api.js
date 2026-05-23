@@ -111,7 +111,15 @@ class ApiClient {
         throw new Error(errorMessage);
       }
 
-      return await response.json();
+      const text = await response.text();
+      if (!text || !text.trim()) {
+        return { success: true };
+      }
+      try {
+        return JSON.parse(text);
+      } catch {
+        return { success: true, data: text };
+      }
     } catch (error) {
       console.error('API Error:', error);
       throw error;

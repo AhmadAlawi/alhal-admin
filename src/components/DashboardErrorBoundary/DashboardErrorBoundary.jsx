@@ -1,5 +1,20 @@
 import React from 'react'
 import { FiAlertCircle, FiRefreshCw } from 'react-icons/fi'
+import { useTranslation } from '../../hooks/useTranslation'
+
+function DashboardErrorFallback({ error, onRetry }) {
+  const { t } = useTranslation()
+  return (
+    <div className="dashboard-error-boundary card">
+      <FiAlertCircle size={32} />
+      <h2>{t('dashboardErrors.renderError')}</h2>
+      <p>{error?.message || t('dashboard.fetchError')}</p>
+      <button type="button" className="btn btn-primary" onClick={onRetry}>
+        <FiRefreshCw /> {t('common.retry')}
+      </button>
+    </div>
+  )
+}
 
 class DashboardErrorBoundary extends React.Component {
   constructor(props) {
@@ -23,14 +38,10 @@ class DashboardErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="dashboard-error-boundary card">
-          <FiAlertCircle size={32} />
-          <h2>تعذر عرض لوحة التحكم</h2>
-          <p>{this.state.error?.message || 'حدث خطأ غير متوقع'}</p>
-          <button type="button" className="btn btn-primary" onClick={this.handleRetry}>
-            <FiRefreshCw /> إعادة المحاولة
-          </button>
-        </div>
+        <DashboardErrorFallback
+          error={this.state.error}
+          onRetry={this.handleRetry}
+        />
       )
     }
     return this.props.children

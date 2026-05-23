@@ -129,7 +129,7 @@ const RbacPermissions = () => {
               <table className="rbac-table">
                 <thead>
                   <tr>
-                    <th>ID</th>
+                    <th>{t('common.id')}</th>
                     <th>{t('rbac.code')}</th>
                     <th>{t('rbac.nameAr')}</th>
                     <th>{t('rbac.module')}</th>

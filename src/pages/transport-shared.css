@@ -1,0 +1,199 @@
+/* Shared light theme for transport admin pages (green sidebar + white workspace) */
+
+.transport-requests-page,
+.transport-providers-page,
+.transport-vehicles-page,
+.transport-price-lines-page {
+  color: #1f2937;
+}
+
+.transport-requests-page .page-title,
+.transport-providers-page .page-title,
+.transport-vehicles-page .page-title {
+  color: #14532d;
+}
+
+.transport-requests-page .page-subtitle,
+.transport-providers-page .page-subtitle,
+.transport-vehicles-page .page-subtitle {
+  color: #6b7280;
+}
+
+.transport-requests-page .search-input,
+.transport-providers-page .search-input,
+.transport-vehicles-page .search-input,
+.transport-requests-page .filter-select,
+.transport-requests-page .form-group input,
+.transport-requests-page .form-group select,
+.transport-requests-page .form-group textarea,
+.transport-providers-page .form-group input,
+.transport-providers-page .form-group select,
+.transport-providers-page .form-group textarea,
+.transport-vehicles-page .form-group input,
+.transport-vehicles-page .form-group select,
+.transport-vehicles-page .form-group textarea {
+  background: #ffffff;
+  border: 1px solid var(--border-color, #e5e7eb);
+  color: #1f2937;
+}
+
+.transport-requests-page .search-input:focus,
+.transport-providers-page .search-input:focus,
+.transport-vehicles-page .search-input:focus,
+.transport-requests-page .filter-select:focus,
+.transport-requests-page .form-group input:focus,
+.transport-requests-page .form-group select:focus,
+.transport-requests-page .form-group textarea:focus {
+  border-color: var(--primary-color, #15803d);
+  outline: none;
+}
+
+.transport-requests-page .filter-group label,
+.transport-requests-page .page-size-selector label,
+.transport-requests-page .form-group label,
+.transport-providers-page .form-group label,
+.transport-vehicles-page .form-group label {
+  color: #374151;
+}
+
+.transport-requests-page .data-table thead,
+.transport-providers-page .data-table thead,
+.transport-vehicles-page .data-table thead {
+  background: #f0fdf4;
+}
+
+.transport-requests-page .data-table th,
+.transport-providers-page .data-table th,
+.transport-vehicles-page .data-table th {
+  color: #14532d;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.transport-requests-page .data-table td,
+.transport-providers-page .data-table td,
+.transport-vehicles-page .data-table td {
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.transport-requests-page .data-table tbody tr:hover,
+.transport-providers-page .data-table tbody tr:hover,
+.transport-vehicles-page .data-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.transport-requests-page .btn-outline,
+.transport-providers-page .btn-outline,
+.transport-vehicles-page .btn-outline {
+  border-color: #e5e7eb;
+  color: #374151;
+}
+
+.transport-requests-page .btn-outline:hover:not(:disabled),
+.transport-providers-page .btn-outline:hover:not(:disabled),
+.transport-vehicles-page .btn-outline:hover:not(:disabled) {
+  background: #f0fdf4;
+  border-color: var(--primary-color, #15803d);
+}
+
+.transport-requests-page .pagination-info,
+.transport-requests-page .loading-container,
+.transport-providers-page .loading-container,
+.transport-vehicles-page .loading-container {
+  color: #6b7280;
+}
+
+.transport-requests-page .modal-content,
+.transport-providers-page .modal-content,
+.transport-vehicles-page .modal-content {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+}
+
+.transport-requests-page .modal-header,
+.transport-providers-page .modal-header,
+.transport-vehicles-page .modal-header {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.transport-requests-page .modal-header h2,
+.transport-providers-page .modal-header h2,
+.transport-vehicles-page .modal-header h2,
+.transport-requests-page .detail-section h3,
+.transport-requests-page .detail-item span,
+.transport-requests-page .offer-header strong {
+  color: #111827;
+}
+
+.transport-requests-page .modal-close,
+.transport-providers-page .modal-close,
+.transport-vehicles-page .modal-close {
+  color: #6b7280;
+}
+
+.transport-requests-page .detail-item label,
+.transport-requests-page .offer-details,
+.transport-requests-page .offer-notes {
+  color: #6b7280;
+}
+
+.transport-requests-page .offer-item {
+  background: #f9fafb;
+  border-left-color: var(--primary-color, #15803d);
+}
+
+.transport-requests-page .form-actions,
+.transport-providers-page .form-actions,
+.transport-vehicles-page .form-actions {
+  border-top: 1px solid #e5e7eb;
+}
+
+.transport-requests-page .btn-primary,
+.transport-providers-page .btn-primary,
+.transport-vehicles-page .btn-primary {
+  background: var(--primary-color, #15803d);
+}
+
+.transport-requests-page .btn-primary:hover,
+.transport-providers-page .btn-primary:hover,
+.transport-vehicles-page .btn-primary:hover {
+  background: var(--primary-dark, #166534);
+}
+
+.transport-requests-page .spinner,
+.transport-providers-page .spinner,
+.transport-vehicles-page .spinner {
+  border-color: #e5e7eb;
+  border-top-color: var(--primary-color, #15803d);
+}
+
+.transport-requests-page .api-access-hint {
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.25rem;
+  border-radius: 0.5rem;
+  border: 1px solid #fcd34d;
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.transport-requests-page .api-access-hint code {
+  font-size: 0.8rem;
+  background: rgba(0, 0, 0, 0.06);
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.25rem;
+}
+
+.transport-vehicles-page .provider-item,
+.transport-vehicles-page .vehicles-panel,
+.transport-price-lines-page .provider-item {
+  background: #ffffff;
+  border-color: #e5e7eb;
+  color: #1f2937;
+}
+
+.transport-vehicles-page .provider-item.active {
+  background: #f0fdf4;
+  border-color: var(--primary-color, #15803d);
+}

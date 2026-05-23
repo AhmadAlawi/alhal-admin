@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { FiMail, FiLock, FiLogIn, FiAlertCircle, FiEye, FiEyeOff } from 'react-icons/fi'
 import authService from '../services/authService'
+import { useTranslation } from '../hooks/useTranslation'
 import './Login.css'
 
 const Login = () => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const [formData, setFormData] = useState({
@@ -15,7 +17,6 @@ const Login = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // Redirect if already authenticated
   useEffect(() => {
     if (authService.isAuthenticated()) {
       const from = location.state?.from?.pathname || '/dashboard'
@@ -29,7 +30,6 @@ const Login = () => {
       ...prev,
       [name]: value
     }))
-    // Clear error when user starts typing
     if (error) {
       setError('')
     }
@@ -41,34 +41,28 @@ const Login = () => {
     setLoading(true)
 
     try {
-      // Validate form
       if (!formData.EmailOrPhone || !formData.password) {
-        setError('Please fill in all fields')
+        setError(t('login.fillAllFields'))
         setLoading(false)
         return
       }
 
-      // Call login API
       const response = await authService.login({
         EmailOrPhone: formData.EmailOrPhone,
         password: formData.password
       })
 
-       // Check if login was successful
-       // The authService.login() already handles storing token and user data
-       // Response structure: { success: true, data: { success: true, data: { accessToken, userId, ... } } }
        const isSuccess = response?.success === true || response?.data?.success === true
        
        if (isSuccess && localStorage.getItem('authToken')) {
-         // Redirect to dashboard or previous page
          const from = location.state?.from?.pathname || '/dashboard'
          navigate(from, { replace: true })
        } else {
-         setError('Login failed. Please check your credentials.')
+         setError(t('login.loginFailed'))
        }
     } catch (err) {
       console.error('Login error:', err)
-      setError(err.message || 'Login failed. Please check your credentials and try again.')
+      setError(err.message || t('login.loginFailedRetry'))
     } finally {
       setLoading(false)
     }
@@ -82,8 +76,8 @@ const Login = () => {
             <div className="login-logo">
               <FiLogIn />
             </div>
-            <h1>Admin Dashboard</h1>
-            <p>Sign in to continue</p>
+            <h1>{t('login.adminDashboard')}</h1>
+            <p>{t('login.signInToContinue')}</p>
           </div>
 
           {error && (
@@ -97,7 +91,7 @@ const Login = () => {
              <div className="form-group">
                <label htmlFor="EmailOrPhone">
                  <FiMail />
-                 Email or Phone
+                 {t('login.emailOrPhone')}
                </label>
                <input
                  type="text"
@@ -105,7 +99,7 @@ const Login = () => {
                  name="EmailOrPhone"
                  value={formData.EmailOrPhone}
                  onChange={handleChange}
-                 placeholder="Enter your email or phone number"
+                 placeholder={t('login.emailPlaceholder')}
                  required
                  disabled={loading}
                  autoComplete="username"
@@ -115,7 +109,7 @@ const Login = () => {
             <div className="form-group">
               <label htmlFor="password">
                 <FiLock />
-                Password
+                {t('login.password')}
               </label>
               <div className="password-input-wrapper">
                 <input
@@ -124,7 +118,7 @@ const Login = () => {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="Enter your password"
+                  placeholder={t('login.passwordPlaceholder')}
                   required
                   disabled={loading}
                   autoComplete="current-password"
@@ -149,19 +143,22 @@ const Login = () => {
               {loading ? (
                 <>
                   <span className="spinner"></span>
-                  Signing in...
+                  {t('login.signingIn')}
                 </>
               ) : (
                 <>
                   <FiLogIn />
-                  Sign In
+                  {t('login.signIn')}
                 </>
               )}
             </button>
           </form>
 
           <div className="login-footer">
-            <p>Forgot your password? <a href="#reset">Reset it here</a></p>
+            <p>
+              {t('login.forgotPasswordLink')}{' '}
+              <a href="#reset">{t('login.resetLink')}</a>
+            </p>
           </div>
         </div>
       </div>
@@ -170,4 +167,3 @@ const Login = () => {
 }
 
 export default Login
-

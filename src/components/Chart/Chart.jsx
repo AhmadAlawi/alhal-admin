@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from '../../hooks/useTranslation'
 import { 
   LineChart, 
   Line, 
@@ -27,6 +28,7 @@ const Chart = ({
   dataKey, 
   dataKeys = [], // For multi-line/multi-bar charts
   xAxisKey, 
+  nameKey = 'name',
   title, 
   color = '#16a34a',
   colors = COLORS,
@@ -38,11 +40,26 @@ const Chart = ({
   tooltipFormatter,
   labelFormatter,
   pieLabel = false,
-  pieLabelLine = false
+  pieLabelLine = false,
+  emptyMessage = null,
 }) => {
+  const { t } = useTranslation()
+  const chartData = Array.isArray(data) ? data : []
+  const noDataText = emptyMessage || t('common.noData')
+
+  if (chartData.length === 0) {
+    if (!title && !emptyMessage) return null
+    return (
+      <div className="chart-container card chart-empty">
+        {title && <h3 className="chart-title">{title}</h3>}
+        <p className="chart-empty-text">{noDataText}</p>
+      </div>
+    )
+  }
+
   const renderChart = () => {
     const commonProps = {
-      data,
+      data: chartData,
       margin: { top: 5, right: 20, left: 0, bottom: 5 }
     }
 
@@ -58,16 +75,17 @@ const Chart = ({
         return (
           <PieChart {...commonProps}>
             <Pie
-              data={data}
+              data={chartData}
               cx="50%"
               cy="50%"
+              nameKey={nameKey}
               labelLine={pieLabelLine}
               label={pieLabel ? ({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%` : false}
               outerRadius={80}
               fill="#16a34a"
               dataKey={dataKey}
             >
-              {data && data.map((entry, index) => (
+              {chartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
               ))}
             </Pie>

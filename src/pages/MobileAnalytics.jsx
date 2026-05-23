@@ -5,9 +5,13 @@ import Table from '../components/Table/Table'
 import StatCard from '../components/StatCard/StatCard'
 import analyticsService from '../services/analyticsService'
 import marketAnalysisService from '../services/marketAnalysisService'
+import { formatChartShortDate } from '../utils/chartNormalize'
+import { useTranslation } from '../hooks/useTranslation'
 import './MobileAnalytics.css'
 
 const MobileAnalytics = () => {
+  const { t, language } = useTranslation()
+  const chartLocale = language === 'ar' ? 'ar' : 'en-US'
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [lineData, setLineData] = useState([])
@@ -57,7 +61,12 @@ const MobileAnalytics = () => {
         byDate.get(item.date)[key] = item.value || 0
       })
     })
-    return Array.from(byDate.values()).sort((a, b) => new Date(a.date) - new Date(b.date))
+    return Array.from(byDate.values())
+      .sort((a, b) => new Date(a.date) - new Date(b.date))
+      .map((row) => ({
+        ...row,
+        date: formatChartShortDate(row.date, chartLocale),
+      }))
   }
 
   const normalizeBarChart = (response) => {
@@ -136,7 +145,7 @@ const MobileAnalytics = () => {
     )
     setEventsTrendData(
       (Array.isArray(trend.byDay) ? trend.byDay : []).map((item) => ({
-        date: item.date,
+        date: formatChartShortDate(item.date, chartLocale),
         value: item.value || item.count || 0,
       }))
     )
@@ -209,8 +218,7 @@ const MobileAnalytics = () => {
       } else {
         setLoggerRows([])
         setLoggerUnavailable(
-          loggerRes.reason?.message ||
-            'Logger endpoint is unavailable. Ensure /api/analytics/events is enabled on backend.'
+          loggerRes.reason?.message || t('mobileAnalytics.loggerUnavailable')
         )
       }
 
@@ -228,10 +236,10 @@ const MobileAnalytics = () => {
         barRes.status === 'rejected' &&
         heatRes.status === 'rejected'
       ) {
-        setError('Failed to load mobile analytics data.')
+        setError(t('mobileAnalytics.loadDataError'))
       }
     } catch (err) {
-      setError(err.message || 'Failed to load mobile analytics.')
+      setError(err.message || t('mobileAnalytics.loadError'))
     } finally {
       setLoading(false)
     }
@@ -252,43 +260,56 @@ const MobileAnalytics = () => {
   const loggerColumns = useMemo(
     () => [
       {
-        header: 'Time',
+        header: t('mobileAnalytics.logger.time'),
         accessor: 'at',
-        render: (value) => (value && value !== '-' ? new Date(value).toLocaleString() : '-'),
+        render: (value) =>
+          value && value !== '-'
+            ? new Date(value).toLocaleString(chartLocale)
+            : '-',
       },
-      { header: 'Type', accessor: 'type' },
-      { header: 'Level', accessor: 'level' },
-      { header: 'Screen', accessor: 'screen' },
-      { header: 'Message', accessor: 'message' },
-      { header: 'User', accessor: 'userId' },
-      { header: 'Session', accessor: 'sessionId' },
-      { header: 'Platform', accessor: 'platform' },
-      { header: 'Version', accessor: 'appVersion' },
+      { header: t('mobileAnalytics.logger.type'), accessor: 'type' },
+      { header: t('mobileAnalytics.logger.level'), accessor: 'level' },
+      { header: t('mobileAnalytics.logger.screen'), accessor: 'screen' },
+      { header: t('mobileAnalytics.logger.message'), accessor: 'message' },
+      { header: t('mobileAnalytics.logger.user'), accessor: 'userId' },
+      { header: t('mobileAnalytics.logger.session'), accessor: 'sessionId' },
+      { header: t('mobileAnalytics.logger.platform'), accessor: 'platform' },
+      { header: t('mobileAnalytics.logger.version'), accessor: 'appVersion' },
     ],
-    []
+    [t, chartLocale]
   )
+
+  const sortFieldOptions = [
+    'createdAt',
+    'clientTimestamp',
+    'eventType',
+    'eventLevel',
+    'screen',
+    'platform',
+    'appVersion',
+  ]
 
   return (
     <div className="mobile-analytics-page">
       <div className="page-header">
         <div>
           <h1 className="page-title">
-            <FiSmartphone /> Mobile Analytics
+            <FiSmartphone /> {t('common.mobileAnalytics')}
           </h1>
-          <p className="page-subtitle">Full analytics + logger trace with filters and heatmap</p>
+          <p className="page-subtitle">{t('mobileAnalytics.subtitle')}</p>
         </div>
-        <button className="btn btn-outline" onClick={load}>
-          <FiRefreshCw /> Refresh
+        <button type="button" className="btn btn-outline" onClick={load}>
+          <FiRefreshCw /> {t('common.refresh')}
         </button>
       </div>
 
       <div className="card mobile-filters">
         <h3>
-          <FiFilter /> Filters
+          <FiFilter /> {t('analytics.filters')}
         </h3>
         <div className="filters-grid">
           <label>
-            All Time
+            {t('mobileAnalytics.allTime')}
             <input
               type="checkbox"
               checked={filters.allTime}
@@ -296,7 +317,7 @@ const MobileAnalytics = () => {
             />
           </label>
           <label>
-            From
+            {t('mobileAnalytics.from')}
             <input
               type="datetime-local"
               value={filters.from}
@@ -305,7 +326,7 @@ const MobileAnalytics = () => {
             />
           </label>
           <label>
-            To
+            {t('mobileAnalytics.to')}
             <input
               type="datetime-local"
               value={filters.to}
@@ -314,7 +335,7 @@ const MobileAnalytics = () => {
             />
           </label>
           <label>
-            Heatmap Year
+            {t('mobileAnalytics.heatmapYear')}
             <input
               type="number"
               min="2020"
@@ -324,7 +345,7 @@ const MobileAnalytics = () => {
             />
           </label>
           <label>
-            Product ID
+            {t('mobileAnalytics.productId')}
             <input
               type="number"
               value={filters.productId}
@@ -332,7 +353,7 @@ const MobileAnalytics = () => {
             />
           </label>
           <label>
-            Governorate
+            {t('mobileAnalytics.governorate')}
             <input
               type="text"
               value={filters.governorate}
@@ -340,34 +361,34 @@ const MobileAnalytics = () => {
             />
           </label>
           <label>
-            Event Type
+            {t('mobileAnalytics.eventType')}
             <input
               type="text"
-              placeholder="screen_view, api_error..."
+              placeholder={t('mobileAnalytics.eventTypePlaceholder')}
               value={filters.eventType}
               onChange={(e) => setFilters((prev) => ({ ...prev, eventType: e.target.value }))}
             />
           </label>
           <label>
-            Event Level
+            {t('mobileAnalytics.eventLevel')}
             <input
               type="text"
-              placeholder="info, warning, error"
+              placeholder={t('mobileAnalytics.eventLevelPlaceholder')}
               value={filters.eventLevel}
               onChange={(e) => setFilters((prev) => ({ ...prev, eventLevel: e.target.value }))}
             />
           </label>
           <label>
-            Screen
+            {t('mobileAnalytics.screen')}
             <input
               type="text"
-              placeholder="Dashboard/Home"
+              placeholder={t('mobileAnalytics.screenPlaceholder')}
               value={filters.screen}
               onChange={(e) => setFilters((prev) => ({ ...prev, screen: e.target.value }))}
             />
           </label>
           <label>
-            User ID
+            {t('mobileAnalytics.userId')}
             <input
               type="number"
               value={filters.userId}
@@ -375,7 +396,7 @@ const MobileAnalytics = () => {
             />
           </label>
           <label>
-            Session ID
+            {t('mobileAnalytics.sessionId')}
             <input
               type="text"
               value={filters.sessionId}
@@ -383,7 +404,7 @@ const MobileAnalytics = () => {
             />
           </label>
           <label>
-            Platform
+            {t('mobileAnalytics.platform')}
             <input
               type="text"
               value={filters.platform}
@@ -391,7 +412,7 @@ const MobileAnalytics = () => {
             />
           </label>
           <label>
-            App Version
+            {t('mobileAnalytics.appVersion')}
             <input
               type="text"
               value={filters.appVersion}
@@ -399,7 +420,7 @@ const MobileAnalytics = () => {
             />
           </label>
           <label>
-            Search
+            {t('mobileAnalytics.search')}
             <input
               type="text"
               value={filters.search}
@@ -407,41 +428,39 @@ const MobileAnalytics = () => {
             />
           </label>
           <label>
-            Sort By
+            {t('mobileAnalytics.sortBy')}
             <select
               value={filters.sortBy}
               onChange={(e) => setFilters((prev) => ({ ...prev, sortBy: e.target.value }))}
             >
-              <option value="createdAt">createdAt</option>
-              <option value="clientTimestamp">clientTimestamp</option>
-              <option value="eventType">eventType</option>
-              <option value="eventLevel">eventLevel</option>
-              <option value="screen">screen</option>
-              <option value="platform">platform</option>
-              <option value="appVersion">appVersion</option>
+              {sortFieldOptions.map((field) => (
+                <option key={field} value={field}>
+                  {t(`mobileAnalytics.sortFields.${field}`)}
+                </option>
+              ))}
             </select>
           </label>
           <label>
-            Sort Order
+            {t('mobileAnalytics.sortOrder')}
             <select
               value={filters.sortOrder}
               onChange={(e) => setFilters((prev) => ({ ...prev, sortOrder: e.target.value }))}
             >
-              <option value="desc">desc</option>
-              <option value="asc">asc</option>
+              <option value="desc">{t('common.desc')}</option>
+              <option value="asc">{t('common.asc')}</option>
             </select>
           </label>
         </div>
         <div className="filters-actions">
-          <button className="btn btn-primary" onClick={load}>
-            Apply Filters
+          <button type="button" className="btn btn-primary" onClick={load}>
+            {t('common.applyFilters')}
           </button>
         </div>
       </div>
 
       {loading && (
         <div className="loading-message card">
-          <p>Loading mobile analytics...</p>
+          <p>{t('mobileAnalytics.loading')}</p>
         </div>
       )}
       {error && (
@@ -452,9 +471,21 @@ const MobileAnalytics = () => {
 
       {statsData && (
         <div className="stats-grid">
-          <StatCard title="Total Events" value={String(statsData.totalEvents)} color="primary" />
-          <StatCard title="Unique Users" value={String(statsData.uniqueUsers)} color="success" />
-          <StatCard title="Unique Sessions" value={String(statsData.uniqueSessions)} color="warning" />
+          <StatCard
+            title={t('mobileAnalytics.totalEvents')}
+            value={String(statsData.totalEvents)}
+            color="primary"
+          />
+          <StatCard
+            title={t('mobileAnalytics.uniqueUsers')}
+            value={String(statsData.uniqueUsers)}
+            color="success"
+          />
+          <StatCard
+            title={t('mobileAnalytics.uniqueSessions')}
+            value={String(statsData.uniqueSessions)}
+            color="warning"
+          />
         </div>
       )}
 
@@ -465,7 +496,7 @@ const MobileAnalytics = () => {
             data={eventsTrendData}
             dataKey="value"
             xAxisKey="date"
-            title="Logger Trend by Day"
+            title={t('mobileAnalytics.loggerTrend')}
             color="#16a34a"
             height={280}
           />
@@ -476,7 +507,7 @@ const MobileAnalytics = () => {
             data={topEventTypesData}
             dataKey="value"
             xAxisKey="name"
-            title="Top Event Types"
+            title={t('mobileAnalytics.topEventTypes')}
             color="#22c55e"
             height={280}
           />
@@ -489,7 +520,7 @@ const MobileAnalytics = () => {
             data={topScreensData}
             dataKey="value"
             xAxisKey="name"
-            title="Top Screens"
+            title={t('mobileAnalytics.topScreens')}
             color="#15803d"
             height={280}
           />
@@ -502,12 +533,12 @@ const MobileAnalytics = () => {
             type="line"
             data={lineData}
             dataKeys={[
-              { dataKey: 'auctions', name: 'Auctions', color: '#16a34a' },
-              { dataKey: 'tenders', name: 'Tenders', color: '#22c55e' },
-              { dataKey: 'orders', name: 'Orders', color: '#15803d' },
+              { dataKey: 'auctions', name: t('analytics.auctions'), color: '#16a34a' },
+              { dataKey: 'tenders', name: t('analytics.tenders'), color: '#22c55e' },
+              { dataKey: 'orders', name: t('common.orders'), color: '#15803d' },
             ]}
             xAxisKey="date"
-            title="Mobile KPI Daily Trend"
+            title={t('mobileAnalytics.kpiTrend')}
             height={320}
           />
         )}
@@ -517,7 +548,7 @@ const MobileAnalytics = () => {
             data={barData}
             dataKey="value"
             xAxisKey="label"
-            title="Range Totals"
+            title={t('mobileAnalytics.rangeTotals')}
             color="#16a34a"
             height={320}
           />
@@ -525,9 +556,9 @@ const MobileAnalytics = () => {
       </div>
 
       <div className="card heatmap-card">
-        <h3 className="chart-title">Sales Heatmap</h3>
+        <h3 className="chart-title">{t('mobileAnalytics.heatmapTitle')}</h3>
         {heatmapData.length === 0 ? (
-          <p className="empty-text">No heatmap data for selected filters.</p>
+          <p className="empty-text">{t('mobileAnalytics.noHeatmapData')}</p>
         ) : (
           <div className="heatmap-grid">
             {heatmapData.map((point, index) => (
@@ -545,7 +576,7 @@ const MobileAnalytics = () => {
 
       <div className="section">
         <div className="section-header">
-          <h2 className="section-title">Mobile Logger Trace</h2>
+          <h2 className="section-title">{t('mobileAnalytics.loggerTrace')}</h2>
         </div>
         {loggerUnavailable && (
           <div className="error-message card">
@@ -557,17 +588,25 @@ const MobileAnalytics = () => {
             <Table columns={loggerColumns} data={loggerRows} />
             <div className="pagination-info">
               <span>
-                Page {pagination.page} / {pagination.totalPages} — Total: {pagination.total}
+                {t('mobileAnalytics.pagination', {
+                  page: pagination.page,
+                  totalPages: pagination.totalPages,
+                  total: pagination.total,
+                })}
               </span>
               <div className="pagination-actions">
                 <button
+                  type="button"
                   className="btn btn-outline"
                   disabled={filters.page <= 1}
-                  onClick={() => setFilters((prev) => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
+                  onClick={() =>
+                    setFilters((prev) => ({ ...prev, page: Math.max(1, prev.page - 1) }))
+                  }
                 >
-                  Prev
+                  {t('common.previous')}
                 </button>
                 <button
+                  type="button"
                   className="btn btn-outline"
                   disabled={filters.page >= pagination.totalPages}
                   onClick={() =>
@@ -577,14 +616,14 @@ const MobileAnalytics = () => {
                     }))
                   }
                 >
-                  Next
+                  {t('common.next')}
                 </button>
               </div>
             </div>
           </>
         ) : (
           <div className="card">
-            <p className="empty-text">No logger rows returned for current filters.</p>
+            <p className="empty-text">{t('mobileAnalytics.noLoggerRows')}</p>
           </div>
         )}
       </div>

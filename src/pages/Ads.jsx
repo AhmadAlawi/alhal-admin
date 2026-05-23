@@ -11,6 +11,7 @@ import {
 } from 'react-icons/fi'
 import advertisementsService from '../services/advertisementsService'
 import imageService from '../services/imageService'
+import { useTranslation } from '../hooks/useTranslation'
 import './Ads.css'
 
 const PLATFORM_OPTIONS = ['web', 'mobile', 'all']
@@ -342,6 +343,7 @@ const getThumbnailUrlsFromAd = (ad) => {
 }
 
 const Ads = () => {
+  const { t } = useTranslation()
   const [ads, setAds] = useState([])
   const [mobileAds, setMobileAds] = useState([])
   const [loading, setLoading] = useState(true)
@@ -863,16 +865,16 @@ const Ads = () => {
       <div className="page-header">
         <div>
           <h1 className="page-title">
-            <FiImage /> Ads Management
+            <FiImage /> {t('ads.title')}
           </h1>
-          <p className="page-subtitle">Create, sort, and schedule mobile/web ads</p>
+          <p className="page-subtitle">{t('ads.subtitle')}</p>
         </div>
         <div className="header-actions">
-          <button className="btn btn-outline" onClick={fetchAll}>
-            <FiRefreshCw /> Refresh
+          <button type="button" className="btn btn-outline" onClick={fetchAll}>
+            <FiRefreshCw /> {t('common.refresh')}
           </button>
-          <button className="btn btn-primary" onClick={openCreateModal}>
-            <FiPlus /> Add Ad
+          <button type="button" className="btn btn-primary" onClick={openCreateModal}>
+            <FiPlus /> {t('ads.addAd')}
           </button>
         </div>
       </div>
@@ -910,9 +912,9 @@ const Ads = () => {
           value={filters.active}
           onChange={(e) => setFilters((prev) => ({ ...prev, active: e.target.value }))}
         >
-          <option value="all">All Status</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
+          <option value="all">{t('common.allStatus')}</option>
+          <option value="active">{t('common.active')}</option>
+          <option value="inactive">{t('common.inactive')}</option>
         </select>
         <input
           type="date"
@@ -929,7 +931,7 @@ const Ads = () => {
       {error && <div className="card error-message">{error}</div>}
 
       {loading ? (
-        <div className="card">Loading ads...</div>
+        <div className="card">{t('ads.loading')}</div>
       ) : (
         <div className="card table-wrapper">
           <table className="ads-table">

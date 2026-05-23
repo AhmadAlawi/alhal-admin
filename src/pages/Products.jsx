@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react'
-import { FiPlus, FiPackage, FiEdit2, FiTrash2, FiDollarSign, FiSearch, FiRefreshCw, FiAlertCircle, FiCheck, FiX, FiUpload, FiImage } from 'react-icons/fi'
+import { FiPlus, FiPackage, FiEdit2, FiTrash2, FiDollarSign, FiSearch, FiRefreshCw, FiAlertCircle, FiCheck, FiX, FiImage, FiPower } from 'react-icons/fi'
 import StatCard from '../components/StatCard/StatCard'
-import adminService from '../services/adminService'
-import imageService from '../services/imageService'
+import productsService, { getProductId } from '../services/productsService'
+import { useTranslation } from '../hooks/useTranslation'
 import './Products.css'
 
 const Products = () => {
+  const { t, language } = useTranslation()
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
   const [subCategories, setSubCategories] = useState([])
@@ -50,6 +51,12 @@ const Products = () => {
     active: 0,
     inactive: 0
   })
+  const [toast, setToast] = useState(null)
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type })
+    setTimeout(() => setToast(null), 4000)
+  }
 
   useEffect(() => {
     fetchProducts()
@@ -68,20 +75,18 @@ const Products = () => {
     try {
       setLoading(true)
       setError(null)
-      const response = await adminService.getProducts()
-      const productsData = response.data || response || []
-      setProducts(Array.isArray(productsData) ? productsData : [])
-      
-      // Calculate stats
-      const active = productsData.filter(p => p.isActive).length
+      const productsData = await productsService.list()
+      setProducts(productsData)
+
+      const active = productsData.filter((p) => p.isActive !== false).length
       setStats({
         total: productsData.length,
-        active: active,
-        inactive: productsData.length - active
+        active,
+        inactive: productsData.length - active,
       })
     } catch (err) {
       console.error('Failed to fetch products:', err)
-      setError(err.message || 'Failed to load products')
+      setError(err.message || t('products.loadError'))
       setProducts([])
     } finally {
       setLoading(false)
@@ -90,9 +95,8 @@ const Products = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await adminService.getCategories({ isActive: true })
-      const categoriesData = response.data || response || []
-      setCategories(Array.isArray(categoriesData) ? categoriesData : [])
+      const categoriesData = await productsService.listCategories()
+      setCategories(categoriesData)
     } catch (err) {
       console.error('Failed to fetch categories:', err)
       setCategories([])
@@ -101,9 +105,8 @@ const Products = () => {
 
   const fetchSubCategoriesForCategory = async (categoryId) => {
     try {
-      const response = await adminService.getSubCategories({ categoryId, isActive: true })
-      const subCategoriesData = response.data || response || []
-      setSubCategories(Array.isArray(subCategoriesData) ? subCategoriesData : [])
+      const subCategoriesData = await productsService.listSubCategories(categoryId)
+      setSubCategories(subCategoriesData)
     } catch (err) {
       console.error('Failed to fetch subcategories:', err)
       setSubCategories([])
@@ -116,13 +119,13 @@ const Products = () => {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file')
+      alert(t('products.imageFileRequired'))
       return
     }
 
     // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
-      alert('File size should be less than 10MB')
+      alert(t('products.fileTooLarge'))
       return
     }
 
@@ -143,90 +146,33 @@ const Products = () => {
     setFormData({...formData, imageUrl: ''})
   }
 
+  const resolveImageUrl = async () => {
+    let imageUrl = (formData.imageUrl || '').trim()
+    if (selectedFile) {
+      imageUrl = await productsService.uploadProductImage(selectedFile)
+    }
+    return imageUrl
+  }
+
   const handleAddProduct = async (e) => {
     e.preventDefault()
-    
-    // Validation
-    if (!formData.nameAr || !formData.nameEn || !formData.categoryId) {
-      alert('Please fill in all required fields (Name and Category are required)')
+
+    if (!formData.nameAr?.trim() || !formData.nameEn?.trim() || !formData.categoryId) {
+      showToast(t('products.validationRequired'), 'error')
       return
     }
-    
-    // Validate hex color format
-    const hexColorRegex = /^#[0-9A-Fa-f]{6}$/
-    if (formData.cardColor && !hexColorRegex.test(formData.cardColor)) {
-      alert('Please enter a valid hex color (e.g., #6366f1)')
-      return
-    }
-    
-    let imageUrl = formData.imageUrl // Use existing URL if no file selected
-    
+
     try {
       setUploading(true)
-      
-      // Step 1: Upload image first if a file is selected
-      if (selectedFile) {
-        console.log('Step 1: Uploading image...')
-        const uploadResponse = await imageService.uploadImage(selectedFile)
-        console.log('Upload response:', uploadResponse)
-        
-        // Extract image URL from response
-        // Handle different response structures: response.data.url, response.data.data.url, response.url, response.data (string)
-        if (uploadResponse?.data?.url) {
-          imageUrl = uploadResponse.data.url
-        } else if (uploadResponse?.data?.data?.url) {
-          imageUrl = uploadResponse.data.data.url
-        } else if (uploadResponse?.url) {
-          imageUrl = uploadResponse.url
-        } else if (uploadResponse?.data) {
-          // If data is a string (URL), use it directly
-          imageUrl = typeof uploadResponse.data === 'string' ? uploadResponse.data : null
-        }
-        
-        if (!imageUrl) {
-          console.error('Upload response structure:', uploadResponse)
-          throw new Error('Upload failed: No URL found in response. Please check the response structure.')
-        }
-        
-        console.log('Step 1: Image uploaded successfully. URL:', imageUrl)
-      }
-      
-      // Step 2: Validate that we have an image URL
-      if (!imageUrl) {
-        alert('Please upload an image or enter an image URL')
-        setUploading(false)
-        return
-      }
-      
-      // Step 3: Build payload with the image URL from upload response
-      console.log('Step 2: Building payload with image URL:', imageUrl)
-      const requestData = {
-        nameAr: formData.nameAr,
-        nameEn: formData.nameEn,
-        categoryId: formData.categoryId,
-        imageUrl: imageUrl, // Use the uploaded image URL
-        description: formData.description || null,
-        cardColor: formData.cardColor || '#6366f1'
-      }
-      
-      // Add subCategoryId if provided
-      if (formData.subCategoryId) {
-        requestData.subCategoryId = formData.subCategoryId
-      }
-      
-      console.log('Step 3: Sending product data with image URL:', requestData)
-      
-      // Step 4: Send the payload with image URL
-      await adminService.addProduct(requestData)
-      console.log('Step 4: Product added successfully!')
-      
-      alert('Product added successfully!')
+      const imageUrl = await resolveImageUrl()
+      await productsService.create({ ...formData, imageUrl })
+      showToast(t('products.addSuccess'))
       setShowAddModal(false)
       resetForm()
       fetchProducts()
     } catch (err) {
       console.error('Error in handleAddProduct:', err)
-      alert('Failed to add product: ' + (err.message || 'Unknown error'))
+      showToast(err.message || t('products.addError'), 'error')
     } finally {
       setUploading(false)
     }
@@ -234,136 +180,92 @@ const Products = () => {
 
   const handleEditProduct = async (e) => {
     e.preventDefault()
-    
     if (!selectedProduct) return
-    
-    // Validation
-    if (!formData.nameAr || !formData.nameEn || !formData.categoryId) {
-      alert('Please fill in all required fields (Name and Category are required)')
+
+    const productId = getProductId(selectedProduct)
+    if (!productId) return
+
+    if (!formData.nameAr?.trim() || !formData.nameEn?.trim() || !formData.categoryId) {
+      showToast(t('products.validationRequired'), 'error')
       return
     }
-    
-    // Validate hex color format
-    const hexColorRegex = /^#[0-9A-Fa-f]{6}$/
-    if (formData.cardColor && !hexColorRegex.test(formData.cardColor)) {
-      alert('Please enter a valid hex color (e.g., #6366f1)')
-      return
-    }
-    
-    let imageUrl = formData.imageUrl // Use existing URL if no new file selected
-    
+
     try {
       setUploading(true)
-      
-      // Step 1: Upload image first if a new file is selected
-      if (selectedFile) {
-        console.log('Step 1: Uploading new image...')
-        const uploadResponse = await imageService.uploadImage(selectedFile)
-        console.log('Upload response:', uploadResponse)
-        
-        // Extract image URL from response
-        // Handle different response structures: response.data.url, response.data.data.url, response.url, response.data (string)
-        if (uploadResponse?.data?.url) {
-          imageUrl = uploadResponse.data.url
-        } else if (uploadResponse?.data?.data?.url) {
-          imageUrl = uploadResponse.data.data.url
-        } else if (uploadResponse?.url) {
-          imageUrl = uploadResponse.url
-        } else if (uploadResponse?.data) {
-          // If data is a string (URL), use it directly
-          imageUrl = typeof uploadResponse.data === 'string' ? uploadResponse.data : null
-        }
-        
-        if (!imageUrl) {
-          console.error('Upload response structure:', uploadResponse)
-          throw new Error('Upload failed: No URL found in response. Please check the response structure.')
-        }
-        
-        console.log('Step 1: Image uploaded successfully. URL:', imageUrl)
-      }
-      
-      // Step 2: Validate that we have an image URL
-      if (!imageUrl) {
-        alert('Please upload an image or enter an image URL')
-        setUploading(false)
-        return
-      }
-      
-      // Step 3: Build payload with the image URL from upload response
-      console.log('Step 2: Building payload with image URL:', imageUrl)
-      const requestData = {
-        nameAr: formData.nameAr,
-        nameEn: formData.nameEn,
-        categoryId: formData.categoryId,
-        imageUrl: imageUrl, // Use the uploaded image URL or existing URL
-        isActive: selectedProduct.isActive,
-        cardColor: formData.cardColor || '#6366f1'
-      }
-      
-      // Optional fields - include description if provided
-      if (formData.description) {
-        requestData.description = formData.description
-      }
-      
-      // SubCategoryId - include it explicitly (can be null to clear it)
-      if (formData.categoryId) {
-        requestData.subCategoryId = formData.subCategoryId !== undefined ? formData.subCategoryId : null
-      }
-      
-      console.log('Step 3: Sending product update with image URL:', requestData)
-      
-      // Step 4: Send the payload with image URL
-      await adminService.updateProduct(selectedProduct.productId, requestData)
-      console.log('Step 4: Product updated successfully!')
-      
-      alert('Product updated successfully!')
+      const imageUrl = await resolveImageUrl()
+      await productsService.update(
+        productId,
+        { ...formData, imageUrl },
+        selectedProduct.isActive !== false
+      )
+      showToast(t('products.updateSuccess'))
       setShowEditModal(false)
       resetForm()
       setSelectedProduct(null)
       fetchProducts()
     } catch (err) {
       console.error('Error in handleEditProduct:', err)
-      const errorMessage = err.message || 'Unknown error'
-      alert('Failed to update product: ' + errorMessage)
+      showToast(err.message || t('products.updateError'), 'error')
     } finally {
       setUploading(false)
     }
   }
 
-  const handleDeleteProduct = async (productId, productName) => {
-    if (!window.confirm(`Are you sure you want to delete "${productName}"? This action cannot be undone.`)) {
+  const handleDeleteProduct = async (product) => {
+    const productId = getProductId(product)
+    const productName = product.nameAr || product.nameEn || productId
+    if (!productId) return
+
+    if (!window.confirm(t('products.confirmDelete', { name: productName }))) {
       return
     }
-    
+
     try {
-      await adminService.deleteProduct(productId)
-      alert('Product deleted successfully!')
+      await productsService.remove(productId)
+      showToast(t('products.deleteSuccess'))
       fetchProducts()
     } catch (err) {
       console.error('Failed to delete product:', err)
-      alert('Failed to delete product: ' + (err.message || 'Unknown error'))
+      showToast(err.message || t('products.deleteError'), 'error')
+    }
+  }
+
+  const handleToggleActive = async (product) => {
+    const productId = getProductId(product)
+    if (!productId) return
+
+    try {
+      await productsService.update(
+        productId,
+        {
+          nameAr: product.nameAr,
+          nameEn: product.nameEn,
+          categoryId: product.categoryId || product.productCategory?.categoryId,
+          imageUrl: product.imageUrl,
+          description: product.description || '',
+          cardColor: product.cardColor || '#6366f1',
+          subCategoryId: product.subCategoryId || product.productSubCategory?.subCategoryId,
+        },
+        product.isActive === false
+      )
+      showToast(t('products.toggleSuccess'))
+      fetchProducts()
+    } catch (err) {
+      showToast(err.message || t('products.updateError'), 'error')
     }
   }
 
   const handleAddPrice = async (e) => {
     e.preventDefault()
-    
-    if (!priceData.maxPricePerKg || priceData.maxPricePerKg <= 0) {
-      alert('Please enter a valid price')
-      return
-    }
-    
+
     try {
-      await adminService.addPrice({
-        productId: priceData.productId,
-        maxPricePerKg: parseFloat(priceData.maxPricePerKg)
-      })
-      alert('Government price set successfully!')
+      await productsService.setGovPrice(priceData.productId, priceData.maxPricePerKg)
+      showToast(t('products.priceSuccess'))
       setShowPriceModal(false)
       setPriceData({ productId: null, maxPricePerKg: '' })
     } catch (err) {
       console.error('Failed to set price:', err)
-      alert('Failed to set price: ' + (err.message || 'Unknown error'))
+      showToast(err.message || t('products.priceError'), 'error')
     }
   }
 
@@ -393,13 +295,15 @@ const Products = () => {
     setShowEditModal(true)
   }
 
-  const openPriceModal = (product) => {
-    setPriceData({
-      productId: product.productId,
-      maxPricePerKg: ''
-    })
+  const openPriceModal = async (product) => {
+    const productId = getProductId(product)
     setSelectedProduct(product)
     setShowPriceModal(true)
+    const current = await productsService.getGovPrice(productId)
+    setPriceData({
+      productId,
+      maxPricePerKg: current != null ? String(current) : '',
+    })
   }
 
   const resetForm = () => {
@@ -458,13 +362,14 @@ const Products = () => {
       (product.nameAr && product.nameAr.toLowerCase().includes(search)) ||
       categoryName.includes(search) ||
       subCategoryName.includes(search) ||
-      (product.productId && product.productId.toString().includes(search))
+      (getProductId(product) && String(getProductId(product)).includes(search))
     )
   })
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A'
-    return new Date(dateString).toLocaleDateString('en-US', { 
+    if (!dateString) return t('common.na')
+    const locale = language === 'ar' ? 'ar' : 'en-US'
+    return new Date(dateString).toLocaleDateString(locale, { 
       year: 'numeric', 
       month: 'short', 
       day: 'numeric' 
@@ -476,16 +381,16 @@ const Products = () => {
       <div className="page-header">
         <div>
           <h1 className="page-title">
-            <FiPackage /> Products Management
+            <FiPackage /> {t('products.titleManagement')}
           </h1>
-          <p className="page-subtitle">Manage agricultural products and government prices</p>
+          <p className="page-subtitle">{t('products.subtitleExtended')}</p>
         </div>
         <div className="header-actions">
-          <button className="btn btn-outline" onClick={fetchProducts}>
-            <FiRefreshCw /> Refresh
+          <button type="button" className="btn btn-outline" onClick={fetchProducts}>
+            <FiRefreshCw /> {t('common.refresh')}
           </button>
-          <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
-            <FiPlus /> Add Product
+          <button type="button" className="btn btn-primary" onClick={() => setShowAddModal(true)}>
+            <FiPlus /> {t('products.addProduct')}
           </button>
         </div>
       </div>
@@ -493,19 +398,19 @@ const Products = () => {
       {/* Statistics */}
       <div className="stats-grid">
         <StatCard
-          title="Total Products"
+          title={t('products.totalProducts')}
           value={stats.total.toString()}
           icon={<FiPackage />}
           color="primary"
         />
         <StatCard
-          title="Active Products"
+          title={t('products.activeProducts')}
           value={stats.active.toString()}
           icon={<FiCheck />}
           color="success"
         />
         <StatCard
-          title="Inactive Products"
+          title={t('products.inactiveProducts')}
           value={stats.inactive.toString()}
           icon={<FiX />}
           color="danger"
@@ -518,7 +423,7 @@ const Products = () => {
           <FiSearch />
           <input
             type="text"
-            placeholder="Search by name (English/Arabic), category, or ID..."
+            placeholder={t('products.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
@@ -526,42 +431,52 @@ const Products = () => {
         </div>
       </div>
 
+      {toast && (
+        <div className={`toast-banner ${toast.type === 'error' ? 'toast-error' : 'toast-success'}`}>
+          {toast.type === 'error' ? <FiAlertCircle /> : <FiCheck />}
+          {toast.message}
+        </div>
+      )}
+
       {error && (
         <div className="error-message card">
           <FiAlertCircle /> {error}
+          <button type="button" className="btn btn-primary" style={{ marginTop: '0.75rem' }} onClick={fetchProducts}>
+            {t('common.retry')}
+          </button>
         </div>
       )}
 
       {loading ? (
         <div className="loading-message card">
-          <p>Loading products...</p>
+          <p>{t('products.loading')}</p>
         </div>
       ) : (
         <div className="products-table-container card">
           <table className="products-table">
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Image</th>
-                <th>Name (English)</th>
-                <th>Name (Arabic)</th>
-                <th>Category</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Actions</th>
+                <th>{t('common.id')}</th>
+                <th>{t('products.image')}</th>
+                <th>{t('products.nameEn')}</th>
+                <th>{t('products.nameAr')}</th>
+                <th>{t('products.category')}</th>
+                <th>{t('common.status')}</th>
+                <th>{t('products.created')}</th>
+                <th>{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody>
               {filteredProducts.length === 0 ? (
                 <tr>
                   <td colSpan="8" className="empty-state">
-                    {searchTerm ? 'No products found matching your search' : 'No products available'}
+                    {searchTerm ? t('products.noResults') : t('products.noProducts')}
                   </td>
                 </tr>
               ) : (
-                filteredProducts.map(product => (
-                  <tr key={product.productId}>
-                    <td className="product-id">#{product.productId}</td>
+                filteredProducts.map((product) => (
+                  <tr key={getProductId(product)}>
+                    <td className="product-id">#{getProductId(product)}</td>
                     <td className="product-image-cell">
                       {product.imageUrl ? (
                         <img src={product.imageUrl} alt={product.nameEn} className="product-img" />
@@ -571,8 +486,8 @@ const Products = () => {
                         </div>
                       )}
                     </td>
-                    <td className="product-name">{product.nameEn || 'N/A'}</td>
-                    <td className="product-name-ar">{product.nameAr || 'N/A'}</td>
+                    <td className="product-name">{product.nameEn || t('common.na')}</td>
+                    <td className="product-name-ar">{product.nameAr || t('common.na')}</td>
                     <td className="product-category">
                       <div className="category-info">
                         <span className="category-badge">{getCategoryName(product)}</span>
@@ -583,7 +498,7 @@ const Products = () => {
                     </td>
                     <td className="product-status">
                       <span className={`status-badge ${product.isActive ? 'status-active' : 'status-inactive'}`}>
-                        {product.isActive ? 'Active' : 'Inactive'}
+                        {product.isActive ? t('common.active') : t('common.inactive')}
                       </span>
                     </td>
                     <td className="product-created">{formatDate(product.createdAt)}</td>
@@ -592,21 +507,31 @@ const Products = () => {
                         <button
                           className="btn-icon btn-success"
                           onClick={() => openPriceModal(product)}
-                          title="Set Government Price"
+                          title={t('products.setGovPrice')}
                         >
                           <FiDollarSign />
                         </button>
                         <button
+                          type="button"
+                          className="btn-icon btn-warning"
+                          onClick={() => handleToggleActive(product)}
+                          title={product.isActive === false ? t('products.activate') : t('products.deactivate')}
+                        >
+                          <FiPower />
+                        </button>
+                        <button
+                          type="button"
                           className="btn-icon btn-primary"
                           onClick={() => openEditModal(product)}
-                          title="Edit Product"
+                          title={t('products.editProduct')}
                         >
                           <FiEdit2 />
                         </button>
                         <button
+                          type="button"
                           className="btn-icon btn-danger"
-                          onClick={() => handleDeleteProduct(product.productId, product.nameEn || product.nameAr)}
-                          title="Delete Product"
+                          onClick={() => handleDeleteProduct(product)}
+                          title={t('products.deleteProduct')}
                         >
                           <FiTrash2 />
                         </button>
@@ -839,7 +764,7 @@ const Products = () => {
               
               <div className="modal-footer">
                 <button type="button" className="btn btn-outline" onClick={closeModals}>
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button type="submit" className="btn btn-primary" disabled={uploading}>
                   {uploading ? (
@@ -849,7 +774,7 @@ const Products = () => {
                     </>
                   ) : (
                     <>
-                      <FiPlus /> Add Product
+                      <FiPlus /> {t('products.addProduct')}
                     </>
                   )}
                 </button>
@@ -864,7 +789,7 @@ const Products = () => {
         <div className="modal-overlay" onClick={closeModals}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2><FiEdit2 /> Edit Product</h2>
+              <h2><FiEdit2 /> {t('products.editProduct')}</h2>
               <button className="modal-close" onClick={closeModals}>×</button>
             </div>
             <form onSubmit={handleEditProduct} className="modal-body">
@@ -1075,7 +1000,7 @@ const Products = () => {
               
               <div className="modal-footer">
                 <button type="button" className="btn btn-outline" onClick={closeModals}>
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button type="submit" className="btn btn-primary" disabled={uploading}>
                   {uploading ? (
@@ -1098,13 +1023,13 @@ const Products = () => {
         <div className="modal-overlay" onClick={closeModals}>
           <div className="modal-content modal-small" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2><FiDollarSign /> Set Government Price</h2>
+              <h2><FiDollarSign /> {t('products.setGovPrice')}</h2>
               <button className="modal-close" onClick={closeModals}>×</button>
             </div>
             <form onSubmit={handleAddPrice} className="modal-body">
               <div className="product-info">
                 <p><strong>Product:</strong> {selectedProduct.nameEn} ({selectedProduct.nameAr})</p>
-                <p><strong>Category:</strong> {selectedProduct.category}</p>
+                <p><strong>{t('products.productCategory')}:</strong> {getCategoryName(selectedProduct)}</p>
               </div>
               <div className="form-group">
                 <label>Maximum Price per Kg *</label>
@@ -1121,7 +1046,7 @@ const Products = () => {
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-outline" onClick={closeModals}>
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button type="submit" className="btn btn-success">
                   <FiCheck /> Set Price

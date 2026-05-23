@@ -12,7 +12,7 @@ export const imageService = {
    * @param {string} folder - Optional folder name
    * @returns {Promise} Response with image URL and metadata
    */
-  uploadImage: async (file, folder = null) => {
+  uploadImage: async (file, folder = 'products') => {
     if (!file) {
       throw new Error('No file provided');
     }

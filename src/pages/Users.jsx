@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { FiUsers, FiSearch, FiFilter, FiUserCheck, FiUserX, FiShield, FiEye, FiRefreshCw, FiAlertCircle } from 'react-icons/fi'
 import adminService from '../services/adminService'
+import { useTranslation } from '../hooks/useTranslation'
 import './Users.css'
 
 const Users = () => {
+  const { t } = useTranslation()
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -159,13 +161,13 @@ const Users = () => {
       <div className="page-header">
         <div>
           <h1 className="page-title">
-            <FiUsers /> User Management
+            <FiUsers /> {t('users.titleManagement')}
           </h1>
-          <p className="page-subtitle">Manage users, roles, and permissions</p>
+          <p className="page-subtitle">{t('users.subtitleExtended')}</p>
         </div>
         <div className="header-actions">
-          <button className="btn btn-outline" onClick={fetchUsers}>
-            <FiRefreshCw /> Refresh
+          <button type="button" className="btn btn-outline" onClick={fetchUsers}>
+            <FiRefreshCw /> {t('common.refresh')}
           </button>
         </div>
       </div>
@@ -176,14 +178,14 @@ const Users = () => {
           <FiSearch />
           <input
             type="text"
-            placeholder="Search by name, EmailOrPhone, phone, or ID..."
+            placeholder={t('users.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
           />
         </div>
         <div className="page-size-selector">
-          <label>Show:</label>
+          <label>{t('common.show')}</label>
           <select value={pageSize} onChange={(e) => {
             setPageSize(Number(e.target.value))
             setCurrentPage(1)
@@ -204,7 +206,7 @@ const Users = () => {
 
       {loading ? (
         <div className="loading-message card">
-          <p>Loading users...</p>
+          <p>{t('users.loading')}</p>
         </div>
       ) : (
         <>

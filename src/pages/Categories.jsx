@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { FiFolder, FiFolderPlus, FiEdit2, FiTrash2, FiRefreshCw, FiSearch, FiCheck, FiX, FiChevronDown, FiChevronRight } from 'react-icons/fi'
 import adminService from '../services/adminService'
+import { useTranslation } from '../hooks/useTranslation'
 import './Categories.css'
 
 const Categories = () => {
+  const { t } = useTranslation()
   const [categories, setCategories] = useState([])
   const [subCategories, setSubCategories] = useState([])
   const [loading, setLoading] = useState(true)
@@ -285,16 +287,16 @@ const Categories = () => {
       <div className="page-header">
         <div>
           <h1 className="page-title">
-            <FiFolder /> Categories & SubCategories
+            <FiFolder /> {t('categories.titleExtended')}
           </h1>
-          <p className="page-subtitle">Manage product categories and subcategories</p>
+          <p className="page-subtitle">{t('categories.subtitleExtended')}</p>
         </div>
         <div className="header-actions">
-          <button className="btn btn-outline" onClick={() => { fetchCategories(); fetchSubCategories(); }}>
-            <FiRefreshCw /> Refresh
+          <button type="button" className="btn btn-outline" onClick={() => { fetchCategories(); fetchSubCategories(); }}>
+            <FiRefreshCw /> {t('common.refresh')}
           </button>
-          <button className="btn btn-primary" onClick={() => { resetCategoryForm(); setShowCategoryModal(true); }}>
-            <FiFolderPlus /> Add Category
+          <button type="button" className="btn btn-primary" onClick={() => { resetCategoryForm(); setShowCategoryModal(true); }}>
+            <FiFolderPlus /> {t('categories.addCategory')}
           </button>
         </div>
       </div>
@@ -305,7 +307,7 @@ const Categories = () => {
           <FiSearch />
           <input
             type="text"
-            placeholder="Search categories..."
+            placeholder={t('categories.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"

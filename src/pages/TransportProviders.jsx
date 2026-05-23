@@ -3,6 +3,7 @@ import { FiTruck, FiSearch, FiRefreshCw, FiCheck, FiX, FiEye, FiMapPin, FiPlus, 
 import transportService from '../services/transportService'
 import { useTranslation } from '../hooks/useTranslation'
 import './TransportProviders.css'
+import './transport-shared.css'
 
 const TransportProviders = () => {
   const { t } = useTranslation()

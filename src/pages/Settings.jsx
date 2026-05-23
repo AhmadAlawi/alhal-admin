@@ -1,9 +1,13 @@
 import React, { useState } from 'react'
 import { FiUser, FiBell, FiLock, FiGlobe, FiSave, FiCheckCircle, FiXCircle, FiLoader } from 'react-icons/fi'
 import { useNotifications } from '../contexts/NotificationContext'
+import { useLocale } from '../contexts/LocaleContext'
+import { useTranslation } from '../hooks/useTranslation'
 import './Settings.css'
 
 const Settings = () => {
+  const { t } = useTranslation()
+  const { language, changeLanguage } = useLocale()
   const [activeTab, setActiveTab] = useState('profile')
   const { 
     permission, 
@@ -17,10 +21,10 @@ const Settings = () => {
   const [registrationMessage, setRegistrationMessage] = useState('')
 
   const tabs = [
-    { id: 'profile', label: 'Profile', icon: <FiUser /> },
-    { id: 'notifications', label: 'Notifications', icon: <FiBell /> },
-    { id: 'security', label: 'Security', icon: <FiLock /> },
-    { id: 'preferences', label: 'Preferences', icon: <FiGlobe /> },
+    { id: 'profile', label: t('settings.profile'), icon: <FiUser /> },
+    { id: 'notifications', label: t('settings.notifications'), icon: <FiBell /> },
+    { id: 'security', label: t('settings.security'), icon: <FiLock /> },
+    { id: 'preferences', label: t('settings.preferences'), icon: <FiGlobe /> },
   ]
 
   const handleRegisterDevice = async () => {
@@ -34,28 +38,28 @@ const Settings = () => {
         const token = await requestPermission()
         if (token) {
           setRegistrationStatus('success')
-          setRegistrationMessage('Device registered successfully! You will now receive notifications.')
+          setRegistrationMessage(t('settings.deviceRegisterSuccess'))
         } else {
           setRegistrationStatus('error')
-          setRegistrationMessage('Failed to get notification permission. Please allow notifications in your browser settings.')
+          setRegistrationMessage(t('settings.deviceRegisterPermissionError'))
         }
       } else {
         // Permission already granted, just register the device
         const userId = localStorage.getItem('userId')
         if (!userId) {
           setRegistrationStatus('error')
-          setRegistrationMessage('User ID not found. Please log in again.')
+          setRegistrationMessage(t('settings.deviceRegisterUserError'))
           return
         }
 
         await registerDevice(userId)
         setRegistrationStatus('success')
-        setRegistrationMessage('Device registered successfully!')
+        setRegistrationMessage(t('settings.deviceRegisterSuccessShort'))
       }
     } catch (error) {
       console.error('Error registering device:', error)
       setRegistrationStatus('error')
-      setRegistrationMessage(error.message || 'Failed to register device. Please try again.')
+      setRegistrationMessage(error.message || t('settings.deviceRegisterError'))
     } finally {
       setIsRegistering(false)
     }
@@ -66,8 +70,8 @@ const Settings = () => {
   return (
     <div className="settings-page">
       <div className="page-header">
-        <h1 className="page-title">Settings</h1>
-        <p className="page-subtitle">Manage your account settings and preferences</p>
+        <h1 className="page-title">{t('settings.title')}</h1>
+        <p className="page-subtitle">{t('settings.subtitleExtended')}</p>
       </div>
 
       <div className="settings-container">
@@ -89,11 +93,11 @@ const Settings = () => {
         <div className="settings-content card">
           {activeTab === 'profile' && (
             <div className="settings-section">
-              <h2 className="settings-section-title">Profile Settings</h2>
-              <p className="settings-section-subtitle">Update your personal information</p>
+              <h2 className="settings-section-title">{t('settings.profileSettings')}</h2>
+              <p className="settings-section-subtitle">{t('settings.profileSubtitle')}</p>
               
               <div className="form-group">
-                <label className="form-label">Full Name</label>
+                <label className="form-label">{t('settings.fullName')}</label>
                 <input type="text" className="form-input" defaultValue="Admin User" />
               </div>
 
@@ -108,20 +112,20 @@ const Settings = () => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Bio</label>
-                <textarea className="form-textarea" rows="4" placeholder="Tell us about yourself..."></textarea>
+                <label className="form-label">{t('settings.bio')}</label>
+                <textarea className="form-textarea" rows="4" placeholder={t('settings.bioPlaceholder')}></textarea>
               </div>
 
-              <button className="btn btn-primary">
-                <FiSave /> Save Changes
+              <button type="button" className="btn btn-primary">
+                <FiSave /> {t('settings.saveChanges')}
               </button>
             </div>
           )}
 
           {activeTab === 'notifications' && (
             <div className="settings-section">
-              <h2 className="settings-section-title">Notification Settings</h2>
-              <p className="settings-section-subtitle">Manage how you receive notifications</p>
+              <h2 className="settings-section-title">{t('settings.notificationSettings')}</h2>
+              <p className="settings-section-subtitle">{t('settings.notificationSubtitle')}</p>
               
               <div className="settings-item">
                 <div className="settings-item-info">
@@ -159,9 +163,9 @@ const Settings = () => {
               {/* Device Registration Section */}
               <div className="settings-item" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '1rem' }}>
                 <div className="settings-item-info" style={{ width: '100%' }}>
-                  <h4 className="settings-item-title">Push Notifications</h4>
+                  <h4 className="settings-item-title">{t('settings.pushNotificationsLabel')}</h4>
                   <p className="settings-item-desc">
-                    Register this device to receive push notifications
+                    {t('dashboard.pushNotificationsSubtitle')}
                   </p>
                   {isDeviceRegistered && (
                     <div style={{ 
@@ -175,7 +179,7 @@ const Settings = () => {
                       fontSize: '0.875rem',
                       color: 'rgb(34, 197, 94)'
                     }}>
-                      <FiCheckCircle /> Device registered
+                      <FiCheckCircle /> {t('settings.deviceRegistered')}
                     </div>
                   )}
                   {permission === 'denied' && (
@@ -187,7 +191,7 @@ const Settings = () => {
                       fontSize: '0.875rem',
                       color: 'rgb(239, 68, 68)'
                     }}>
-                      Notifications are blocked. Please enable them in your browser settings.
+                      {t('common.notificationsBlocked')}
                     </div>
                   )}
                   {registrationStatus && (
@@ -223,44 +227,44 @@ const Settings = () => {
                 >
                   {isRegistering ? (
                     <>
-                      <FiLoader style={{ animation: 'spin 1s linear infinite' }} /> Registering...
+                      <FiLoader style={{ animation: 'spin 1s linear infinite' }} /> {t('settings.registering')}
                     </>
                   ) : (
                     <>
-                      <FiBell /> {isDeviceRegistered ? 'Re-register Device' : 'Register Device for Notifications'}
+                      <FiBell /> {isDeviceRegistered ? t('settings.reregisterDevice') : t('settings.registerDevice')}
                     </>
                   )}
                 </button>
                 {!isSupported && (
                   <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-                    Push notifications are not supported in this browser.
+                    {t('settings.pushNotSupported')}
                   </p>
                 )}
               </div>
 
-              <button className="btn btn-primary">
-                <FiSave /> Save Changes
+              <button type="button" className="btn btn-primary">
+                <FiSave /> {t('settings.saveChanges')}
               </button>
             </div>
           )}
 
           {activeTab === 'security' && (
             <div className="settings-section">
-              <h2 className="settings-section-title">Security Settings</h2>
-              <p className="settings-section-subtitle">Manage your password and security preferences</p>
+              <h2 className="settings-section-title">{t('settings.securitySettings')}</h2>
+              <p className="settings-section-subtitle">{t('settings.securitySubtitle')}</p>
               
               <div className="form-group">
-                <label className="form-label">Current Password</label>
+                <label className="form-label">{t('settings.currentPassword')}</label>
                 <input type="password" className="form-input" />
               </div>
 
               <div className="form-group">
-                <label className="form-label">New Password</label>
+                <label className="form-label">{t('settings.newPassword')}</label>
                 <input type="password" className="form-input" />
               </div>
 
               <div className="form-group">
-                <label className="form-label">Confirm New Password</label>
+                <label className="form-label">{t('settings.confirmPassword')}</label>
                 <input type="password" className="form-input" />
               </div>
 
@@ -275,29 +279,31 @@ const Settings = () => {
                 </label>
               </div>
 
-              <button className="btn btn-primary">
-                <FiSave /> Update Password
+              <button type="button" className="btn btn-primary">
+                <FiSave /> {t('settings.updatePassword')}
               </button>
             </div>
           )}
 
           {activeTab === 'preferences' && (
             <div className="settings-section">
-              <h2 className="settings-section-title">Preferences</h2>
-              <p className="settings-section-subtitle">Customize your dashboard experience</p>
+              <h2 className="settings-section-title">{t('settings.preferencesSettings')}</h2>
+              <p className="settings-section-subtitle">{t('settings.preferencesSubtitle')}</p>
               
               <div className="form-group">
-                <label className="form-label">Language</label>
-                <select className="form-input">
-                  <option>English</option>
-                  <option>Arabic</option>
-                  <option>French</option>
-                  <option>Spanish</option>
+                <label className="form-label">{t('settings.language')}</label>
+                <select
+                  className="form-input"
+                  value={language}
+                  onChange={(e) => changeLanguage(e.target.value)}
+                >
+                  <option value="ar">{t('settings.languageArabic')}</option>
+                  <option value="en">{t('settings.languageEnglish')}</option>
                 </select>
               </div>
 
               <div className="form-group">
-                <label className="form-label">Timezone</label>
+                <label className="form-label">{t('settings.timezone')}</label>
                 <select className="form-input">
                   <option>UTC</option>
                   <option>GMT+3 (Riyadh)</option>
@@ -315,8 +321,8 @@ const Settings = () => {
                 </select>
               </div>
 
-              <button className="btn btn-primary">
-                <FiSave /> Save Preferences
+              <button type="button" className="btn btn-primary">
+                <FiSave /> {t('settings.savePreferences')}
               </button>
             </div>
           )}

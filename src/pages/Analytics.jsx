@@ -6,10 +6,18 @@ import Table from '../components/Table/Table'
 import marketAnalysisService from '../services/marketAnalysisService'
 import adminService from '../services/adminService'
 import { useTranslation } from '../hooks/useTranslation'
+import {
+  formatPriceTrendsChart,
+  formatSupplyDemandChart,
+  formatPriceVolatilityChart,
+  formatDistributionChart,
+  hasChartData,
+} from '../utils/chartNormalize'
 import './Analytics.css'
 
 const Analytics = () => {
-  const { t } = useTranslation()
+  const { t, language } = useTranslation()
+  const chartLocale = language === 'ar' ? 'ar' : 'en-US'
   // Filter states
   const [products, setProducts] = useState([])
   const [availableFilters, setAvailableFilters] = useState(null)
@@ -225,16 +233,8 @@ const Analytics = () => {
     }
   }
 
-  // Format functions
-  const formatPriceTrendsData = (data) => {
-    if (!data || !data.averagePrice) return []
-    return data.averagePrice.map(item => ({
-      date: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      avgPrice: item.value || 0,
-      minPrice: data.minPrice?.find(p => p.date === item.date)?.value || 0,
-      maxPrice: data.maxPrice?.find(p => p.date === item.date)?.value || 0
-    }))
-  }
+  const formatPriceTrendsData = (data) => formatPriceTrendsChart(data, chartLocale)
+  const formatVolatilityData = (data) => formatPriceVolatilityChart(data, chartLocale)
 
   const formatVolumeData = (data) => {
     if (!data || !data.data) return []
@@ -262,14 +262,7 @@ const Analytics = () => {
     }))
   }
 
-  const formatSupplyDemandData = (data) => {
-    if (!data || !data.supply || !data.demand) return []
-    return data.supply.map((item, index) => ({
-      date: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      supply: item.value || 0,
-      demand: data.demand[index]?.value || 0
-    }))
-  }
+  const formatSupplyDemandData = (data) => formatSupplyDemandChart(data, chartLocale)
 
   const formatTopProductsData = (data) => {
     if (!data || !Array.isArray(data)) return []
@@ -292,11 +285,13 @@ const Analytics = () => {
   }
 
   const priceTrendsChartData = formatPriceTrendsData(priceTrends)
+  const volatilityChartData = formatVolatilityData(priceVolatility)
   const volumeChartData = formatVolumeData(volumeData)
   const marketShareChartData = formatMarketShareData(marketShare)
   const transactionChartData = formatTransactionData(transactionDist)
   const supplyDemandChartData = formatSupplyDemandData(supplyDemand)
   const topProductsChartData = formatTopProductsData(topProducts)
+  const transactionPie = formatDistributionChart(transactionChartData)
 
   return (
     <div className="analytics-page">
@@ -418,15 +413,20 @@ const Analytics = () => {
           </div>
 
           {/* Price Trends Chart */}
-          {priceTrendsChartData.length > 0 ? (
+          {hasChartData(priceTrendsChartData) ? (
             <div className="chart-section">
               <Chart
                 type="line"
                 data={priceTrendsChartData}
-                dataKey="avgPrice"
+                dataKeys={[
+                  { dataKey: 'avgPrice', name: t('analytics.avgPrice'), color: '#6366f1' },
+                  { dataKey: 'minPrice', name: t('analytics.minPrice'), color: '#94a3b8' },
+                  { dataKey: 'maxPrice', name: t('analytics.maxPrice'), color: '#f59e0b' },
+                ]}
                 xAxisKey="date"
                 title={`${t('analytics.priceTrendsFor')} ${getProductName(selectedProduct)}`}
                 color="#6366f1"
+                yAxisLabel={t('analytics.pricePerKg')}
               />
             </div>
           ) : loading.priceTrends ? (
@@ -478,13 +478,42 @@ const Analytics = () => {
               <Chart
                 type="line"
                 data={supplyDemandChartData}
-                dataKey="supply"
+                dataKeys={[
+                  { dataKey: 'supply', name: t('analytics.supply'), color: '#8b5cf6' },
+                  { dataKey: 'demand', name: t('analytics.demand'), color: '#06b6d4' },
+                ]}
                 xAxisKey="date"
                 title={t('analytics.supplyDemand')}
                 color="#8b5cf6"
               />
             )}
+
+            {/* Price volatility */}
+            {volatilityChartData.length > 0 && (
+              <Chart
+                type="area"
+                data={volatilityChartData}
+                dataKey="volatility"
+                xAxisKey="date"
+                title={t('analytics.priceVolatility')}
+                color="#ec4899"
+              />
+            )}
           </div>
+
+          {transactionPie.data.length > 0 && (
+            <div className="chart-section">
+              <Chart
+                type="pie"
+                data={transactionPie.data}
+                dataKey={transactionPie.valueKey}
+                nameKey={transactionPie.nameKey}
+                title={t('analytics.transactionDistribution')}
+                pieLabel
+                height={320}
+              />
+            </div>
+          )}
 
           {/* Top Products Section */}
           {topProductsChartData.length > 0 && (

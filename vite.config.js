@@ -33,6 +33,21 @@ export default defineConfig(({ mode }) => {
                               env.VITE_DISABLE_AUTO_OPEN === 'true'
   
   return {
+    test: {
+      globals: true,
+      environment: 'jsdom',
+      pool: 'threads',
+      singleThread: true,
+      testTimeout: 30000,
+      setupFiles: ['./src/test/setup.js'],
+      include: ['src/**/*.{test,spec}.{js,jsx}'],
+      coverage: {
+        provider: 'v8',
+        reporter: ['text', 'html'],
+        include: ['src/**/*.{js,jsx}'],
+        exclude: ['src/test/**', '**/*.test.{js,jsx}', '**/*.spec.{js,jsx}'],
+      },
+    },
     plugins: [
       react({
         // Ensure React is properly handled by the plugin

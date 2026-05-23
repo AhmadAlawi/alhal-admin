@@ -4,6 +4,8 @@ import transportService from '../services/transportService'
 import { useTranslation } from '../hooks/useTranslation'
 import { parsePaginatedList } from '../utils/apiNormalize'
 import './TransportRequests.css'
+import './transport-shared.css'
+import { isAccessDeniedError } from '../services/transportApiPaths'
 
 const TransportRequests = () => {
   const { t } = useTranslation()
@@ -29,6 +31,7 @@ const TransportRequests = () => {
   const [totalPages, setTotalPages] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
   const [statusCounts, setStatusCounts] = useState(null)
+  const [accessDenied, setAccessDenied] = useState(false)
 
   useEffect(() => {
     fetchRequests()
@@ -38,6 +41,7 @@ const TransportRequests = () => {
     try {
       setLoading(true)
       setError(null)
+      setAccessDenied(false)
       const params = {
         page: currentPage,
         pageSize: pageSize
@@ -57,7 +61,10 @@ const TransportRequests = () => {
       )
     } catch (err) {
       console.error('Failed to fetch requests:', err)
-      setError(err.message || t('transport.error.loadRequests'))
+      const base = err.message || t('transport.error.loadRequests')
+      const denied = isAccessDeniedError(err)
+      setAccessDenied(denied)
+      setError(denied ? `${base} — ${t('transport.error.adminApiHint')}` : base)
       setRequests([])
       setTotalPages(1)
       setTotalCount(0)
@@ -224,17 +231,47 @@ const TransportRequests = () => {
       </div>
 
       {error && (
-        <div className="error-message card">
-          <FiX /> {error}
-          <button
-            type="button"
-            className="btn btn-sm btn-outline"
-            onClick={fetchRequests}
-            style={{ marginLeft: '1rem' }}
-          >
-            {t('common.retry')}
-          </button>
-        </div>
+        <>
+          <div className="error-message card">
+            <FiX /> {error}
+            <button
+              type="button"
+              className="btn btn-sm btn-outline"
+              onClick={fetchRequests}
+              style={{ marginLeft: '1rem' }}
+            >
+              {t('common.retry')}
+            </button>
+          </div>
+          {accessDenied && (
+            <div className="api-access-hint card">
+              <strong>Backend (SouqAlHal.Api)</strong>
+              <p>
+                Add admin routes mirroring transport requests, with{' '}
+                <code>[Authorize(Roles = &quot;SuperAdmin,Admin&quot;)]</code> or policy{' '}
+                <code>AdminOnly</code>:
+              </p>
+              <ul>
+                <li>
+                  <code>GET /api/admin/transport/requests?page=&amp;pageSize=</code>
+                </li>
+                <li>
+                  <code>GET /api/admin/transport/requests/&#123;id&#125;</code>
+                </li>
+                <li>
+                  <code>DELETE /api/admin/transport/requests/&#123;id&#125;</code>
+                </li>
+                <li>
+                  <code>POST /api/admin/transport/requests/&#123;id&#125;/notify</code>
+                </li>
+              </ul>
+              <p>
+                Or allow <code>SuperAdmin</code> on existing{' '}
+                <code>GET /api/transport/requests</code> (your token already has role superadmin).
+              </p>
+            </div>
+          )}
+        </>
       )}
 
       {statusCounts && (
@@ -532,7 +569,7 @@ const TransportRequests = () => {
                     value={formData.contextId}
                     onChange={(e) => setFormData({ ...formData, contextId: e.target.value })}
                     required
-                    placeholder="Auction/Tender/Listing ID"
+                    placeholder={t('transport.requests.contextIdPlaceholder')}
                   />
                 </div>
                 <div className="form-group">
@@ -542,9 +579,9 @@ const TransportRequests = () => {
                     onChange={(e) => setFormData({ ...formData, contextType: e.target.value })}
                     required
                   >
-                    <option value="auction">Auction</option>
-                    <option value="tender">Tender</option>
-                    <option value="direct">Direct</option>
+                    <option value="auction">{t('transport.requests.contextTypeAuction')}</option>
+                    <option value="tender">{t('transport.requests.contextTypeTender')}</option>
+                    <option value="direct">{t('transport.requests.contextTypeDirect')}</option>
                   </select>
                 </div>
                 <div className="form-group">
@@ -554,7 +591,7 @@ const TransportRequests = () => {
                     value={formData.buyerUserId}
                     onChange={(e) => setFormData({ ...formData, buyerUserId: e.target.value })}
                     required
-                    placeholder="Buyer User ID"
+                    placeholder={t('transport.requests.buyerUserIdPlaceholder')}
                   />
                 </div>
                 <div className="form-group">
@@ -589,7 +626,7 @@ const TransportRequests = () => {
                     value={formData.specialRequirements}
                     onChange={(e) => setFormData({ ...formData, specialRequirements: e.target.value })}
                     rows="3"
-                    placeholder="Special requirements..."
+                    placeholder={t('transport.requests.specialRequirementsPlaceholder')}
                   />
                 </div>
               </div>
