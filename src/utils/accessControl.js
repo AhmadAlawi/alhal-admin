@@ -2,6 +2,7 @@ export const PERMISSIONS = {
   RBAC_MANAGE: 'platform.rbac.manage',
   GOV_DASHBOARD: 'gov.dashboard.view',
   GOV_REPORTS: 'gov.reports.view',
+  GOV_REPORTS_BUILD: 'gov.reports.build',
   GOV_MARKET_ANALYSIS: 'gov.market_analysis.view',
   GOV_ALERTS: 'gov.alerts.manage',
   GOV_MARKET_CONTROL: 'gov.market.control.view',

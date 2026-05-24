@@ -11,6 +11,16 @@ export const NAV_ITEMS = [
     permission: PERMISSIONS.GOV_DASHBOARD,
   },
   {
+    path: '/reports/saved',
+    labelKey: 'nav.savedReports',
+    permission: PERMISSIONS.GOV_REPORTS_BUILD,
+  },
+  {
+    path: '/reports/builder',
+    labelKey: 'nav.reportBuilder',
+    permission: PERMISSIONS.GOV_REPORTS_BUILD,
+  },
+  {
     path: '/reports',
     labelKey: 'nav.govReports',
     permission: PERMISSIONS.GOV_REPORTS,

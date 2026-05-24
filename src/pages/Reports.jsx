@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { FiFilter, FiRefreshCw, FiDownload, FiTrendingUp, FiBarChart2, FiPieChart, FiActivity, FiDatabase, FiUsers, FiPackage, FiTruck, FiFileText, FiAward, FiDollarSign, FiBox, FiZap, FiTrendingDown, FiShoppingCart, FiMapPin } from 'react-icons/fi'
+import { Link } from 'react-router-dom'
+import { FiFilter, FiRefreshCw, FiDownload, FiTrendingUp, FiBarChart2, FiPieChart, FiActivity, FiDatabase, FiUsers, FiPackage, FiTruck, FiFileText, FiAward, FiDollarSign, FiBox, FiZap, FiTrendingDown, FiShoppingCart, FiMapPin, FiEdit3 } from 'react-icons/fi'
 import StatCard from '../components/StatCard/StatCard'
 import Chart from '../components/Chart/Chart'
 import reportsService from '../services/reportsService'
@@ -399,6 +400,9 @@ const Reports = () => {
           <p className="page-subtitle">{t('reports.reportsSubtitle')}</p>
         </div>
         <div className="header-actions">
+          <Link to="/reports/builder" className="btn btn-outline">
+            <FiEdit3 /> {t('reportBuilder.title')}
+          </Link>
           <button className="btn btn-outline" onClick={fetchReportData} disabled={!activeReport || loading}>
             <FiRefreshCw /> {t('common.refresh')}
           </button>

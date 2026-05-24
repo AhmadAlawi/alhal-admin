@@ -9,6 +9,8 @@ import Dashboard from './pages/Dashboard'
 import Users from './pages/Users'
 import Analytics from './pages/Analytics'
 import Reports from './pages/Reports'
+import ReportBuilder from './pages/ReportBuilder'
+import SavedReports from './pages/SavedReports'
 import Products from './pages/Products'
 import Categories from './pages/Categories'
 import Orders from './pages/Orders'
@@ -57,6 +59,22 @@ function App() {
               element={
                 <GuardedPage permission={PERMISSIONS.GOV_DASHBOARD}>
                   <Dashboard />
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/reports/saved"
+              element={
+                <GuardedPage permission={PERMISSIONS.GOV_REPORTS_BUILD}>
+                  <SavedReports />
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/reports/builder"
+              element={
+                <GuardedPage permission={PERMISSIONS.GOV_REPORTS_BUILD}>
+                  <ReportBuilder />
                 </GuardedPage>
               }
             />
