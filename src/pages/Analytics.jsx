@@ -1,16 +1,21 @@
-import React, { useState, useEffect } from 'react'
-import { FiFilter, FiRefreshCw, FiDownload, FiTrendingUp, FiBarChart2, FiPieChart, FiActivity } from 'react-icons/fi'
+import React, { useState, useEffect, useMemo } from 'react'
+import { FiFilter, FiRefreshCw, FiTrendingUp, FiBarChart2 } from 'react-icons/fi'
 import StatCard from '../components/StatCard/StatCard'
 import Chart from '../components/Chart/Chart'
 import Table from '../components/Table/Table'
 import marketAnalysisService from '../services/marketAnalysisService'
 import adminService from '../services/adminService'
+import governoratesService from '../services/governoratesService'
 import { useTranslation } from '../hooks/useTranslation'
+import {
+  buildGovernorateLookup,
+  resolveGovernorateLabel,
+  mapChartGovernorateRows,
+} from '../utils/governorateNames'
 import {
   formatPriceTrendsChart,
   formatSupplyDemandChart,
   formatPriceVolatilityChart,
-  formatDistributionChart,
   hasChartData,
 } from '../utils/chartNormalize'
 import './Analytics.css'
@@ -33,6 +38,9 @@ const Analytics = () => {
     endDate: null
   })
   const [groupBy, setGroupBy] = useState('day')
+  const [periodPreset, setPeriodPreset] = useState('90') // 90 | all | custom
+  const [minQualityScore, setMinQualityScore] = useState('')
+  const [governorateOptions, setGovernorateOptions] = useState([])
   
   // Data states
   const [dashboardSummary, setDashboardSummary] = useState(null)
@@ -52,14 +60,20 @@ const Analytics = () => {
   useEffect(() => {
     fetchProducts()
     fetchAvailableFilters()
+    governoratesService.getOptions().then(setGovernorateOptions)
   }, [])
+
+  const governorateLookup = useMemo(
+    () => buildGovernorateLookup(governorateOptions),
+    [governorateOptions]
+  )
 
   // Fetch data when filters change
   useEffect(() => {
     if (selectedProduct) {
       fetchAllData()
     }
-  }, [selectedProduct, selectedGovernorate, dateRange, groupBy])
+  }, [selectedProduct, selectedGovernorate, dateRange, groupBy, periodPreset, minQualityScore])
 
   const fetchProducts = async () => {
     try {
@@ -87,14 +101,35 @@ const Analytics = () => {
     }
   }
 
+  const resolveDateRange = () => {
+    if (periodPreset === 'all') {
+      return { startDate: null, endDate: null }
+    }
+    if (periodPreset === '90') {
+      const end = new Date()
+      const start = new Date()
+      start.setDate(start.getDate() - 90)
+      return {
+        startDate: start.toISOString().slice(0, 10),
+        endDate: end.toISOString().slice(0, 10),
+      }
+    }
+    return dateRange
+  }
+
   const fetchAllData = async () => {
-    // Build params
+    const range = resolveDateRange()
+    const govLabel = selectedGovernorate
+      ? resolveGovernorateLabel(selectedGovernorate, governorateLookup, language) || selectedGovernorate
+      : null
+
     const params = {
       productId: selectedProduct,
-      governorate: selectedGovernorate,
-      startDate: dateRange.startDate,
-      endDate: dateRange.endDate,
-      groupBy
+      governorate: govLabel,
+      startDate: range.startDate,
+      endDate: range.endDate,
+      groupBy,
+      minQualityScore: minQualityScore !== '' ? Number(minQualityScore) : undefined,
     }
 
     // Fetch all charts in parallel
@@ -199,10 +234,11 @@ const Analytics = () => {
   const fetchSupplyDemand = async (params) => {
     try {
       setLoading(prev => ({ ...prev, supplyDemand: true }))
+      const supplyDays = periodPreset === 'all' ? undefined : periodPreset === '90' ? 90 : 30
       const response = await marketAnalysisService.getSupplyDemandTrends({
         productId: params.productId,
         governorate: params.governorate,
-        days: 30
+        days: supplyDays,
       })
       setSupplyDemand(response.data || response)
       setErrors(prev => ({ ...prev, supplyDemand: null }))
@@ -238,10 +274,11 @@ const Analytics = () => {
 
   const formatVolumeData = (data) => {
     if (!data || !data.data) return []
-    return data.data.map(item => ({
+    const rows = data.data.map((item) => ({
       governorate: item.category || item.governorate,
-      volume: item.value || 0
+      volume: item.value || 0,
     }))
+    return mapChartGovernorateRows(rows, governorateLookup, language)
   }
 
   const formatMarketShareData = (data) => {
@@ -291,7 +328,17 @@ const Analytics = () => {
   const transactionChartData = formatTransactionData(transactionDist)
   const supplyDemandChartData = formatSupplyDemandData(supplyDemand)
   const topProductsChartData = formatTopProductsData(topProducts)
-  const transactionPie = formatDistributionChart(transactionChartData)
+  const govSelectOptions = useMemo(() => {
+    if (governorateOptions.length > 0) return governorateOptions
+    return (availableFilters?.governorates ?? []).map((g) => ({
+      id: g,
+      name: String(g),
+    }))
+  }, [governorateOptions, availableFilters])
+
+  const selectedGovernorateLabel = selectedGovernorate
+    ? resolveGovernorateLabel(selectedGovernorate, governorateLookup, language) || selectedGovernorate
+    : null
 
   return (
     <div className="analytics-page">
@@ -332,17 +379,46 @@ const Analytics = () => {
 
           <div className="filter-group">
             <label>{t('analytics.governorate')}</label>
-            <select 
+            <select
               className="filter-select"
               value={selectedGovernorate || ''}
               onChange={(e) => setSelectedGovernorate(e.target.value || null)}
               disabled={loadingFilters}
             >
               <option value="">{t('analytics.allGovernorates')}</option>
-              {availableFilters?.governorates?.map(gov => (
-                <option key={gov} value={gov}>{gov}</option>
+              {govSelectOptions.map((gov) => (
+                <option key={gov.id} value={String(gov.id)}>
+                  {language === 'ar' ? gov.nameAr || gov.name : gov.nameEn || gov.name}
+                </option>
               ))}
             </select>
+          </div>
+
+          <div className="filter-group">
+            <label>{t('analytics.period')}</label>
+            <select
+              className="filter-select"
+              value={periodPreset}
+              onChange={(e) => setPeriodPreset(e.target.value)}
+            >
+              <option value="90">{t('analytics.last90Days')}</option>
+              <option value="all">{t('analytics.allTimes')}</option>
+              <option value="custom">{t('analytics.customRange')}</option>
+            </select>
+          </div>
+
+          <div className="filter-group">
+            <label>{t('analytics.minQualityScore')}</label>
+            <input
+              type="number"
+              className="filter-select"
+              min="0"
+              max="100"
+              step="1"
+              placeholder={t('analytics.qualityScorePlaceholder')}
+              value={minQualityScore}
+              onChange={(e) => setMinQualityScore(e.target.value)}
+            />
           </div>
 
           <div className="filter-group">
@@ -351,17 +427,25 @@ const Analytics = () => {
               type="date"
               className="filter-select"
               value={dateRange.startDate || ''}
-              onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
+              onChange={(e) => {
+                setPeriodPreset('custom')
+                setDateRange((prev) => ({ ...prev, startDate: e.target.value }))
+              }}
+              disabled={periodPreset !== 'custom'}
             />
           </div>
 
           <div className="filter-group">
             <label>{t('analytics.endDate')}</label>
-            <input 
+            <input
               type="date"
               className="filter-select"
               value={dateRange.endDate || ''}
-              onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
+              onChange={(e) => {
+                setPeriodPreset('custom')
+                setDateRange((prev) => ({ ...prev, endDate: e.target.value }))
+              }}
+              disabled={periodPreset !== 'custom'}
             />
           </div>
 
@@ -408,7 +492,9 @@ const Analytics = () => {
           <div className="selected-product-info">
             <h3 className="selected-product-title">
               {t('analytics.analyzing')}: <span className="product-name">{getProductName(selectedProduct)}</span>
-              {selectedGovernorate && <span className="governorate-tag"> {t('analytics.in')} {selectedGovernorate}</span>}
+              {selectedGovernorateLabel && (
+                <span className="governorate-tag"> {t('analytics.in')} {selectedGovernorateLabel}</span>
+              )}
             </h3>
           </div>
 
@@ -424,9 +510,11 @@ const Analytics = () => {
                   { dataKey: 'maxPrice', name: t('analytics.maxPrice'), color: '#f59e0b' },
                 ]}
                 xAxisKey="date"
+                xAxisLabel={t('analytics.dateAxis')}
                 title={`${t('analytics.priceTrendsFor')} ${getProductName(selectedProduct)}`}
                 color="#6366f1"
                 yAxisLabel={t('analytics.pricePerKg')}
+                scrollable
               />
             </div>
           ) : loading.priceTrends ? (
@@ -444,6 +532,8 @@ const Analytics = () => {
                 data={volumeChartData}
                 dataKey="volume"
                 xAxisKey="governorate"
+                xAxisLabel={t('analytics.governorate')}
+                yAxisLabel={t('analytics.volumeKg')}
                 title={t('analytics.salesVolume')}
                 color="#10b981"
               />
@@ -476,15 +566,18 @@ const Analytics = () => {
             {/* Supply vs Demand */}
             {supplyDemandChartData.length > 0 && (
               <Chart
-                type="line"
+                type="bar"
                 data={supplyDemandChartData}
                 dataKeys={[
                   { dataKey: 'supply', name: t('analytics.supply'), color: '#8b5cf6' },
                   { dataKey: 'demand', name: t('analytics.demand'), color: '#06b6d4' },
                 ]}
                 xAxisKey="date"
+                xAxisLabel={t('analytics.dateAxis')}
+                yAxisLabel={t('analytics.quantityKg')}
                 title={t('analytics.supplyDemand')}
                 color="#8b5cf6"
+                scrollable
               />
             )}
 
@@ -500,20 +593,6 @@ const Analytics = () => {
               />
             )}
           </div>
-
-          {transactionPie.data.length > 0 && (
-            <div className="chart-section">
-              <Chart
-                type="pie"
-                data={transactionPie.data}
-                dataKey={transactionPie.valueKey}
-                nameKey={transactionPie.nameKey}
-                title={t('analytics.transactionDistribution')}
-                pieLabel
-                height={320}
-              />
-            </div>
-          )}
 
           {/* Top Products Section */}
           {topProductsChartData.length > 0 && (

@@ -9,7 +9,8 @@ import {
  * Primary gov dashboard load — single auto-fill call.
  */
 export const useAutoFillData = (params = {}, options = {}) => {
-  const { days = 30, governorate, governorateId } = params;
+  const { days: daysParam = 30, governorate, governorateId } = params;
+  const days = daysParam > 0 ? daysParam : undefined;
   const { pollIntervalMs = 60000 } = options;
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);

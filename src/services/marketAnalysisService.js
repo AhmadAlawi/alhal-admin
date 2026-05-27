@@ -21,6 +21,7 @@ export const marketAnalysisService = {
     if (params.startDate) filteredParams.startDate = params.startDate;
     if (params.endDate) filteredParams.endDate = params.endDate;
     if (params.groupBy) filteredParams.groupBy = params.groupBy;
+    if (params.minQualityScore != null) filteredParams.minQualityScore = params.minQualityScore;
 
     return apiClient.get('/api/MarketAnalysis/charts/price-trends', filteredParams);
   },
@@ -31,6 +32,7 @@ export const marketAnalysisService = {
     if (params.productId) filteredParams.productId = params.productId;
     if (params.startDate) filteredParams.startDate = params.startDate;
     if (params.endDate) filteredParams.endDate = params.endDate;
+    if (params.minQualityScore != null) filteredParams.minQualityScore = params.minQualityScore;
     return apiClient.get('/api/MarketAnalysis/charts/volume-by-governorate', filteredParams);
   },
 

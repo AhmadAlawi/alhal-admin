@@ -1,5 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import {
+  buildGovernorateLookup,
+  resolveGovernorateLabel,
+} from '../utils/governorateNames'
+import {
   FiUsers,
   FiDollarSign,
   FiShoppingCart,
@@ -34,7 +38,7 @@ const formatShortDate = (iso, locale = 'ar') => {
 const DashboardContent = () => {
   const { t, language } = useTranslation()
   const locale = language === 'ar' ? 'ar' : 'en-US'
-  const [selectedDays, setSelectedDays] = useState(30)
+  const [selectedDays, setSelectedDays] = useState(30) // 0 = all times
   const [governorateId, setGovernorateId] = useState('')
   const [governorateOptions, setGovernorateOptions] = useState([])
 
@@ -48,9 +52,14 @@ const DashboardContent = () => {
     }
   }, [])
 
+  const governorateLookup = useMemo(
+    () => buildGovernorateLookup(governorateOptions),
+    [governorateOptions]
+  )
+
   const govParams = useMemo(
     () => ({
-      days: selectedDays,
+      days: selectedDays > 0 ? selectedDays : undefined,
       governorateId: governorateId ? Number(governorateId) : undefined,
     }),
     [selectedDays, governorateId]
@@ -125,12 +134,24 @@ const DashboardContent = () => {
     const rows = dashboard?.topGovernorates
     if (!Array.isArray(rows)) return []
     return rows.map((g) => ({
-      governorate: g.governorate || t('dashboard.unknown'),
-      totalValue: `$${fmtNum(g.totalValue)}`,
-      totalVolume: `${fmtNum(g.totalVolume)} kg`,
-      transactions: fmtNum(g.transactions),
+      governorate:
+        resolveGovernorateLabel(g.governorate ?? g.governorateId, governorateLookup, language) ||
+        t('dashboard.unknown'),
+      totalValue: safeNum(g.totalValue),
+      totalVolume: safeNum(g.totalVolume),
+      transactions: safeNum(g.transactions),
     }))
-  }, [dashboard, t])
+  }, [dashboard, t, governorateLookup, language])
+
+  const governorateChartData = useMemo(
+    () =>
+      topGovernorates.map((g) => ({
+        governorate: g.governorate,
+        sales: g.totalValue,
+        volume: g.totalVolume,
+      })),
+    [topGovernorates]
+  )
 
   const governorateColumns = [
     { header: t('dashboard.governorate'), accessor: 'governorate' },
@@ -194,7 +215,9 @@ const DashboardContent = () => {
             <p className="dashboard-period">
               {formatShortDate(period.startDate, locale)} — {formatShortDate(period.endDate, locale)}
               {' · '}
-              {period.days} {t('dashboard.daysLabel')}
+              {period.days != null
+                ? `${period.days} ${t('dashboard.daysLabel')}`
+                : t('dashboard.allTimes')}
             </p>
           )}
         </div>
@@ -221,6 +244,7 @@ const DashboardContent = () => {
             <option value={30}>{t('dashboard.last30Days')}</option>
             <option value={60}>{t('dashboard.last60Days')}</option>
             <option value={90}>{t('dashboard.last90Days')}</option>
+            <option value={0}>{t('dashboard.allTimes')}</option>
           </select>
           <button type="button" className="btn btn-outline" onClick={refresh} disabled={loading}>
             <FiRefreshCw className={loading ? 'spin' : ''} /> {t('common.refresh')}
@@ -355,9 +379,12 @@ const DashboardContent = () => {
           {(todayStats || openNow) && (
             <div className="realtime-section card">
               <div className="realtime-header">
-                <h3>
-                  <FiClock /> {t('dashboard.todaysActivity')}
-                </h3>
+                <div>
+                  <h3>
+                    <FiClock /> {t('dashboard.todaysActivity')}
+                  </h3>
+                  <p className="realtime-hint">{t('dashboard.todaysActivityHint')}</p>
+                </div>
                 {!rtLoading && realTime?.timestamp && (
                   <span className="realtime-timestamp">
                     {t('dashboard.lastUpdated')}:{' '}
@@ -410,9 +437,11 @@ const DashboardContent = () => {
                 data={revenueSparkline}
                 dataKey="value"
                 xAxisKey="date"
+                xAxisLabel={t('dashboard.dateAxis')}
                 title={t('dashboard.revenueTrends')}
                 color="#15803d"
                 height={260}
+                scrollable
               />
             )}
             {priceTrendsData.length > 0 && (
@@ -421,9 +450,12 @@ const DashboardContent = () => {
                 data={priceTrendsData}
                 dataKey="price"
                 xAxisKey="date"
+                xAxisLabel={t('dashboard.dateAxis')}
+                yAxisLabel={t('dashboard.averagePrice')}
                 title={t('dashboard.priceTrends')}
                 color="#16a34a"
                 height={260}
+                scrollable
               />
             )}
             {transactionsByType.length > 0 && (
@@ -449,7 +481,30 @@ const DashboardContent = () => {
           {topGovernorates.length > 0 && (
             <div className="section">
               <h2 className="section-title">{t('dashboard.activityByGovernorate')}</h2>
-              <Table columns={governorateColumns} data={topGovernorates} />
+              {governorateChartData.length > 0 && (
+                <Chart
+                  type="bar"
+                  data={governorateChartData}
+                  dataKeys={[
+                    { dataKey: 'sales', name: t('dashboard.totalRevenue'), color: '#15803d' },
+                    { dataKey: 'volume', name: t('dashboard.soldQty'), color: '#059669' },
+                  ]}
+                  xAxisKey="governorate"
+                  xAxisLabel={t('dashboard.governorate')}
+                  yAxisLabel={t('dashboard.chartValueAxis')}
+                  title={t('dashboard.governorateSalesChart')}
+                  height={320}
+                />
+              )}
+              <Table
+                columns={governorateColumns}
+                data={topGovernorates.map((g) => ({
+                  ...g,
+                  totalValue: `$${fmtNum(g.totalValue)}`,
+                  totalVolume: `${fmtNum(g.totalVolume)} kg`,
+                  transactions: fmtNum(g.transactions),
+                }))}
+              />
             </div>
           )}
 

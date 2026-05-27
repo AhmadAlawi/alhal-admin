@@ -45,7 +45,28 @@ export const productsService = {
   },
 
   remove: async (productId) => {
-    return adminService.deleteProduct(productId)
+    const res = await adminService.deleteProduct(productId)
+    if (res && res.success === false) {
+      throw new Error(res.message || res.error?.detail || 'فشل حذف المنتج')
+    }
+    return res
+  },
+
+  /** Map productId → current maxPricePerKg from government prices list */
+  listGovPriceMap: async () => {
+    try {
+      const res = await adminService.getPrices()
+      const list = unwrapApiList(res, ['prices', 'items', 'data'])
+      const map = new Map()
+      for (const row of list) {
+        const pid = row.productId ?? row.ProductId
+        const price = row.maxPricePerKg ?? row.price ?? row.currentPrice
+        if (pid != null && price != null) map.set(Number(pid), Number(price))
+      }
+      return map
+    } catch {
+      return new Map()
+    }
   },
 
   setGovPrice: async (productId, maxPricePerKg) => {

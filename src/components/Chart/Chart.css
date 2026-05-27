@@ -23,3 +23,19 @@
   text-align: center;
 }
 
+.chart-inner {
+  width: 100%;
+}
+
+.chart-scroll {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 0.25rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.chart-scroll .recharts-wrapper {
+  min-width: 100%;
+}
+

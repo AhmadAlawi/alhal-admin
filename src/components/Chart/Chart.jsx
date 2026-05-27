@@ -1,35 +1,35 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { useTranslation } from '../../hooks/useTranslation'
-import { 
-  LineChart, 
-  Line, 
-  AreaChart, 
-  Area, 
-  BarChart, 
-  Bar, 
+import {
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
   PieChart,
   Pie,
   Cell,
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   Legend,
-  ComposedChart
+  ComposedChart,
 } from 'recharts'
 import './Chart.css'
 
 const COLORS = ['#16a34a', '#22c55e', '#059669', '#65a30d', '#15803d', '#34d399', '#0d9488', '#84cc16', '#4ade80', '#2f855a']
 
-const Chart = ({ 
-  type = 'line', 
-  data, 
-  dataKey, 
-  dataKeys = [], // For multi-line/multi-bar charts
-  xAxisKey, 
+const Chart = ({
+  type = 'line',
+  data,
+  dataKey,
+  dataKeys = [],
+  xAxisKey,
   nameKey = 'name',
-  title, 
+  title,
   color = '#16a34a',
   colors = COLORS,
   height = 300,
@@ -42,10 +42,35 @@ const Chart = ({
   pieLabel = false,
   pieLabelLine = false,
   emptyMessage = null,
+  scrollable = false,
+  minPointWidth = 48,
 }) => {
   const { t } = useTranslation()
   const chartData = Array.isArray(data) ? data : []
   const noDataText = emptyMessage || t('common.noData')
+
+  const useScroll = scrollable && chartData.length > 8
+  const innerMinWidth = useScroll
+    ? Math.max(chartData.length * minPointWidth, 640)
+    : undefined
+
+  const xAxisProps = useMemo(() => {
+    const dense = chartData.length > 6
+    return {
+      dataKey: xAxisKey,
+      stroke: '#94a3b8',
+      interval: dense ? 0 : 'preserveStartEnd',
+      angle: dense ? -35 : 0,
+      textAnchor: dense ? 'end' : 'middle',
+      height: dense ? 56 : 30,
+      tick: { fontSize: 11 },
+      label: xAxisLabel
+        ? { value: xAxisLabel, position: 'insideBottom', offset: dense ? -8 : -5, style: { fill: '#94a3b8' } }
+        : null,
+    }
+  }, [chartData.length, xAxisKey, xAxisLabel])
+
+  const chartMargin = { top: 8, right: 20, left: yAxisLabel ? 12 : 0, bottom: chartData.length > 6 ? 28 : 8 }
 
   if (chartData.length === 0) {
     if (!title && !emptyMessage) return null
@@ -60,14 +85,14 @@ const Chart = ({
   const renderChart = () => {
     const commonProps = {
       data: chartData,
-      margin: { top: 5, right: 20, left: 0, bottom: 5 }
+      margin: chartMargin,
     }
 
     const tooltipStyle = {
-      backgroundColor: '#1e293b', 
+      backgroundColor: '#1e293b',
       border: '1px solid #334155',
       borderRadius: '0.5rem',
-      color: '#f1f5f9'
+      color: '#f1f5f9',
     }
 
     switch (type) {
@@ -89,10 +114,7 @@ const Chart = ({
                 <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
               ))}
             </Pie>
-            <Tooltip 
-              contentStyle={tooltipStyle}
-              formatter={tooltipFormatter}
-            />
+            <Tooltip contentStyle={tooltipStyle} formatter={tooltipFormatter} />
             {showLegend && <Legend />}
           </PieChart>
         )
@@ -102,32 +124,32 @@ const Chart = ({
           <AreaChart {...commonProps}>
             <defs>
               <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={color} stopOpacity={0.3}/>
-                <stop offset="95%" stopColor={color} stopOpacity={0}/>
+                <stop offset="5%" stopColor={color} stopOpacity={0.3} />
+                <stop offset="95%" stopColor={color} stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-            <XAxis 
-              dataKey={xAxisKey} 
+            <XAxis {...xAxisProps} />
+            <YAxis
               stroke="#94a3b8"
-              label={xAxisLabel ? { value: xAxisLabel, position: 'insideBottom', offset: -5, style: { fill: '#94a3b8' } } : null}
+              label={
+                yAxisLabel
+                  ? { value: yAxisLabel, angle: -90, position: 'insideLeft', style: { fill: '#94a3b8' } }
+                  : null
+              }
             />
-            <YAxis 
-              stroke="#94a3b8"
-              label={yAxisLabel ? { value: yAxisLabel, angle: -90, position: 'insideLeft', style: { fill: '#94a3b8' } } : null}
-            />
-            <Tooltip 
+            <Tooltip
               contentStyle={tooltipStyle}
               formatter={tooltipFormatter}
               labelFormatter={labelFormatter}
             />
             {showLegend && <Legend />}
-            <Area 
-              type="monotone" 
-              dataKey={dataKey} 
-              stroke={color} 
-              fillOpacity={1} 
-              fill="url(#colorValue)" 
+            <Area
+              type="monotone"
+              dataKey={dataKey}
+              stroke={color}
+              fillOpacity={1}
+              fill="url(#colorValue)"
               strokeWidth={2}
             />
           </AreaChart>
@@ -137,16 +159,16 @@ const Chart = ({
         return (
           <BarChart {...commonProps}>
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-            <XAxis 
-              dataKey={xAxisKey} 
+            <XAxis {...xAxisProps} />
+            <YAxis
               stroke="#94a3b8"
-              label={xAxisLabel ? { value: xAxisLabel, position: 'insideBottom', offset: -5, style: { fill: '#94a3b8' } } : null}
+              label={
+                yAxisLabel
+                  ? { value: yAxisLabel, angle: -90, position: 'insideLeft', style: { fill: '#94a3b8' } }
+                  : null
+              }
             />
-            <YAxis 
-              stroke="#94a3b8"
-              label={yAxisLabel ? { value: yAxisLabel, angle: -90, position: 'insideLeft', style: { fill: '#94a3b8' } } : null}
-            />
-            <Tooltip 
+            <Tooltip
               contentStyle={tooltipStyle}
               formatter={tooltipFormatter}
               labelFormatter={labelFormatter}
@@ -154,12 +176,12 @@ const Chart = ({
             {showLegend && <Legend />}
             {dataKeys.length > 0 ? (
               dataKeys.map((key, index) => (
-                <Bar 
-                  key={key.dataKey} 
-                  dataKey={key.dataKey} 
+                <Bar
+                  key={key.dataKey}
+                  dataKey={key.dataKey}
                   fill={key.color || colors[index % colors.length]}
                   name={key.name || key.dataKey}
-                  radius={[8, 8, 0, 0]} 
+                  radius={[8, 8, 0, 0]}
                 />
               ))
             ) : (
@@ -172,16 +194,16 @@ const Chart = ({
         return (
           <ComposedChart {...commonProps}>
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-            <XAxis 
-              dataKey={xAxisKey} 
+            <XAxis {...xAxisProps} />
+            <YAxis
               stroke="#94a3b8"
-              label={xAxisLabel ? { value: xAxisLabel, position: 'insideBottom', offset: -5, style: { fill: '#94a3b8' } } : null}
+              label={
+                yAxisLabel
+                  ? { value: yAxisLabel, angle: -90, position: 'insideLeft', style: { fill: '#94a3b8' } }
+                  : null
+              }
             />
-            <YAxis 
-              stroke="#94a3b8"
-              label={yAxisLabel ? { value: yAxisLabel, angle: -90, position: 'insideLeft', style: { fill: '#94a3b8' } } : null}
-            />
-            <Tooltip 
+            <Tooltip
               contentStyle={tooltipStyle}
               formatter={tooltipFormatter}
               labelFormatter={labelFormatter}
@@ -190,20 +212,21 @@ const Chart = ({
             {dataKeys.map((key, index) => {
               if (key.type === 'bar') {
                 return (
-                  <Bar 
-                    key={key.dataKey} 
-                    dataKey={key.dataKey} 
+                  <Bar
+                    key={key.dataKey}
+                    dataKey={key.dataKey}
                     fill={key.color || colors[index % colors.length]}
                     name={key.name || key.dataKey}
-                    radius={[8, 8, 0, 0]} 
+                    radius={[8, 8, 0, 0]}
                   />
                 )
-              } else if (key.type === 'line') {
+              }
+              if (key.type === 'line') {
                 return (
-                  <Line 
+                  <Line
                     key={key.dataKey}
-                    type="monotone" 
-                    dataKey={key.dataKey} 
+                    type="monotone"
+                    dataKey={key.dataKey}
                     stroke={key.color || colors[index % colors.length]}
                     strokeWidth={2}
                     name={key.name || key.dataKey}
@@ -211,12 +234,13 @@ const Chart = ({
                     activeDot={{ r: 6 }}
                   />
                 )
-              } else if (key.type === 'area') {
+              }
+              if (key.type === 'area') {
                 return (
-                  <Area 
+                  <Area
                     key={key.dataKey}
-                    type="monotone" 
-                    dataKey={key.dataKey} 
+                    type="monotone"
+                    dataKey={key.dataKey}
                     stroke={key.color || colors[index % colors.length]}
                     fill={key.color || colors[index % colors.length]}
                     fillOpacity={0.3}
@@ -230,20 +254,20 @@ const Chart = ({
           </ComposedChart>
         )
 
-      default: // line
+      default:
         return (
           <LineChart {...commonProps}>
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-            <XAxis 
-              dataKey={xAxisKey} 
+            <XAxis {...xAxisProps} />
+            <YAxis
               stroke="#94a3b8"
-              label={xAxisLabel ? { value: xAxisLabel, position: 'insideBottom', offset: -5, style: { fill: '#94a3b8' } } : null}
+              label={
+                yAxisLabel
+                  ? { value: yAxisLabel, angle: -90, position: 'insideLeft', style: { fill: '#94a3b8' } }
+                  : null
+              }
             />
-            <YAxis 
-              stroke="#94a3b8"
-              label={yAxisLabel ? { value: yAxisLabel, angle: -90, position: 'insideLeft', style: { fill: '#94a3b8' } } : null}
-            />
-            <Tooltip 
+            <Tooltip
               contentStyle={tooltipStyle}
               formatter={tooltipFormatter}
               labelFormatter={labelFormatter}
@@ -251,10 +275,10 @@ const Chart = ({
             {showLegend && <Legend />}
             {dataKeys.length > 0 ? (
               dataKeys.map((key, index) => (
-                <Line 
+                <Line
                   key={key.dataKey}
-                  type="monotone" 
-                  dataKey={key.dataKey} 
+                  type="monotone"
+                  dataKey={key.dataKey}
                   stroke={key.color || colors[index % colors.length]}
                   strokeWidth={2}
                   name={key.name || key.dataKey}
@@ -263,10 +287,10 @@ const Chart = ({
                 />
               ))
             ) : (
-              <Line 
-                type="monotone" 
-                dataKey={dataKey} 
-                stroke={color} 
+              <Line
+                type="monotone"
+                dataKey={dataKey}
+                stroke={color}
                 strokeWidth={3}
                 dot={{ fill: color, strokeWidth: 2, r: 4 }}
                 activeDot={{ r: 6 }}
@@ -277,15 +301,18 @@ const Chart = ({
     }
   }
 
+  const chartBody = (
+    <ResponsiveContainer width="100%" height={height} minWidth={innerMinWidth}>
+      {renderChart()}
+    </ResponsiveContainer>
+  )
+
   return (
     <div className="chart-container card">
       {title && <h3 className="chart-title">{title}</h3>}
-      <ResponsiveContainer width="100%" height={height}>
-        {renderChart()}
-      </ResponsiveContainer>
+      <div className={useScroll ? 'chart-scroll' : 'chart-inner'}>{chartBody}</div>
     </div>
   )
 }
 
 export default Chart
-

@@ -188,7 +188,12 @@
     "listings": "قوائم",
     "crops": "محاصيل",
     "items": "عناصر",
-    "unknown": "غير معروف"
+    "unknown": "غير معروف",
+    "allTimes": "كل الأوقات",
+    "dateAxis": "التاريخ",
+    "chartValueAxis": "القيمة",
+    "governorateSalesChart": "المبيعات حسب المحافظة",
+    "todaysActivityHint": "عدد المستخدمين والمزادات والمناقصات والعروض المُسجَّلة اليوم (وليس عدد المستخدمين النشطين الفريدين)."
   },
   "users": {
     "title": "المستخدمون",
@@ -244,7 +249,16 @@
     "pricePerKg": "السعر للكيلو",
     "priceVolatility": "تقلب السعر",
     "supply": "العرض",
-    "demand": "الطلب"
+    "demand": "الطلب",
+    "period": "الفترة",
+    "last90Days": "آخر 90 يوماً",
+    "allTimes": "كل الأوقات",
+    "customRange": "نطاق تاريخ مخصص",
+    "minQualityScore": "الحد الأدنى لدرجة الجودة",
+    "qualityScorePlaceholder": "مثال: 70",
+    "dateAxis": "التاريخ",
+    "volumeKg": "الحجم (كغ)",
+    "quantityKg": "الكمية (كغ)"
   },
   "reports": {
     "title": "التقارير",
@@ -481,7 +495,12 @@
     "noProducts": "لا توجد منتجات",
     "setGovPrice": "تعيين السعر الحكومي",
     "imageFileRequired": "يرجى اختيار ملف صورة",
-    "fileTooLarge": "يجب أن يكون حجم الملف أقل من 10 ميجابايت"
+    "fileTooLarge": "يجب أن يكون حجم الملف أقل من 10 ميجابايت",
+    "countryPrice": "سعر الدولة",
+    "priceCeiling": "السقف السعري (كغ)",
+    "noGovPrice": "غير محدد",
+    "priceUnit": "ل.س/كغ",
+    "govPriceHelp": "الحد الأقصى الرسمي للسعر لكل كيلو لهذا المنتج"
   },
   "categories": {
     "title": "الفئات",

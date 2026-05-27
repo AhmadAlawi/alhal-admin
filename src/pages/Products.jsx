@@ -51,6 +51,8 @@ const Products = () => {
     active: 0,
     inactive: 0
   })
+  const [govPriceByProduct, setGovPriceByProduct] = useState(new Map())
+  const [detailGovPrice, setDetailGovPrice] = useState(null)
   const [toast, setToast] = useState(null)
 
   const showToast = (message, type = 'success') => {
@@ -75,8 +77,12 @@ const Products = () => {
     try {
       setLoading(true)
       setError(null)
-      const productsData = await productsService.list()
+      const [productsData, priceMap] = await Promise.all([
+        productsService.list(),
+        productsService.listGovPriceMap(),
+      ])
       setProducts(productsData)
+      setGovPriceByProduct(priceMap)
 
       const active = productsData.filter((p) => p.isActive !== false).length
       setStats({
@@ -222,11 +228,17 @@ const Products = () => {
 
     try {
       await productsService.remove(productId)
+      setProducts((prev) => prev.filter((p) => getProductId(p) !== productId))
+      setGovPriceByProduct((prev) => {
+        const next = new Map(prev)
+        next.delete(Number(productId))
+        return next
+      })
       showToast(t('products.deleteSuccess'))
-      fetchProducts()
     } catch (err) {
       console.error('Failed to delete product:', err)
       showToast(err.message || t('products.deleteError'), 'error')
+      fetchProducts()
     }
   }
 
@@ -261,6 +273,11 @@ const Products = () => {
     try {
       await productsService.setGovPrice(priceData.productId, priceData.maxPricePerKg)
       showToast(t('products.priceSuccess'))
+      setGovPriceByProduct((prev) => {
+        const next = new Map(prev)
+        next.set(Number(priceData.productId), Number(priceData.maxPricePerKg))
+        return next
+      })
       setShowPriceModal(false)
       setPriceData({ productId: null, maxPricePerKg: '' })
     } catch (err) {
@@ -269,8 +286,24 @@ const Products = () => {
     }
   }
 
+  const formatGovPrice = (productId) => {
+    const price = govPriceByProduct.get(Number(productId))
+    if (price == null || !Number.isFinite(price)) return t('products.noGovPrice')
+    return `${price.toLocaleString()} ${t('products.priceUnit')}`
+  }
+
   const openEditModal = async (product) => {
     setSelectedProduct(product)
+    const productId = getProductId(product)
+    setDetailGovPrice(null)
+    if (productId) {
+      const fromMap = govPriceByProduct.get(Number(productId))
+      if (fromMap != null) {
+        setDetailGovPrice(fromMap)
+      } else {
+        productsService.getGovPrice(productId).then((p) => setDetailGovPrice(p))
+      }
+    }
     const imageUrl = product.imageUrl || ''
     setFormData({
       nameAr: product.nameAr || '',
@@ -461,6 +494,8 @@ const Products = () => {
                 <th>{t('products.nameEn')}</th>
                 <th>{t('products.nameAr')}</th>
                 <th>{t('products.category')}</th>
+                <th>{t('products.countryPrice')}</th>
+                <th>{t('products.priceCeiling')}</th>
                 <th>{t('common.status')}</th>
                 <th>{t('products.created')}</th>
                 <th>{t('common.actions')}</th>
@@ -469,7 +504,7 @@ const Products = () => {
             <tbody>
               {filteredProducts.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="empty-state">
+                  <td colSpan="10" className="empty-state">
                     {searchTerm ? t('products.noResults') : t('products.noProducts')}
                   </td>
                 </tr>
@@ -496,6 +531,8 @@ const Products = () => {
                         )}
                       </div>
                     </td>
+                    <td className="product-gov-price">{formatGovPrice(getProductId(product))}</td>
+                    <td className="product-gov-price">{formatGovPrice(getProductId(product))}</td>
                     <td className="product-status">
                       <span className={`status-badge ${product.isActive ? 'status-active' : 'status-inactive'}`}>
                         {product.isActive ? t('common.active') : t('common.inactive')}
@@ -793,9 +830,15 @@ const Products = () => {
               <button className="modal-close" onClick={closeModals}>×</button>
             </div>
             <form onSubmit={handleEditProduct} className="modal-body">
+              <div className="product-detail-gov-price card">
+                <strong>{t('products.countryPrice')}:</strong>{' '}
+                {detailGovPrice != null
+                  ? `${Number(detailGovPrice).toLocaleString()} ${t('products.priceUnit')}`
+                  : t('products.noGovPrice')}
+              </div>
               <div className="form-grid">
                 <div className="form-group">
-                  <label>English Name *</label>
+                  <label>{t('products.nameEn')} *</label>
                   <input
                     type="text"
                     value={formData.nameEn}
@@ -1042,7 +1085,7 @@ const Products = () => {
                   placeholder="Enter maximum price"
                   required
                 />
-                <small className="form-help">This price will be used for government regulation</small>
+                <small className="form-help">{t('products.govPriceHelp')}</small>
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-outline" onClick={closeModals}>

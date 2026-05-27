@@ -300,6 +300,13 @@
   color: var(--text-muted);
 }
 
+.realtime-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0.35rem 0 0;
+  width: 100%;
+}
+
 .realtime-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));

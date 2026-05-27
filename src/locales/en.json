@@ -188,7 +188,12 @@
     "listings": "listings",
     "crops": "crops",
     "items": "items",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "allTimes": "All times",
+    "dateAxis": "Date",
+    "chartValueAxis": "Value",
+    "governorateSalesChart": "Sales by governorate",
+    "todaysActivityHint": "Counts of new users, auctions, tenders, bids, and offers created today (not unique active users)."
   },
   "users": {
     "title": "Users",
@@ -244,7 +249,16 @@
     "pricePerKg": "Price per kg",
     "priceVolatility": "Price volatility",
     "supply": "Supply",
-    "demand": "Demand"
+    "demand": "Demand",
+    "period": "Period",
+    "last90Days": "Last 90 days",
+    "allTimes": "All times",
+    "customRange": "Custom date range",
+    "minQualityScore": "Min. quality score",
+    "qualityScorePlaceholder": "e.g. 70",
+    "dateAxis": "Date",
+    "volumeKg": "Volume (kg)",
+    "quantityKg": "Quantity (kg)"
   },
   "reports": {
     "title": "Reports",
@@ -480,7 +494,12 @@
     "noProducts": "No products available",
     "setGovPrice": "Set Government Price",
     "imageFileRequired": "Please select an image file",
-    "fileTooLarge": "File size should be less than 10MB"
+    "fileTooLarge": "File size should be less than 10MB",
+    "countryPrice": "Country price",
+    "priceCeiling": "Price ceiling (kg)",
+    "noGovPrice": "Not set",
+    "priceUnit": "SYP/kg",
+    "govPriceHelp": "Official maximum price per kg for this product"
   },
   "categories": {
     "title": "Categories",

@@ -32,10 +32,16 @@ export const governoratesService = {
   async getOptions() {
     let list = await this.getFromMarketFilters()
     if (!list.length) list = await this.getAll()
-    return list.map((g) => ({
-      id: g.governorateId ?? g.id ?? g.GovernorateId,
-      name: g.nameAr ?? g.name ?? g.governorate ?? g.label,
-    })).filter((g) => g.id != null && g.name)
+    return list.map((g) => {
+      const nameAr = g.nameAr ?? g.name ?? g.governorate ?? g.label
+      const nameEn = g.nameEn ?? nameAr
+      return {
+        id: g.governorateId ?? g.id ?? g.GovernorateId,
+        name: nameAr,
+        nameAr,
+        nameEn,
+      }
+    }).filter((g) => g.id != null && g.name)
   },
 }
 
