@@ -1,0 +1,82 @@
+/* Stitch "Sovereign State Interface" design tokens */
+:root {
+  /* Brand greens */
+  --primary-color: #00652c;
+  --primary-container: #15803d;
+  --primary-dark: #005323;
+  --primary-light: #79db8d;
+  --primary-fixed: #95f8a7;
+  --on-primary: #ffffff;
+  --on-primary-container: #d3ffd5;
+  --on-primary-fixed: #00210a;
+  --surface-tint: #006d30;
+  --secondary-color: #565e74;
+  --secondary-container: #dae2fd;
+  --on-secondary-container: #5c647a;
+
+  /* Surfaces */
+  --background: #f8f9ff;
+  --surface: #f8f9ff;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #eff4ff;
+  --surface-container: #e5eeff;
+  --surface-container-high: #dce9ff;
+  --surface-container-highest: #d3e4fe;
+  --surface-variant: #d3e4fe;
+  --workspace-bg: #f8f9ff;
+  --bg-primary: #ffffff;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #eff4ff;
+
+  /* Text */
+  --on-surface: #0b1c30;
+  --on-surface-variant: #3f493f;
+  --text-primary: #0b1c30;
+  --text-secondary: #3f493f;
+  --text-muted: #6f7a6e;
+  --inverse-surface: #213145;
+  --inverse-on-surface: #eaf1ff;
+
+  /* Borders & outlines */
+  --outline: #6f7a6e;
+  --outline-variant: #becabc;
+  --border-color: rgba(190, 202, 188, 0.4);
+
+  /* Functional */
+  --danger-color: #ba1a1a;
+  --error: #ba1a1a;
+  --error-container: #ffdad6;
+  --on-error-container: #93000a;
+  --warning-color: #b45309;
+  --success-color: #15803d;
+
+  /* Sidebar */
+  --sidebar-width: 256px;
+  --sidebar-green: var(--surface-container-low);
+  --sidebar-green-dark: var(--primary-container);
+
+  /* Elevation */
+  --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 8px 30px -4px rgba(0, 0, 0, 0.08);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04);
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  /* Typography */
+  --font-family: 'Alexandria', 'Segoe UI', Tahoma, sans-serif;
+  --font-display-lg: 700 2rem/2.5rem var(--font-family);
+  --font-headline-lg: 600 1.5rem/2rem var(--font-family);
+  --font-headline-md: 600 1.25rem/1.75rem var(--font-family);
+  --font-body-md: 400 1rem/1.5rem var(--font-family);
+  --font-label-md: 500 0.875rem/1.25rem var(--font-family);
+  --font-label-sm: 600 0.75rem/1rem var(--font-family);
+
+  /* Layout */
+  --header-height: 70px;
+  --container-max: 1440px;
+  --gutter: 24px;
+}

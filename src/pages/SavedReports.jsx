@@ -256,11 +256,6 @@ const SavedReports = () => {
 
               {results && !runningId && (
                 <div className="viewer-results">
-                  {visualization.enabled && (
-                    <span className="chart-badge">
-                      {t(`reportBuilder.chartTypes.${visualization.chartType}`)}
-                    </span>
-                  )}
                   {chartProps && (
                     <div className="viewer-chart">
                       <Chart {...chartProps} height={300} />

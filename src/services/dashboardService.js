@@ -42,6 +42,19 @@ export const dashboardService = {
     return apiClient.get('/api/gov/dashboard/analytics/breakdown', filteredParams);
   },
 
+  getProductionByCategory: async (params = {}) => {
+    const filteredParams = {};
+    if (params.year != null) filteredParams.year = params.year;
+    return apiClient.get('/api/gov/dashboard/charts/production-by-category', filteredParams);
+  },
+
+  getTopProductsByProduction: async (params = {}) => {
+    const filteredParams = {};
+    if (params.year != null) filteredParams.year = params.year;
+    if (params.topN != null) filteredParams.topN = params.topN;
+    return apiClient.get('/api/gov/dashboard/charts/top-products-by-production', filteredParams);
+  },
+
   getUserSummary: async (params = {}) => {
     const filteredParams = {};
     if (params.userId) filteredParams.userId = params.userId;

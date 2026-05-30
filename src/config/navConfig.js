@@ -6,6 +6,11 @@ import { PERMISSIONS, canSeeNavItem } from '../utils/accessControl'
  */
 export const NAV_ITEMS = [
   {
+    path: '/dashboard/my',
+    labelKey: 'nav.myDashboards',
+    permission: PERMISSIONS.GOV_DASHBOARD,
+  },
+  {
     path: '/dashboard',
     labelKey: 'nav.govDashboard',
     permission: PERMISSIONS.GOV_DASHBOARD,

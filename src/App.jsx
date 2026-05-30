@@ -5,7 +5,9 @@ import { AccessProvider } from './contexts/AccessContext'
 import GuardedPage from './components/GuardedPage/GuardedPage'
 import { PERMISSIONS } from './utils/accessControl'
 import Login from './pages/Login'
-import Dashboard from './pages/Dashboard'
+import DashboardHub from './pages/DashboardHub'
+import MyDashboards from './pages/MyDashboards'
+import CustomDashboardPage from './pages/CustomDashboard'
 import Users from './pages/Users'
 import Analytics from './pages/Analytics'
 import Reports from './pages/Reports'
@@ -58,7 +60,39 @@ function App() {
               path="/dashboard"
               element={
                 <GuardedPage permission={PERMISSIONS.GOV_DASHBOARD}>
-                  <Dashboard />
+                  <DashboardHub />
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/dashboard/my"
+              element={
+                <GuardedPage permission={PERMISSIONS.GOV_DASHBOARD}>
+                  <MyDashboards />
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/dashboard/custom/new/edit"
+              element={
+                <GuardedPage permission={PERMISSIONS.GOV_DASHBOARD}>
+                  <CustomDashboardPage mode="edit" />
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/dashboard/custom/:id/edit"
+              element={
+                <GuardedPage permission={PERMISSIONS.GOV_DASHBOARD}>
+                  <CustomDashboardPage mode="edit" />
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/dashboard/custom/:id"
+              element={
+                <GuardedPage permission={PERMISSIONS.GOV_DASHBOARD}>
+                  <CustomDashboardPage mode="view" />
                 </GuardedPage>
               }
             />

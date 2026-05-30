@@ -63,6 +63,8 @@
     "retry": "إعادة المحاولة",
     "adminUser": "مستخدم المدير",
     "administrator": "مدير النظام",
+    "appName": "سوق الهال",
+    "appSubtitle": "بوابة الإدارة الزراعية",
     "userMenu": "قائمة المستخدم",
     "notificationTitlePlaceholder": "عنوان الإشعار",
     "notificationMessagePlaceholder": "رسالة الإشعار",
@@ -178,6 +180,7 @@
     "directSales": "المبيعات المباشرة",
     "auctions": "المزادات",
     "lowStockProducts": "منتجات منخفضة المخزون",
+    "lowStockHint": "المنتجات التالية وصلت إلى الحد الأدنى من الكمية المطلوبة.",
     "allGovernorates": "كل المحافظات",
     "filterGovernorate": "تصفية حسب المحافظة",
     "revenueToday": "إيرادات اليوم",
@@ -193,7 +196,13 @@
     "dateAxis": "التاريخ",
     "chartValueAxis": "القيمة",
     "governorateSalesChart": "المبيعات حسب المحافظة",
-    "todaysActivityHint": "عدد المستخدمين والمزادات والمناقصات والعروض المُسجَّلة اليوم (وليس عدد المستخدمين النشطين الفريدين)."
+    "todaysActivityHint": "عدد المستخدمين والمزادات والمناقصات والعروض المُسجَّلة اليوم (وليس عدد المستخدمين النشطين الفريدين).",
+    "productionByCategory": "الإنتاج حسب الفئة",
+    "topProductsByProduction": "أكبر 15 محصولاً بالإنتاج",
+    "production": "الإنتاج",
+    "tonsUnit": "طن",
+    "thousandTonsUnit": "ألف طن",
+    "product": "المحصول"
   },
   "users": {
     "title": "المستخدمون",
@@ -878,8 +887,74 @@
       "searchVehicles": "البحث عن المركبات..."
     }
   },
+  "customDashboard": {
+    "myDashboards": "لوحاتي المخصصة",
+    "myDashboardsSubtitle": "أنشئ لوحات overview من التقارير والرسوم البيانية الجاهزة",
+    "createDashboard": "لوحة جديدة",
+    "createFirst": "أنشئ أول لوحة",
+    "newDashboard": "لوحة جديدة",
+    "dashboardName": "اسم اللوحة",
+    "dashboardDesc": "وصف اختياري",
+    "addWidget": "إضافة عنصر",
+    "addFirstWidget": "أضف أول عنصر",
+    "emptyDashboard": "لا توجد عناصر في هذه اللوحة بعد",
+    "searchWidgets": "بحث في العناصر...",
+    "tabBuiltin": "مؤشرات النظام",
+    "tabReports": "تقارير جاهزة",
+    "tabSaved": "تقارير محفوظة",
+    "noSavedReports": "لا توجد تقارير محفوظة — أنشئ تقريراً من منشئ التقارير",
+    "saved": "تم الحفظ",
+    "setPrimary": "تعيين كأساسية",
+    "primary": "أساسية",
+    "share": "مشاركة",
+    "shareDashboard": "مشاركة اللوحة",
+    "shareHint": "يُشارك فقط مع مستخدمين لديهم نفس صلاحيات التقارير المستخدمة في اللوحة",
+    "userRejected": "المستخدم {{id}}",
+    "requiredPermissions": "الصلاحيات المطلوبة",
+    "selectUsersToShare": "اختر مستخدماً واحداً على الأقل",
+    "noUsersFound": "لم يتم العثور على مستخدمين",
+    "sharedReadOnly": "لوحة مشتركة — للعرض فقط",
+    "shared": "مشتركة",
+    "from": "من",
+    "widgetCount": "عناصر",
+    "duplicate": "نسخ",
+    "confirmDelete": "حذف هذه اللوحة؟",
+    "notFound": "اللوحة غير موجودة",
+    "backToList": "العودة للقائمة",
+    "noDashboardsYet": "لم تنشئ أي لوحة مخصصة بعد",
+    "systemDashboard": "لوحة النظام",
+    "manageDashboards": "إدارة اللوحات",
+    "viewing": "العرض",
+    "noPrimary": "لا توجد لوحة أساسية",
+    "noPrimaryHint": "عيّن لوحة كأساسية من إدارة اللوحات",
+    "widgets": {
+      "totalRevenue": "إجمالي الإيرادات",
+      "totalTransactions": "إجمالي المعاملات",
+      "totalVolume": "إجمالي الحجم",
+      "averagePrice": "متوسط السعر",
+      "revenueTrends": "اتجاهات الإيرادات",
+      "priceTrends": "اتجاهات الأسعار",
+      "transactionsByType": "المعاملات حسب النوع",
+      "productionByCategory": "الإنتاج حسب الفئة",
+      "totalUsers": "إجمالي المستخدمين",
+      "totalFarms": "إجمالي المزارع"
+    }
+  },
+  "reportWidgets": {
+    "salesTrends": "اتجاهات المبيعات",
+    "salesByCategory": "المبيعات حسب الفئة",
+    "revenue": "تقرير الإيرادات",
+    "profitLoss": "الأرباح والخسائر",
+    "userActivity": "نشاط المستخدمين",
+    "userRegistrations": "تسجيلات المستخدمين",
+    "topProducts": "أفضل المنتجات",
+    "marketTrends": "اتجاهات السوق",
+    "auctionRevenue": "إيرادات المزادات",
+    "tenderActivity": "نشاط المناقصات"
+  },
   "nav": {
     "govDashboard": "لوحة الحكومة",
+    "myDashboards": "لوحاتي المخصصة",
     "govReports": "التقارير",
     "reportBuilder": "منشئ التقارير",
     "savedReports": "التقارير المحفوظة",
@@ -1079,7 +1154,8 @@
       "line": "خطي",
       "bar": "أعمدة",
       "area": "مساحة",
-      "pie": "دائري"
+      "pie": "دائري",
+      "composed": "مركّب"
     },
     "timeGroups": {
       "day": "يوم",
@@ -1103,6 +1179,9 @@
       "between": "بين",
       "lastNDays": "آخر N يوم"
     }
+  },
+  "chart": {
+    "changeType": "تغيير نوع الرسم"
   },
   "savedReports": {
     "title": "التقارير المحفوظة",

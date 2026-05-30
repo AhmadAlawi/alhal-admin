@@ -1,12 +1,65 @@
 .chart-container {
-  padding: 1.5rem;
+  padding: 1.25rem;
+  background: var(--surface-container-lowest);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.chart-container:hover {
+  border-color: rgba(21, 128, 61, 0.2);
 }
 
 .chart-title {
-  font-size: 1.125rem;
+  font-size: 1.25rem;
   font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 1.5rem;
+  color: var(--on-surface);
+  margin: 0;
+}
+
+.chart-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.chart-type-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0.2rem;
+  background: var(--surface-container);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.chart-type-switcher-btn {
+  padding: 0.3rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--on-surface-variant);
+  background: transparent;
+  border: none;
+  border-radius: calc(var(--radius-md) - 2px);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.chart-type-switcher-btn:hover {
+  color: var(--primary);
+  background: rgba(21, 128, 61, 0.08);
+}
+
+.chart-type-switcher-btn.active {
+  color: #fff;
+  background: var(--primary);
+  box-shadow: 0 1px 4px rgba(21, 128, 61, 0.25);
 }
 
 .chart-empty {
@@ -17,7 +70,7 @@
 }
 
 .chart-empty-text {
-  color: var(--text-secondary, #64748b);
+  color: var(--on-surface-variant);
   font-size: 0.9rem;
   margin: 0;
   text-align: center;
@@ -35,7 +88,6 @@
   -webkit-overflow-scrolling: touch;
 }
 
-.chart-scroll .recharts-wrapper {
+.chart-scroll .echarts-for-react {
   min-width: 100%;
 }
-

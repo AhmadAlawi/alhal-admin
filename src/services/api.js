@@ -95,14 +95,17 @@ class ApiClient {
           errorMessage = validationErrors.join(', ');
         }
         
-        throw new Error(errorMessage);
+        const err = new Error(errorMessage);
+        err.status = 400;
+        err.responseData = error.data ?? null;
+        throw err;
       }
-      
+
       if (response.status === 403) {
-        const error = await response.json().catch(() => ({ message: 'لا تملك صلاحية للوصول' }));
-        const errorMessage =
-          error.message || error.error?.detail || 'لا تملك صلاحية للوصول';
-        throw new Error(errorMessage);
+        const error403 = await response.json().catch(() => ({ message: 'لا تملك صلاحية للوصول' }));
+        const msg403 =
+          error403.message || error403.error?.detail || 'لا تملك صلاحية للوصول';
+        throw new Error(msg403);
       }
 
       if (!response.ok) {

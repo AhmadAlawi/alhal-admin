@@ -63,6 +63,8 @@
     "retry": "Retry",
     "adminUser": "Admin User",
     "administrator": "Administrator",
+    "appName": "Al-Hal Market",
+    "appSubtitle": "Agricultural Admin Portal",
     "userMenu": "User menu",
     "notificationTitlePlaceholder": "Notification title",
     "notificationMessagePlaceholder": "Notification message",
@@ -178,6 +180,7 @@
     "directSales": "Direct Sales",
     "auctions": "Auctions",
     "lowStockProducts": "Low Stock Products",
+    "lowStockHint": "The following products have reached minimum required stock levels.",
     "allGovernorates": "All governorates",
     "filterGovernorate": "Filter by governorate",
     "revenueToday": "Today's revenue",
@@ -193,7 +196,13 @@
     "dateAxis": "Date",
     "chartValueAxis": "Value",
     "governorateSalesChart": "Sales by governorate",
-    "todaysActivityHint": "Counts of new users, auctions, tenders, bids, and offers created today (not unique active users)."
+    "todaysActivityHint": "Counts of new users, auctions, tenders, bids, and offers created today (not unique active users).",
+    "productionByCategory": "Production by category",
+    "topProductsByProduction": "Top 15 products by production",
+    "production": "Production",
+    "tonsUnit": "tons",
+    "thousandTonsUnit": "thousand tons",
+    "product": "Product"
   },
   "users": {
     "title": "Users",
@@ -877,8 +886,74 @@
       "searchVehicles": "Search vehicles..."
     }
   },
+  "customDashboard": {
+    "myDashboards": "My Dashboards",
+    "myDashboardsSubtitle": "Build overview dashboards from ready-made reports and charts",
+    "createDashboard": "New Dashboard",
+    "createFirst": "Create your first dashboard",
+    "newDashboard": "New Dashboard",
+    "dashboardName": "Dashboard name",
+    "dashboardDesc": "Optional description",
+    "addWidget": "Add widget",
+    "addFirstWidget": "Add first widget",
+    "emptyDashboard": "No widgets on this dashboard yet",
+    "searchWidgets": "Search widgets...",
+    "tabBuiltin": "System KPIs",
+    "tabReports": "Predefined reports",
+    "tabSaved": "Saved reports",
+    "noSavedReports": "No saved reports — create one in Report Builder",
+    "saved": "Saved",
+    "setPrimary": "Set as primary",
+    "primary": "Primary",
+    "share": "Share",
+    "shareDashboard": "Share dashboard",
+    "shareHint": "Only shared with users who have the same report permissions used in this dashboard",
+    "userRejected": "User {{id}}",
+    "requiredPermissions": "Required permissions",
+    "selectUsersToShare": "Select at least one user",
+    "noUsersFound": "No users found",
+    "sharedReadOnly": "Shared dashboard — read only",
+    "shared": "Shared",
+    "from": "from",
+    "widgetCount": "widgets",
+    "duplicate": "Duplicate",
+    "confirmDelete": "Delete this dashboard?",
+    "notFound": "Dashboard not found",
+    "backToList": "Back to list",
+    "noDashboardsYet": "You have not created any custom dashboards yet",
+    "systemDashboard": "System Dashboard",
+    "manageDashboards": "Manage dashboards",
+    "viewing": "Viewing",
+    "noPrimary": "No primary dashboard",
+    "noPrimaryHint": "Set a dashboard as primary from Manage dashboards",
+    "widgets": {
+      "totalRevenue": "Total Revenue",
+      "totalTransactions": "Total Transactions",
+      "totalVolume": "Total Volume",
+      "averagePrice": "Average Price",
+      "revenueTrends": "Revenue Trends",
+      "priceTrends": "Price Trends",
+      "transactionsByType": "Transactions by Type",
+      "productionByCategory": "Production by Category",
+      "totalUsers": "Total Users",
+      "totalFarms": "Total Farms"
+    }
+  },
+  "reportWidgets": {
+    "salesTrends": "Sales Trends",
+    "salesByCategory": "Sales by Category",
+    "revenue": "Revenue Report",
+    "profitLoss": "Profit & Loss",
+    "userActivity": "User Activity",
+    "userRegistrations": "User Registrations",
+    "topProducts": "Top Products",
+    "marketTrends": "Market Trends",
+    "auctionRevenue": "Auction Revenue",
+    "tenderActivity": "Tender Activity"
+  },
   "nav": {
     "govDashboard": "Government Dashboard",
+    "myDashboards": "My Dashboards",
     "govReports": "Reports",
     "reportBuilder": "Report Builder",
     "savedReports": "Saved Reports",
@@ -1078,7 +1153,8 @@
       "line": "Line",
       "bar": "Bar",
       "area": "Area",
-      "pie": "Pie"
+      "pie": "Pie",
+      "composed": "Mixed"
     },
     "timeGroups": {
       "day": "Day",
@@ -1102,6 +1178,9 @@
       "between": "Between",
       "lastNDays": "Last N days"
     }
+  },
+  "chart": {
+    "changeType": "Change chart type"
   },
   "savedReports": {
     "title": "Saved Reports",

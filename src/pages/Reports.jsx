@@ -294,6 +294,7 @@ const Reports = () => {
     }
 
     if (config.kind === 'area') {
+      const seriesName = formatMetricLabel(config.dataKey)
       return (
         <div className="report-content">
           {renderSummaryCards(config.summary)}
@@ -301,6 +302,7 @@ const Reports = () => {
             type="area"
             data={config.rows}
             dataKey={config.dataKey}
+            seriesName={seriesName}
             xAxisKey={config.periodKey}
             title={title}
             height={400}
@@ -336,6 +338,7 @@ const Reports = () => {
       )
     }
 
+    const seriesName = formatMetricLabel(config.valueKey)
     return (
       <div className="report-content">
         {renderSummaryCards(config.summary)}
@@ -343,6 +346,7 @@ const Reports = () => {
           type="bar"
           data={config.rows}
           dataKey={config.valueKey}
+          dataKeys={[{ dataKey: config.valueKey, name: seriesName }]}
           xAxisKey={config.nameKey}
           title={title}
           height={400}

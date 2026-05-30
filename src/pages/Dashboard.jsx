@@ -8,13 +8,12 @@ import {
   FiDollarSign,
   FiShoppingCart,
   FiTrendingUp,
+  FiTrendingDown,
   FiRefreshCw,
   FiPackage,
   FiActivity,
   FiGlobe,
   FiAlertCircle,
-  FiClock,
-  FiMapPin,
 } from 'react-icons/fi'
 import StatCard from '../components/StatCard/StatCard'
 import DashboardErrorBoundary from '../components/DashboardErrorBoundary/DashboardErrorBoundary'
@@ -23,6 +22,7 @@ import Chart from '../components/Chart/Chart'
 import Table from '../components/Table/Table'
 import { useAutoFillData, useRealTimeData } from '../hooks/useDashboardData'
 import governoratesService from '../services/governoratesService'
+import dashboardService from '../services/dashboardService'
 import { fmtNum, safeNum } from '../utils/dashboardNormalize'
 import './Dashboard.css'
 
@@ -41,6 +41,8 @@ const DashboardContent = () => {
   const [selectedDays, setSelectedDays] = useState(30) // 0 = all times
   const [governorateId, setGovernorateId] = useState('')
   const [governorateOptions, setGovernorateOptions] = useState([])
+  const [productionByCategory, setProductionByCategory] = useState([])
+  const [topProductsByProduction, setTopProductsByProduction] = useState([])
 
   useEffect(() => {
     let cancelled = false
@@ -77,6 +79,67 @@ const DashboardContent = () => {
   const todayStats = realTime?.todayStats
   const openNow = realTime?.openNow
   const period = dashboard?.period
+  const dashboardYear = useMemo(() => {
+    if (period?.endDate) {
+      const d = new Date(period.endDate)
+      if (!Number.isNaN(d.getTime())) return d.getFullYear()
+    }
+    return new Date().getFullYear()
+  }, [period?.endDate])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const unwrap = (res) => res?.data?.data ?? res?.data ?? res
+
+    const fetchGovCharts = async () => {
+      try {
+        const [categoryRes, topProductsRes] = await Promise.all([
+          dashboardService.getProductionByCategory({ year: dashboardYear }),
+          dashboardService.getTopProductsByProduction({ year: dashboardYear, topN: 15 }),
+        ])
+
+        if (cancelled) return
+
+        const categoryData = unwrap(categoryRes)
+        const topProductsData = unwrap(topProductsRes)
+        const slices = Array.isArray(categoryData?.slices) ? categoryData.slices : []
+        const categories = Array.isArray(topProductsData?.categories) ? topProductsData.categories : []
+        const seriesValues = Array.isArray(topProductsData?.series?.[0]?.data)
+          ? topProductsData.series[0].data
+          : []
+
+        setProductionByCategory(
+          slices.map((slice) => ({
+            name:
+              (language === 'ar' ? slice.nameAr : slice.nameEn) ||
+              slice.nameAr ||
+              slice.nameEn ||
+              t('dashboard.unknown'),
+            value: safeNum(slice.value),
+            percentage: safeNum(slice.percentage),
+          }))
+        )
+
+        setTopProductsByProduction(
+          categories.map((name, idx) => ({
+            name,
+            value: safeNum(seriesValues[idx]),
+          }))
+        )
+      } catch {
+        if (!cancelled) {
+          setProductionByCategory([])
+          setTopProductsByProduction([])
+        }
+      }
+    }
+
+    fetchGovCharts()
+    return () => {
+      cancelled = true
+    }
+  }, [dashboardYear, language, t])
 
   const revenueSparkline = useMemo(() => {
     const rows = market?.revenueSparkline
@@ -206,7 +269,7 @@ const DashboardContent = () => {
   const revenueChange = safeNum(sales?.revenueChange ?? sales?.revenueChangePercent)
 
   return (
-    <div className="dashboard dashboard-light">
+    <div className="dashboard">
       <div className="page-header">
         <div>
           <h1 className="page-title">{t('dashboard.governmentDashboard')}</h1>
@@ -273,28 +336,29 @@ const DashboardContent = () => {
         <>
           {sales && (
             <div className="sales-today-row">
-              <div className="sales-today-card card">
+              <div className="sales-today-card glass-card card">
                 <span className="sales-label">{t('dashboard.revenueToday')}</span>
-                <span className="sales-value">
-                  ${fmtNum(sales.today?.revenue)}
-                </span>
+                <span className="sales-value">${fmtNum(sales.today?.revenue)}</span>
                 <span className="sales-meta">
                   {fmtNum(sales.today?.transactions)} {t('dashboard.totalTransactions')}
-                </span>
-              </div>
-              <div className="sales-today-card card">
-                <span className="sales-label">{t('dashboard.revenueYesterday')}</span>
-                <span className="sales-value">
-                  ${fmtNum(sales.yesterday?.revenue)}
-                </span>
-                <span className="sales-meta">
-                  {fmtNum(sales.yesterday?.transactions)} {t('dashboard.totalTransactions')}
                 </span>
               </div>
               <div className="sales-today-card card highlight">
                 <span className="sales-label">{t('dashboard.revenueChange')}</span>
                 <span className={`sales-value ${revenueChange >= 0 ? 'up' : 'down'}`}>
-                  {revenueChange >= 0 ? '↑' : '↓'} {Math.abs(revenueChange).toFixed(1)}%
+                  {revenueChange >= 0 ? '+' : ''}{revenueChange.toFixed(1)}%
+                </span>
+                {revenueChange >= 0 ? (
+                  <FiTrendingUp className="sales-trend-icon" />
+                ) : (
+                  <FiTrendingDown className="sales-trend-icon" />
+                )}
+              </div>
+              <div className="sales-today-card glass-card card">
+                <span className="sales-label">{t('dashboard.revenueYesterday')}</span>
+                <span className="sales-value neutral">${fmtNum(sales.yesterday?.revenue)}</span>
+                <span className="sales-meta">
+                  {fmtNum(sales.yesterday?.transactions)} {t('dashboard.totalTransactions')}
                 </span>
               </div>
             </div>
@@ -331,62 +395,15 @@ const DashboardContent = () => {
             />
           </div>
 
-          {overview && (
-            <div className="overview-grid">
-              <div className="overview-card card">
-                <FiUsers className="overview-icon-svg" />
-                <div className="overview-content">
-                  <span className="overview-label">{t('dashboard.totalUsers')}</span>
-                  <span className="overview-value">{fmtNum(overview.totalUsers)}</span>
-                  <span className="overview-detail">
-                    {t('dashboard.active30d')}: {fmtNum(overview.activeUsers30Days)}
-                  </span>
-                </div>
-              </div>
-              <div className="overview-card card">
-                <FiGlobe className="overview-icon-svg" />
-                <div className="overview-content">
-                  <span className="overview-label">{t('dashboard.totalFarms')}</span>
-                  <span className="overview-value">{fmtNum(overview.totalFarms)}</span>
-                  <span className="overview-detail">
-                    {t('dashboard.inventory')}: {fmtNum(overview.totalInventory)} kg
-                  </span>
-                </div>
-              </div>
-              <div className="overview-card card">
-                <FiActivity className="overview-icon-svg" />
-                <div className="overview-content">
-                  <span className="overview-label">{t('dashboard.openAuctions')}</span>
-                  <span className="overview-value">{fmtNum(overview.openAuctions)}</span>
-                  <span className="overview-detail">
-                    {t('dashboard.tenders')}: {fmtNum(overview.openTenders)}
-                  </span>
-                </div>
-              </div>
-              <div className="overview-card card">
-                <FiPackage className="overview-icon-svg" />
-                <div className="overview-content">
-                  <span className="overview-label">{t('dashboard.activeListings')}</span>
-                  <span className="overview-value">{fmtNum(overview.activeListings)}</span>
-                  <span className="overview-detail">
-                    {t('dashboard.newToday')}: {fmtNum(overview.newUsersToday)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
           {(todayStats || openNow) && (
-            <div className="realtime-section card">
-              <div className="realtime-header">
-                <div>
-                  <h3>
-                    <FiClock /> {t('dashboard.todaysActivity')}
-                  </h3>
-                  <p className="realtime-hint">{t('dashboard.todaysActivityHint')}</p>
-                </div>
+            <div className="realtime-banner">
+              <div className="realtime-banner-header">
+                <h3>
+                  <span className="live-pulse" />
+                  {t('dashboard.todaysActivity')}
+                </h3>
                 {!rtLoading && realTime?.timestamp && (
-                  <span className="realtime-timestamp">
+                  <span className="realtime-banner-meta">
                     {t('dashboard.lastUpdated')}:{' '}
                     {new Date(realTime.timestamp).toLocaleTimeString(locale)}
                   </span>
@@ -395,38 +412,71 @@ const DashboardContent = () => {
               {todayStats && (
                 <div className="realtime-stats">
                   <div className="realtime-stat">
-                    <span className="realtime-label">{t('dashboard.newUsers')}</span>
                     <span className="realtime-value">{fmtNum(todayStats.newUsers)}</span>
+                    <span className="realtime-label">{t('dashboard.newUsers')}</span>
                   </div>
                   <div className="realtime-stat">
-                    <span className="realtime-label">{t('dashboard.newAuctions')}</span>
                     <span className="realtime-value">{fmtNum(todayStats.newAuctions)}</span>
+                    <span className="realtime-label">{t('dashboard.newAuctions')}</span>
                   </div>
                   <div className="realtime-stat">
-                    <span className="realtime-label">{t('dashboard.newTenders')}</span>
                     <span className="realtime-value">{fmtNum(todayStats.newTenders)}</span>
+                    <span className="realtime-label">{t('dashboard.newTenders')}</span>
                   </div>
                   <div className="realtime-stat">
-                    <span className="realtime-label">{t('dashboard.totalBids')}</span>
                     <span className="realtime-value">{fmtNum(todayStats.totalBids)}</span>
+                    <span className="realtime-label">{t('dashboard.totalBids')}</span>
                   </div>
                   <div className="realtime-stat">
-                    <span className="realtime-label">{t('dashboard.totalOffers')}</span>
                     <span className="realtime-value">{fmtNum(todayStats.totalOffers)}</span>
+                    <span className="realtime-label">{t('dashboard.totalOffers')}</span>
                   </div>
                 </div>
               )}
               {openNow && (
-                <div className="open-now-row">
-                  <FiMapPin />
-                  <span>
-                    {t('dashboard.openNow')}: {fmtNum(openNow.openAuctions)}{' '}
+                <div className="open-now-marquee">
+                  <p>
+                    📍 {t('dashboard.openNow')}: {fmtNum(openNow.openAuctions)}{' '}
                     {t('dashboard.auctions')} · {fmtNum(openNow.openTenders)}{' '}
                     {t('dashboard.tenders')} · {fmtNum(openNow.activeListings)}{' '}
                     {t('dashboard.listings')}
-                  </span>
+                  </p>
                 </div>
               )}
+              <p className="realtime-hint">{t('dashboard.todaysActivityHint')}</p>
+            </div>
+          )}
+
+          {overview && (
+            <div className="overview-grid">
+              <div className="overview-card-stitch card">
+                <FiUsers className="overview-icon-stitch" />
+                <span className="overview-value-stitch">{fmtNum(overview.totalUsers)}</span>
+                <span className="overview-label-stitch">
+                  {t('dashboard.totalUsers')} ({t('dashboard.active30d')}: {fmtNum(overview.activeUsers30Days)})
+                </span>
+              </div>
+              <div className="overview-card-stitch card">
+                <FiGlobe className="overview-icon-stitch" />
+                <span className="overview-value-stitch">{fmtNum(overview.totalFarms)}</span>
+                <span className="overview-label-stitch">
+                  {t('dashboard.totalFarms')} ({t('dashboard.inventory')}: {fmtNum(overview.totalInventory)} kg)
+                </span>
+              </div>
+              <div className="overview-card-stitch card">
+                <FiActivity className="overview-icon-stitch" />
+                <span className="overview-value-stitch">{fmtNum(overview.openAuctions)}</span>
+                <span className="overview-label-stitch">
+                  {t('dashboard.openAuctions')} ({t('dashboard.tenders')}: {fmtNum(overview.openTenders)})
+                </span>
+              </div>
+              <div className="overview-card-stitch card">
+                <FiPackage className="overview-icon-stitch" />
+                <span className="overview-value-stitch">{fmtNum(overview.activeListings)}</span>
+                <span className="overview-label-stitch">
+                  {t('dashboard.activeListings')} ({t('dashboard.newToday')}: {fmtNum(overview.newUsersToday)})
+                </span>
+              </div>
             </div>
           )}
 
@@ -453,7 +503,7 @@ const DashboardContent = () => {
                 xAxisLabel={t('dashboard.dateAxis')}
                 yAxisLabel={t('dashboard.averagePrice')}
                 title={t('dashboard.priceTrends')}
-                color="#16a34a"
+                color="#00652c"
                 height={260}
                 scrollable
               />
@@ -469,11 +519,42 @@ const DashboardContent = () => {
                 height={260}
               />
             )}
+            {productionByCategory.length > 0 && (
+              <Chart
+                type="pie"
+                data={productionByCategory}
+                dataKey="value"
+                nameKey="name"
+                title={t('dashboard.productionByCategory')}
+                height={280}
+                pieLabel
+                tooltipFormatter={(value, _, item) => {
+                  const pct = safeNum(item?.payload?.percentage)
+                  return [`${fmtNum(value)} ${t('dashboard.tonsUnit')} (${pct.toFixed(1)}%)`, t('dashboard.production')]
+                }}
+              />
+            )}
+            {topProductsByProduction.length > 0 && (
+              <Chart
+                type="bar"
+                data={topProductsByProduction}
+                dataKey="value"
+                xAxisKey="name"
+                title={t('dashboard.topProductsByProduction')}
+                xAxisLabel={t('dashboard.product')}
+                yAxisLabel={t('dashboard.thousandTonsUnit')}
+                height={300}
+                scrollable
+                tooltipFormatter={(value) => [`${fmtNum(value)} ${t('dashboard.thousandTonsUnit')}`, t('dashboard.production')]}
+              />
+            )}
           </div>
 
           {topProducts.length > 0 && (
-            <div className="section">
-              <h2 className="section-title">{t('dashboard.topProductsByRevenue')}</h2>
+            <div className="section-table-wrap">
+              <div className="section-table-header">
+                <h2>{t('dashboard.topProductsByRevenue')}</h2>
+              </div>
               <Table columns={topProductsColumns} data={topProducts} />
             </div>
           )}
@@ -509,32 +590,30 @@ const DashboardContent = () => {
           )}
 
           {recentActivity.length > 0 && (
-            <div className="section">
-              <h2 className="section-title">{t('dashboard.recentActivity')}</h2>
+            <div className="section-table-wrap">
+              <div className="section-table-header">
+                <h2>{t('dashboard.recentActivity')}</h2>
+              </div>
               <Table columns={activityColumns} data={recentActivity} />
             </div>
           )}
 
           {lowStockList.length > 0 && (
-            <div className="low-stock-section card">
-              <div className="low-stock-header">
-                <h3>
-                  <FiAlertCircle /> {t('dashboard.lowStockProducts')}
-                </h3>
-                <span className="low-stock-count">{lowStockList.length}</span>
+            <div className="low-stock-alert">
+              <div className="low-stock-alert-icon">
+                <FiAlertCircle />
               </div>
-              <div className="low-stock-list">
-                {lowStockList.map((product, index) => (
-                  <div className="low-stock-item" key={product.productId ?? index}>
-                    <span className="product-name">
-                      {product.productName || `Product ${product.productId}`}
+              <div className="low-stock-alert-body">
+                <h3>{t('dashboard.lowStockProducts')}</h3>
+                <p>{t('dashboard.lowStockHint')}</p>
+                <div className="low-stock-tags">
+                  {lowStockList.map((product, index) => (
+                    <span className="low-stock-tag" key={product.productId ?? index}>
+                      {product.productName || `Product ${product.productId}`}:{' '}
+                      {fmtNum(product.quantityOnHand)} kg
                     </span>
-                    <span className="stock-qty">
-                      {fmtNum(product.quantityOnHand)} kg ({fmtNum(product.cropsCount)}{' '}
-                      {t('dashboard.crops')})
-                    </span>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           )}

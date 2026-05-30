@@ -949,7 +949,7 @@ const ReportBuilder = () => {
               <>
                 {chartProps && (
                   <div className="preview-chart">
-                    <Chart {...chartProps} height={280} />
+                    <Chart {...chartProps} height={280} allowTypeChange={false} />
                   </div>
                 )}
                 <Table columns={tableColumns} data={results.rows || []} />

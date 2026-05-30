@@ -1,7 +1,8 @@
 import React from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import {
   FiHome,
+  FiLayout,
   FiUsers,
   FiBarChart2,
   FiShoppingBag,
@@ -21,7 +22,9 @@ import {
   FiShield,
   FiBell,
   FiEye,
+  FiLogOut,
 } from 'react-icons/fi'
+import { GiWheat } from 'react-icons/gi'
 import { useTranslation } from '../../hooks/useTranslation'
 import { useAccess } from '../../contexts/AccessContext'
 import { getVisibleNavItems } from '../../config/navConfig'
@@ -30,6 +33,7 @@ import { isSuperAdmin } from '../../utils/accessControl'
 import './Sidebar.css'
 
 const ICONS = {
+  '/dashboard/my': <FiLayout />,
   '/dashboard': <FiHome />,
   '/users': <FiUsers />,
   '/analytics': <FiBarChart2 />,
@@ -54,6 +58,7 @@ const ICONS = {
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const { roles, permissions } = useAccess()
   const user = authService.getUser()
 
@@ -73,16 +78,26 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     .slice(0, 2)
     .toUpperCase()
 
+  const handleLogout = () => {
+    authService.logout()
+    navigate('/login', { replace: true })
+  }
+
   return (
     <>
       {isOpen && <div className="sidebar-overlay" onClick={toggleSidebar}></div>}
       <aside className={`sidebar ${isOpen ? 'open' : 'closed'}`}>
         <div className="sidebar-header">
           <div className="logo-container">
-            <div className="logo-icon">AH</div>
-            <h2 className="logo-text">Al-Hal Admin</h2>
+            <div className="logo-icon">
+              <GiWheat />
+            </div>
+            <div className="logo-text-block">
+              <h2 className="logo-text">{t('common.appName')}</h2>
+              <p className="logo-subtitle">{t('common.appSubtitle')}</p>
+            </div>
           </div>
-          <button className="close-btn" onClick={toggleSidebar}>
+          <button type="button" className="close-btn" onClick={toggleSidebar}>
             <FiX />
           </button>
         </div>
@@ -109,6 +124,10 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         </nav>
 
         <div className="sidebar-footer">
+          <button type="button" className="sidebar-footer-action danger" onClick={handleLogout}>
+            <FiLogOut />
+            <span>{t('common.logout')}</span>
+          </button>
           <div className="user-info">
             <div className="user-avatar">{initials}</div>
             <div className="user-details">

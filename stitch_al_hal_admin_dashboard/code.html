@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>سوق الهال - لوحة التحكم الحكومية</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Alexandria', sans-serif;
+            background-color: #f8f9ff;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(190, 202, 188, 0.3);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #becabc;
+            border-radius: 10px;
+        }
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .animate-marquee {
+            display: inline-block;
+            animation: marquee 30s linear infinite;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary-container": "#dae2fd",
+                      "surface-container-highest": "#d3e4fe",
+                      "surface-dim": "#cbdbf5",
+                      "on-primary": "#ffffff",
+                      "on-secondary-fixed-variant": "#3f465c",
+                      "surface-container-low": "#eff4ff",
+                      "primary": "#00652c",
+                      "tertiary": "#54585a",
+                      "secondary-fixed": "#dae2fd",
+                      "inverse-on-surface": "#eaf1ff",
+                      "error-container": "#ffdad6",
+                      "secondary": "#565e74",
+                      "surface-tint": "#006d30",
+                      "on-secondary-fixed": "#131b2e",
+                      "outline": "#6f7a6e",
+                      "on-background": "#0b1c30",
+                      "on-tertiary-fixed-variant": "#444749",
+                      "outline-variant": "#becabc",
+                      "on-secondary": "#ffffff",
+                      "on-surface-variant": "#3f493f",
+                      "primary-container": "#15803d",
+                      "on-primary-container": "#d3ffd5",
+                      "surface-container-high": "#dce9ff",
+                      "primary-fixed": "#95f8a7",
+                      "on-tertiary-container": "#f3f5f7",
+                      "inverse-primary": "#79db8d",
+                      "on-tertiary": "#ffffff",
+                      "on-secondary-container": "#5c647a",
+                      "on-surface": "#0b1c30",
+                      "surface-variant": "#d3e4fe",
+                      "surface": "#f8f9ff",
+                      "on-primary-fixed-variant": "#005323",
+                      "on-error-container": "#93000a",
+                      "surface-container-lowest": "#ffffff",
+                      "tertiary-container": "#6d7072",
+                      "secondary-fixed-dim": "#bec6e0",
+                      "on-tertiary-fixed": "#191c1e",
+                      "surface-bright": "#f8f9ff",
+                      "on-error": "#ffffff",
+                      "on-primary-fixed": "#00210a",
+                      "tertiary-fixed-dim": "#c4c7c9",
+                      "surface-container": "#e5eeff",
+                      "primary-fixed-dim": "#79db8d",
+                      "error": "#ba1a1a",
+                      "inverse-surface": "#213145",
+                      "tertiary-fixed": "#e0e3e5",
+                      "background": "#f8f9ff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "sm": "1rem",
+                      "xl": "3rem",
+                      "base": "4px",
+                      "xs": "0.5rem",
+                      "gutter": "24px",
+                      "lg": "2rem",
+                      "md": "1.5rem",
+                      "container-max": "1440px",
+                      "sidebar-width": "256px"
+              },
+              "fontFamily": {
+                      "display-lg": ["Alexandria"],
+                      "headline-xl": ["Alexandria"],
+                      "headline-lg": ["Alexandria"],
+                      "headline-md": ["Alexandria"],
+                      "body-lg": ["Alexandria"],
+                      "body-md": ["Alexandria"],
+                      "label-md": ["Alexandria"],
+                      "label-sm": ["Alexandria"]
+              },
+              "fontSize": {
+                      "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                      "headline-xl": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                      "headline-lg": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+      </script>
+</head>
+<body class="bg-background text-on-surface font-body-md overflow-x-hidden">
+<!-- SideNavBar from Components -->
+<aside class="fixed right-0 top-0 h-full w-sidebar-width z-50 bg-surface-container-low border-l border-outline-variant/20 shadow-xl flex flex-col py-md px-sm rtl">
+<div class="px-md mb-lg">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="agriculture">agriculture</span>
+<div>
+<h1 class="font-headline-lg text-headline-lg text-primary leading-tight">سوق الهال</h1>
+<p class="text-label-sm text-on-surface-variant opacity-70">بوابة الإدارة الزراعية</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-xs">
+<a class="flex flex-row-reverse items-center gap-sm bg-primary-container text-on-primary-container rounded-xl px-md py-xs transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md">لوحة القيادة</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-sm text-on-surface-variant hover:bg-surface-container-high rounded-xl px-md py-xs transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-label-md">نشاط السوق</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-sm text-on-surface-variant hover:bg-surface-container-high rounded-xl px-md py-xs transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="map">map</span>
+<span class="font-label-md">التحليلات الجغرافية</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-sm text-on-surface-variant hover:bg-surface-container-high rounded-xl px-md py-xs transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-label-md">المؤشرات المالية</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-sm text-on-surface-variant hover:bg-surface-container-high rounded-xl px-md py-xs transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+<span class="font-label-md">التقارير</span>
+</a>
+</nav>
+<div class="mt-auto space-y-xs pt-md border-t border-outline-variant/20">
+<a class="flex flex-row-reverse items-center gap-sm text-on-surface-variant hover:bg-surface-container-high rounded-xl px-md py-xs transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="font-label-md">المساعدة</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-sm text-error hover:bg-error-container rounded-xl px-md py-xs transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-md">تسجيل الخروج</span>
+</a>
+<div class="flex flex-row-reverse items-center gap-sm mt-md p-xs bg-surface-container-highest/30 rounded-xl">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="account_circle">account_circle</span>
+</div>
+<div class="flex flex-col text-right">
+<span class="text-label-md font-bold">أحمد المحمد</span>
+<span class="text-xs opacity-70">مدير النظام</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- TopNavBar from Components (Positioned for main content area) -->
+<header class="fixed top-0 right-sidebar-width left-0 z-40 bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 shadow-sm">
+<div class="flex flex-row-reverse justify-between items-center px-gutter py-xs w-full max-w-container-max mx-auto">
+<div class="flex items-center gap-md">
+<h2 class="font-headline-lg text-primary tracking-tight">لوحة التحكم الحكومية</h2>
+<span class="hidden md:block w-[1px] h-6 bg-outline-variant/30"></span>
+<p class="hidden md:block font-body-md text-on-surface-variant/80">نظرة عامة وتحليلات السوق</p>
+</div>
+<div class="flex items-center gap-sm">
+<div class="flex items-center bg-surface-container-low border border-outline-variant/30 rounded-xl px-sm py-1.5">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="location_on">location_on</span>
+<select class="bg-transparent border-none focus:ring-0 font-label-md pr-8">
+<option>كل المحافظات</option>
+<option>دمشق</option>
+<option>حلب</option>
+</select>
+</div>
+<div class="flex items-center bg-surface-container-low border border-outline-variant/30 rounded-xl px-sm py-1.5">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="calendar_today">calendar_today</span>
+<select class="bg-transparent border-none focus:ring-0 font-label-md pr-8">
+<option>آخر 30 يوم</option>
+<option>اليوم</option>
+</select>
+</div>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors relative scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-2 left-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="mr-sidebar-width pt-24 min-h-screen px-gutter pb-xl bg-background">
+<!-- Daily Revenue Row -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-lg mb-lg">
+<div class="glass-card p-md rounded-xl flex flex-col items-center justify-center text-center shadow-sm hover:shadow-md transition-shadow">
+<span class="text-on-surface-variant font-label-md mb-xs">إيرادات اليوم</span>
+<span class="text-headline-xl font-bold text-primary">$12,450</span>
+</div>
+<div class="bg-primary-container text-on-primary-container p-md rounded-xl flex flex-col items-center justify-center text-center shadow-lg transform hover:scale-[1.02] transition-all relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+<span class="font-label-md mb-xs opacity-90 relative z-10">معدل التغير اليومي</span>
+<span class="text-headline-xl font-bold relative z-10">+11.2%</span>
+<span class="material-symbols-outlined mt-xs text-headline-xl relative z-10" data-icon="trending_up">trending_up</span>
+</div>
+<div class="glass-card p-md rounded-xl flex flex-col items-center justify-center text-center shadow-sm hover:shadow-md transition-shadow">
+<span class="text-on-surface-variant font-label-md mb-xs">إيرادات الأمس</span>
+<span class="text-headline-xl font-bold text-on-surface">$11,200</span>
+</div>
+</div>
+<!-- Primary KPI Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-md mb-lg">
+<div class="bg-surface-container-lowest p-md rounded-xl shadow-sm border border-outline-variant/30 flex items-start justify-between group hover:border-primary/30 transition-colors">
+<div>
+<p class="text-on-surface-variant font-label-md mb-xs">إجمالي الإيرادات</p>
+<h3 class="text-headline-lg font-bold">$245,000</h3>
+<div class="flex items-center text-primary font-label-sm mt-xs">
+<span class="material-symbols-outlined text-sm mr-1" data-icon="arrow_upward">arrow_upward</span>
+                    5% هذا الشهر
+                </div>
+</div>
+<div class="p-3 bg-secondary-container rounded-xl text-primary transition-transform group-hover:scale-110">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-md rounded-xl shadow-sm border border-outline-variant/30 flex items-start justify-between group hover:border-primary/30 transition-colors">
+<div>
+<p class="text-on-surface-variant font-label-md mb-xs">إجمالي المعاملات</p>
+<h3 class="text-headline-lg font-bold">1,234</h3>
+<div class="flex items-center text-primary font-label-sm mt-xs">
+<span class="material-symbols-outlined text-sm mr-1" data-icon="arrow_upward">arrow_upward</span>
+                    3% هذا هذا الشهر
+                </div>
+</div>
+<div class="p-3 bg-secondary-container rounded-xl text-primary transition-transform group-hover:scale-110">
+<span class="material-symbols-outlined" data-icon="shopping_basket">shopping_basket</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-md rounded-xl shadow-sm border border-outline-variant/30 flex items-start justify-between group hover:border-primary/30 transition-colors">
+<div>
+<p class="text-on-surface-variant font-label-md mb-xs">حجم التداول الكلي</p>
+<h3 class="text-headline-lg font-bold">45,000 كغ</h3>
+<div class="flex items-center text-primary font-label-sm mt-xs">
+<span class="material-symbols-outlined text-sm mr-1" data-icon="arrow_upward">arrow_upward</span>
+                    2% هذا الشهر
+                </div>
+</div>
+<div class="p-3 bg-secondary-container rounded-xl text-primary transition-transform group-hover:scale-110">
+<span class="material-symbols-outlined" data-icon="inventory">inventory</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-md rounded-xl shadow-sm border border-outline-variant/30 flex items-start justify-between group hover:border-primary/30 transition-colors">
+<div>
+<p class="text-on-surface-variant font-label-md mb-xs">متوسط السعر</p>
+<h3 class="text-headline-lg font-bold">$5.40/كغ</h3>
+<div class="flex items-center text-error font-label-sm mt-xs">
+<span class="material-symbols-outlined text-sm mr-1" data-icon="arrow_downward">arrow_downward</span>
+                    1% هذا الشهر
+                </div>
+</div>
+<div class="p-3 bg-error-container rounded-xl text-error transition-transform group-hover:scale-110">
+<span class="material-symbols-outlined" data-icon="bar_chart">bar_chart</span>
+</div>
+</div>
+</div>
+<!-- Live Activity Banner -->
+<div class="bg-inverse-surface text-inverse-on-surface p-md rounded-xl shadow-lg mb-lg relative overflow-hidden">
+<div class="flex justify-between items-center mb-md relative z-10">
+<h4 class="font-headline-md flex items-center gap-xs">
+<span class="relative flex h-3 w-3">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+</span>
+                النشاط المباشر
+            </h4>
+<span class="text-label-sm opacity-60">تحديث فوري</span>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-5 gap-md relative z-10">
+<div class="text-center py-xs bg-white/5 rounded-lg border border-white/10">
+<span class="block text-headline-md font-bold">12</span>
+<span class="text-label-sm opacity-70">مستخدمين جدد</span>
+</div>
+<div class="text-center py-xs bg-white/5 rounded-lg border border-white/10">
+<span class="block text-headline-md font-bold">8</span>
+<span class="text-label-sm opacity-70">مزادات جديدة</span>
+</div>
+<div class="text-center py-xs bg-white/5 rounded-lg border border-white/10">
+<span class="block text-headline-md font-bold">3</span>
+<span class="text-label-sm opacity-70">مناقصات جديدة</span>
+</div>
+<div class="text-center py-xs bg-white/5 rounded-lg border border-white/10">
+<span class="block text-headline-md font-bold">156</span>
+<span class="text-label-sm opacity-70">إجمالي المزايدات</span>
+</div>
+<div class="text-center py-xs bg-white/5 rounded-lg border border-white/10">
+<span class="block text-headline-md font-bold">89</span>
+<span class="text-label-sm opacity-70">إجمالي الطلبات</span>
+</div>
+</div>
+<div class="mt-md pt-xs border-t border-white/10 overflow-hidden whitespace-nowrap relative z-10">
+<p class="text-body-md animate-marquee">
+                📍 مفتوح الآن: 45 مزاد · 12 مناقصة · 230 قائمة · الأسعار مستقرة في سوق حلب · ارتفاع الطلب على القمح في حمص · وصول شحنة فواكه طازجة إلى طرطوس
+            </p>
+</div>
+</div>
+<!-- Overview Stats -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-md mb-lg">
+<div class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant/30 shadow-sm flex flex-col items-center hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-primary text-4xl mb-xs" data-icon="person_search">person_search</span>
+<span class="font-headline-md">5,200</span>
+<span class="text-on-surface-variant text-label-md">المستخدمين (نشط: 890)</span>
+</div>
+<div class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant/30 shadow-sm flex flex-col items-center hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-primary text-4xl mb-xs" data-icon="agriculture">agriculture</span>
+<span class="font-headline-md">340</span>
+<span class="text-on-surface-variant text-label-md">المزارع (مخزون: 120,000 كغ)</span>
+</div>
+<div class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant/30 shadow-sm flex flex-col items-center hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-primary text-4xl mb-xs" data-icon="gavel">gavel</span>
+<span class="font-headline-md">45</span>
+<span class="text-on-surface-variant text-label-md">المزادات (مناقصات: 12)</span>
+</div>
+<div class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant/30 shadow-sm flex flex-col items-center hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-primary text-4xl mb-xs" data-icon="list_alt">list_alt</span>
+<span class="font-headline-md">230</span>
+<span class="text-on-surface-variant text-label-md">القوائم (جديد اليوم: 15)</span>
+</div>
+</div>
+<!-- Charts Section -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-lg mb-lg">
+<!-- Revenue Trend -->
+<div class="lg:col-span-8 bg-surface-container-lowest p-md rounded-xl border border-outline-variant/30 shadow-sm">
+<div class="flex justify-between items-center mb-md">
+<h5 class="font-headline-md">اتجاهات الإيرادات</h5>
+<div class="flex gap-md">
+<div class="flex items-center gap-1">
+<span class="w-3 h-3 rounded-full bg-primary shadow-sm"></span>
+<span class="text-label-sm">المبيعات المباشرة</span>
+</div>
+</div>
+</div>
+<div class="h-64 flex items-end justify-between gap-2 px-md pt-lg relative">
+<!-- Data bars with gradient and hover effect -->
+<div class="absolute inset-x-gutter bottom-0 top-md border-b border-outline-variant/20"></div>
+<div class="w-full h-full flex items-end justify-between gap-2 relative z-10">
+<div class="flex-1 bg-gradient-to-t from-primary/80 to-primary/40 h-[30%] rounded-t-sm hover:from-primary transition-all cursor-pointer"></div>
+<div class="flex-1 bg-gradient-to-t from-primary/80 to-primary/40 h-[45%] rounded-t-sm hover:from-primary transition-all cursor-pointer"></div>
+<div class="flex-1 bg-gradient-to-t from-primary/80 to-primary/40 h-[40%] rounded-t-sm hover:from-primary transition-all cursor-pointer"></div>
+<div class="flex-1 bg-gradient-to-t from-primary/80 to-primary/40 h-[60%] rounded-t-sm hover:from-primary transition-all cursor-pointer"></div>
+<div class="flex-1 bg-gradient-to-t from-primary/80 to-primary/40 h-[80%] rounded-t-sm hover:from-primary transition-all cursor-pointer"></div>
+<div class="flex-1 bg-gradient-to-t from-primary/80 to-primary/40 h-[55%] rounded-t-sm hover:from-primary transition-all cursor-pointer"></div>
+<div class="flex-1 bg-gradient-to-t from-primary/80 to-primary/40 h-[70%] rounded-t-sm hover:from-primary transition-all cursor-pointer"></div>
+<div class="flex-1 bg-gradient-to-t from-primary/80 to-primary/40 h-[90%] rounded-t-sm hover:from-primary transition-all cursor-pointer"></div>
+<div class="flex-1 bg-gradient-to-t from-primary/80 to-primary/40 h-[65%] rounded-t-sm hover:from-primary transition-all cursor-pointer"></div>
+<div class="flex-1 bg-gradient-to-t from-primary/80 to-primary/40 h-[85%] rounded-t-sm hover:from-primary transition-all cursor-pointer"></div>
+<div class="flex-1 bg-gradient-to-t from-primary/80 to-primary/40 h-[75%] rounded-t-sm hover:from-primary transition-all cursor-pointer"></div>
+<div class="flex-1 bg-gradient-to-t from-primary/80 to-primary/40 h-[95%] rounded-t-sm hover:from-primary transition-all cursor-pointer"></div>
+</div>
+</div>
+<div class="flex justify-between mt-sm text-label-sm opacity-50 px-2">
+<span>1 ك1</span><span>5 ك1</span><span>10 ك1</span><span>15 ك1</span><span>20 ك1</span><span>25 ك1</span><span>30 ك1</span>
+</div>
+</div>
+<!-- Production Pie (Representation) -->
+<div class="lg:col-span-4 bg-surface-container-lowest p-md rounded-xl border border-outline-variant/30 shadow-sm flex flex-col">
+<h5 class="font-headline-md mb-lg">الإنتاج حسب الفئة</h5>
+<div class="flex-1 flex flex-col items-center justify-center">
+<div class="relative w-40 h-40">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#dae2fd" stroke-dasharray="100, 100" stroke-width="3"></path>
+<path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#00652c" stroke-dasharray="45, 100" stroke-width="3"></path>
+<path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#565e74" stroke-dasharray="35, 100" stroke-dashoffset="-45" stroke-width="3"></path>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-headline-lg font-bold">120k</span>
+<span class="text-label-sm opacity-60">كغ كلي</span>
+</div>
+</div>
+<div class="grid grid-cols-1 gap-sm mt-lg w-full">
+<div class="flex justify-between items-center text-label-md">
+<div class="flex items-center gap-xs">
+<span class="w-2.5 h-2.5 rounded-full bg-primary"></span>
+<span>خضروات</span>
+</div>
+<span class="font-bold">45%</span>
+</div>
+<div class="flex justify-between items-center text-label-md">
+<div class="flex items-center gap-xs">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary"></span>
+<span>فواكه</span>
+</div>
+<span class="font-bold">35%</span>
+</div>
+<div class="flex justify-between items-center text-label-md">
+<div class="flex items-center gap-xs">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary-container"></span>
+<span>حبوب</span>
+</div>
+<span class="font-bold">20%</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Secondary Charts & Lists -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-lg mb-lg">
+<div class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant/30 shadow-sm">
+<h5 class="font-headline-md mb-md">المعاملات حسب النوع</h5>
+<div class="space-y-lg">
+<div>
+<div class="flex justify-between text-label-md mb-xs">
+<span class="font-medium">مبيعات مباشرة</span>
+<span class="font-bold">642</span>
+</div>
+<div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 65%;"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-label-md mb-xs">
+<span class="font-medium">مزادات</span>
+<span class="font-bold">412</span>
+</div>
+<div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary rounded-full" style="width: 45%;"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-label-md mb-xs">
+<span class="font-medium">مناقصات</span>
+<span class="font-bold">180</span>
+</div>
+<div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-outline rounded-full" style="width: 25%;"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant/30 shadow-sm">
+<h5 class="font-headline-md mb-md">أهم المحاصيل حسب الإنتاج (كغ)</h5>
+<div class="space-y-xs overflow-y-auto max-h-[180px] custom-scrollbar px-1">
+<div class="flex justify-between items-center p-md bg-surface-container-low/50 rounded-xl hover:bg-primary-container/10 transition-colors cursor-default">
+<div class="flex items-center gap-sm">
+<span class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold">1</span>
+<span class="font-label-md font-bold">القمح</span>
+</div>
+<span class="font-headline-md text-primary">12,500</span>
+</div>
+<div class="flex justify-between items-center p-md bg-surface-container-low/50 rounded-xl hover:bg-primary-container/10 transition-colors cursor-default">
+<div class="flex items-center gap-sm">
+<span class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold">2</span>
+<span class="font-label-md font-bold">البندورة</span>
+</div>
+<span class="font-headline-md text-primary">9,200</span>
+</div>
+<div class="flex justify-between items-center p-md bg-surface-container-low/50 rounded-xl hover:bg-primary-container/10 transition-colors cursor-default">
+<div class="flex items-center gap-sm">
+<span class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold">3</span>
+<span class="font-label-md font-bold">البطاطا</span>
+</div>
+<span class="font-headline-md text-primary">8,400</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Province Data Table & Mini Chart -->
+<div class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant/30 shadow-sm mb-lg">
+<h5 class="font-headline-md mb-lg">بيانات المحافظات (الإيرادات والحجم)</h5>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-lg items-center">
+<div class="lg:col-span-7 pr-md border-r border-outline-variant/10">
+<div class="h-56 flex items-end justify-between px-md pb-xs border-b border-outline-variant/30 relative">
+<!-- Faux Bar Chart -->
+<div class="flex flex-col items-center gap-xs w-1/12 group">
+<div class="flex gap-1 items-end h-40">
+<div class="w-2.5 bg-primary h-[80%] rounded-t-sm group-hover:h-[85%] transition-all"></div>
+<div class="w-2.5 bg-secondary h-[60%] rounded-t-sm group-hover:h-[65%] transition-all"></div>
+</div>
+<span class="text-label-sm whitespace-nowrap opacity-70">دمشق</span>
+</div>
+<div class="flex flex-col items-center gap-xs w-1/12 group">
+<div class="flex gap-1 items-end h-40">
+<div class="w-2.5 bg-primary h-[95%] rounded-t-sm group-hover:h-[100%] transition-all"></div>
+<div class="w-2.5 bg-secondary h-[85%] rounded-t-sm group-hover:h-[90%] transition-all"></div>
+</div>
+<span class="text-label-sm whitespace-nowrap opacity-70">حلب</span>
+</div>
+<div class="flex flex-col items-center gap-xs w-1/12 group">
+<div class="flex gap-1 items-end h-40">
+<div class="w-2.5 bg-primary h-[60%] rounded-t-sm group-hover:h-[65%] transition-all"></div>
+<div class="w-2.5 bg-secondary h-[40%] rounded-t-sm group-hover:h-[45%] transition-all"></div>
+</div>
+<span class="text-label-sm whitespace-nowrap opacity-70">حمص</span>
+</div>
+<div class="flex flex-col items-center gap-xs w-1/12 group">
+<div class="flex gap-1 items-end h-40">
+<div class="w-2.5 bg-primary h-[50%] rounded-t-sm group-hover:h-[55%] transition-all"></div>
+<div class="w-2.5 bg-secondary h-[35%] rounded-t-sm group-hover:h-[40%] transition-all"></div>
+</div>
+<span class="text-label-sm whitespace-nowrap opacity-70">حماة</span>
+</div>
+<div class="flex flex-col items-center gap-xs w-1/12 group">
+<div class="flex gap-1 items-end h-40">
+<div class="w-2.5 bg-primary h-[45%] rounded-t-sm group-hover:h-[50%] transition-all"></div>
+<div class="w-2.5 bg-secondary h-[65%] rounded-t-sm group-hover:h-[70%] transition-all"></div>
+</div>
+<span class="text-label-sm whitespace-nowrap opacity-70">طرطوس</span>
+</div>
+</div>
+<div class="flex gap-lg mt-md justify-center">
+<div class="flex items-center gap-xs">
+<span class="w-3 h-3 rounded-full bg-primary"></span>
+<span class="text-label-sm font-medium">الإيرادات</span>
+</div>
+<div class="flex items-center gap-xs">
+<span class="w-3 h-3 rounded-full bg-secondary"></span>
+<span class="text-label-sm font-medium">حجم التداول</span>
+</div>
+</div>
+</div>
+<div class="lg:col-span-5">
+<table class="w-full text-right border-collapse">
+<thead>
+<tr class="text-on-surface-variant text-label-sm border-b border-outline-variant/30">
+<th class="py-md px-md">المحافظة</th>
+<th class="py-md px-md">الإيرادات</th>
+<th class="py-md px-md">النمو</th>
+</tr>
+</thead>
+<tbody class="text-body-md">
+<tr class="border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors group">
+<td class="py-md px-md font-bold">دمشق</td>
+<td class="py-md px-md text-primary">$84,200</td>
+<td class="py-md px-md text-primary">+12%</td>
+</tr>
+<tr class="border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors group">
+<td class="py-md px-md font-bold">حلب</td>
+<td class="py-md px-md text-primary">$92,100</td>
+<td class="py-md px-md text-primary">+15%</td>
+</tr>
+<tr class="border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors group">
+<td class="py-md px-md font-bold">حمص</td>
+<td class="py-md px-md text-primary">$45,300</td>
+<td class="py-md px-md text-error">-2%</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="py-md px-md font-bold">طرطوس</td>
+<td class="py-md px-md text-primary">$38,900</td>
+<td class="py-md px-md text-primary">+4%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Recent Activity Table -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-sm mb-lg overflow-hidden">
+<div class="p-md border-b border-outline-variant/30 flex justify-between items-center">
+<h5 class="font-headline-md">آخر الأنشطة والعمليات</h5>
+<button class="text-primary font-label-md hover:underline hover:opacity-80 transition-all">عرض الكل</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-right">
+<thead>
+<tr class="bg-surface-container-low/50 text-on-surface-variant font-label-md">
+<th class="p-md">النوع</th>
+<th class="p-md">المعرف</th>
+<th class="p-md">العنوان</th>
+<th class="p-md">الحالة</th>
+<th class="p-md">التاريخ</th>
+</tr>
+</thead>
+<tbody class="text-body-md">
+<tr class="border-b border-outline-variant/10 hover:bg-primary-container/5 transition-all">
+<td class="p-md">
+<span class="bg-primary-fixed text-on-primary-fixed px-3 py-1 rounded-full text-xs font-bold">بيع مباشر</span>
+</td>
+<td class="p-md font-mono text-xs opacity-60">#TR-55421</td>
+<td class="p-md font-medium">بيع 500 كغ قمح صلب</td>
+<td class="p-md">
+<span class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-xs font-bold">مكتمل</span>
+</td>
+<td class="p-md opacity-60 text-xs">2023/12/28 14:30</td>
+</tr>
+<tr class="border-b border-outline-variant/10 hover:bg-primary-container/5 transition-all">
+<td class="p-md">
+<span class="bg-secondary-fixed text-on-secondary-fixed px-3 py-1 rounded-full text-xs font-bold">مزاد</span>
+</td>
+<td class="p-md font-mono text-xs opacity-60">#AU-99212</td>
+<td class="p-md font-medium">مزاد محصول التفاح - السويداء</td>
+<td class="p-md">
+<span class="bg-surface-variant text-on-surface-variant px-3 py-1 rounded-full text-xs font-bold">قيد المزايدة</span>
+</td>
+<td class="p-md opacity-60 text-xs">2023/12/28 12:15</td>
+</tr>
+<tr class="hover:bg-primary-container/5 transition-all">
+<td class="p-md">
+<span class="bg-error-container text-on-error-container px-3 py-1 rounded-full text-xs font-bold">مناقصة</span>
+</td>
+<td class="p-md font-mono text-xs opacity-60">#TN-10293</td>
+<td class="p-md font-medium">تأمين أسمدة لمزارعي حمص</td>
+<td class="p-md">
+<span class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-xs font-bold">مكتمل</span>
+</td>
+<td class="p-md opacity-60 text-xs">2023/12/27 09:45</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Alert Banner -->
+<div class="bg-error-container border border-error/20 p-md rounded-xl shadow-md flex items-center gap-md">
+<div class="bg-error text-white p-xs rounded-full flex items-center justify-center animate-pulse">
+<span class="material-symbols-outlined text-2xl" data-icon="warning">warning</span>
+</div>
+<div class="flex-1">
+<h6 class="font-bold text-on-error-container mb-xs">تنبيه: مستويات مخزون منخفضة</h6>
+<p class="text-label-md text-on-error-container/80">المنتجات التالية وصلت إلى الحد الأدنى من الكمية المطلوبة في مستودعات حلب ودمشق.</p>
+<div class="mt-md flex flex-wrap gap-xs">
+<span class="bg-white/50 px-md py-xs rounded-lg text-xs font-bold border border-error/10">العدس: 120 كغ متبقي</span>
+<span class="bg-white/50 px-md py-xs rounded-lg text-xs font-bold border border-error/10">الحمص: 85 كغ متبقي</span>
+<span class="bg-white/50 px-md py-xs rounded-lg text-xs font-bold border border-error/10">البصل الأحمر: 40 كغ متبقي</span>
+</div>
+</div>
+<button class="bg-error text-white px-md py-md rounded-xl font-bold hover:bg-error/90 transition-all shadow-sm active:scale-95">
+            طلب توريد عاجل
+        </button>
+</div>
+</main>
+<script>
+    // Stats cards hover lift micro-interaction
+    document.querySelectorAll('.bg-surface-container-lowest, .glass-card').forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            card.style.transform = 'translateY(-4px)';
+            card.style.transition = 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        });
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'translateY(0)';
+        });
+    });
+</script>
+</body></html>

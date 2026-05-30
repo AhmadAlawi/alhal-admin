@@ -1,5 +1,5 @@
 /**
- * Normalize heterogeneous report API payloads into Recharts-ready datasets.
+ * Normalize heterogeneous report API payloads into chart-ready datasets.
  */
 
 import { formatChartShortDate, formatDistributionChart, safeChartNumber } from './chartNormalize'
@@ -325,7 +325,7 @@ export function buildReportChartConfig(raw, reportId, locale = 'en-US') {
   if (kind === 'timeseries') {
     const { periodKey, numericKeys, data } = normalizeTimeSeriesRows(rows, locale)
     const useComposed = numericKeys.length > 1
-    const colors = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
+    const colors = ['#15803d', '#16a34a', '#059669', '#22c55e', '#0d9488']
 
     if (useComposed) {
       return {
