@@ -30,6 +30,7 @@ import { useAccess } from '../../contexts/AccessContext'
 import { getVisibleNavItems } from '../../config/navConfig'
 import authService from '../../services/authService'
 import { isSuperAdmin } from '../../utils/accessControl'
+import EntityAnalyticsNavGroup from './EntityAnalyticsNavGroup'
 import './Sidebar.css'
 
 const ICONS = {
@@ -104,22 +105,28 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
         <nav className="sidebar-nav">
           <ul className="menu-list">
-            {visibleItems.map((item) => (
-              <li key={item.path}>
-                <NavLink
-                  to={item.path === '/rbac' ? '/rbac/permissions' : item.path}
-                  className={({ isActive }) => {
-                    const active =
-                      isActive ||
-                      (item.path === '/rbac' && window.location.pathname.startsWith('/rbac'))
-                    return `menu-item ${active ? 'active' : ''}`
-                  }}
-                >
-                  <span className="menu-icon">{ICONS[item.path] || <FiHome />}</span>
-                  <span className="menu-label">{t(item.labelKey)}</span>
-                </NavLink>
-              </li>
-            ))}
+            {visibleItems.map((item) => {
+              if (item.type === 'entity-analytics-group') {
+                return <EntityAnalyticsNavGroup key={item.basePath} />
+              }
+
+              return (
+                <li key={item.path}>
+                  <NavLink
+                    to={item.path === '/rbac' ? '/rbac/permissions' : item.path}
+                    className={({ isActive }) => {
+                      const active =
+                        isActive ||
+                        (item.path === '/rbac' && window.location.pathname.startsWith('/rbac'))
+                      return `menu-item ${active ? 'active' : ''}`
+                    }}
+                  >
+                    <span className="menu-icon">{ICONS[item.path] || <FiHome />}</span>
+                    <span className="menu-label">{t(item.labelKey)}</span>
+                  </NavLink>
+                </li>
+              )
+            })}
           </ul>
         </nav>
 

@@ -901,7 +901,12 @@
     "tabBuiltin": "System KPIs",
     "tabReports": "Predefined reports",
     "tabSaved": "Saved reports",
+    "tabAnalytics": "Entity analytics",
     "noSavedReports": "No saved reports — create one in Report Builder",
+    "noReportPermission": "You need gov.reports.view permission to add predefined reports",
+    "noSavedPermission": "You need gov.reports.build permission to add saved reports",
+    "noAnalyticsPermission": "You need gov.dashboard.view permission to add entity analytics",
+    "noPredefinedReports": "No predefined reports available",
     "saved": "Saved",
     "setPrimary": "Set as primary",
     "primary": "Primary",
@@ -954,6 +959,7 @@
   "nav": {
     "govDashboard": "Government Dashboard",
     "myDashboards": "My Dashboards",
+    "entityAnalytics": "Entity Analytics",
     "govReports": "Reports",
     "reportBuilder": "Report Builder",
     "savedReports": "Saved Reports",
@@ -1181,6 +1187,42 @@
   },
   "chart": {
     "changeType": "Change chart type"
+  },
+  "reportActions": {
+    "showData": "Show data",
+    "hideData": "Hide data",
+    "print": "Print",
+    "includeChart": "Include chart",
+    "noTableData": "No tabular data available for this report",
+    "useShowData": "Use \"Show data\" to view the table",
+    "showingRows": "Showing {{shown}} of {{total}} rows",
+    "value": "Value",
+    "change": "Change"
+  },
+  "govAnalytics": {
+    "title": "Entity Analytics",
+    "subtitle": "Reports by government entity — ministry, governorate, transport, and more",
+    "entitySubtitle": "Reports and analytics for this entity",
+    "selectEntity": "Select an entity from the sidebar",
+    "noEntities": "No entities available",
+    "reportCatalog": "Report catalog",
+    "selectReport": "Select a report from the catalog",
+    "noReports": "No reports available for this entity",
+    "period": "Period",
+    "shared": "Shared",
+    "last7Days": "Last 7 days",
+    "last30Days": "Last 30 days",
+    "last90Days": "Last 90 days",
+    "lastYear": "Last year",
+    "vizTypes": {
+      "kpi": "KPI",
+      "column": "Column",
+      "line": "Line",
+      "donut": "Donut",
+      "table": "Table",
+      "map": "Map",
+      "combo": "Combo"
+    }
   },
   "savedReports": {
     "title": "Saved Reports",

@@ -1,24 +1,39 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { FiBarChart2, FiDatabase, FiGrid, FiPlus, FiSearch } from 'react-icons/fi'
+import { FiBarChart2, FiDatabase, FiGrid, FiLayers, FiPlus, FiSearch } from 'react-icons/fi'
 import { BUILTIN_WIDGETS, PREDEFINED_REPORT_WIDGETS } from '../../config/builtinWidgets'
 import reportBuilderService from '../../services/reportBuilderService'
+import govAnalyticsService from '../../services/govAnalyticsService'
 import {
   createPredefinedReportWidget,
   createSavedReportWidget,
+  createAnalyticsReportWidget,
   createWidgetFromCatalog,
   userHasWidgetPermission,
 } from '../../utils/customDashboardUtils'
+import { PERMISSIONS } from '../../utils/accessControl'
+import { unwrapAnalyticsList } from '../../utils/govAnalyticsNormalize'
 import { useTranslation } from '../../hooks/useTranslation'
 import { useAccess } from '../../contexts/AccessContext'
+import { useLocale } from '../../contexts/LocaleContext'
 import './WidgetPicker.css'
 
 const WidgetPicker = ({ open, onClose, onAdd }) => {
   const { t } = useTranslation()
+  const { language } = useLocale()
   const { permissions, roles } = useAccess()
   const [tab, setTab] = useState('builtin')
   const [search, setSearch] = useState('')
   const [savedReports, setSavedReports] = useState([])
   const [loadingSaved, setLoadingSaved] = useState(false)
+  const [analyticsCatalog, setAnalyticsCatalog] = useState([])
+  const [loadingAnalytics, setLoadingAnalytics] = useState(false)
+  const [analyticsEntityId, setAnalyticsEntityId] = useState('')
+  const [analyticsEntities, setAnalyticsEntities] = useState([])
+  const [analyticsError, setAnalyticsError] = useState(null)
+
+  const canAddAnalytics = userHasWidgetPermission(PERMISSIONS.GOV_DASHBOARD, permissions, roles)
+  const canAddPredefined = userHasWidgetPermission(PERMISSIONS.GOV_REPORTS, permissions, roles)
+  const canAddSaved = userHasWidgetPermission(PERMISSIONS.GOV_REPORTS_BUILD, permissions, roles)
 
   useEffect(() => {
     if (!open || tab !== 'saved') return
@@ -39,6 +54,57 @@ const WidgetPicker = ({ open, onClose, onAdd }) => {
       cancelled = true
     }
   }, [open, tab])
+
+  useEffect(() => {
+    if (!open || tab !== 'analytics' || !canAddAnalytics) return undefined
+    let cancelled = false
+
+    govAnalyticsService
+      .getEntities()
+      .then((res) => {
+        if (cancelled) return
+        const entities = unwrapAnalyticsList(res)
+        setAnalyticsEntities(entities)
+        if (entities.length > 0) {
+          setAnalyticsEntityId((prev) => prev || entities[0].entityId || entities[0].id)
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setAnalyticsEntities([])
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [open, tab, canAddAnalytics])
+
+  useEffect(() => {
+    if (!open || tab !== 'analytics' || !canAddAnalytics) return undefined
+    let cancelled = false
+    setLoadingAnalytics(true)
+    setAnalyticsError(null)
+
+    const params = analyticsEntityId ? { entityId: analyticsEntityId } : {}
+    govAnalyticsService
+      .getCatalog(params)
+      .then((res) => {
+        if (cancelled) return
+        setAnalyticsCatalog(unwrapAnalyticsList(res))
+      })
+      .catch((e) => {
+        if (!cancelled) {
+          setAnalyticsCatalog([])
+          setAnalyticsError(e.message)
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingAnalytics(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [open, tab, canAddAnalytics, analyticsEntityId])
 
   const builtinItems = useMemo(
     () =>
@@ -68,6 +134,15 @@ const WidgetPicker = ({ open, onClose, onAdd }) => {
     [savedReports, search]
   )
 
+  const filteredAnalytics = useMemo(() => {
+    const q = search.toLowerCase()
+    return analyticsCatalog.filter((item) => {
+      const titleAr = (item.titleAr || '').toLowerCase()
+      const titleEn = (item.titleEn || '').toLowerCase()
+      return titleAr.includes(q) || titleEn.includes(q) || item.reportId.includes(q)
+    })
+  }, [analyticsCatalog, search])
+
   if (!open) return null
 
   const handleAddBuiltin = (item) => {
@@ -82,6 +157,11 @@ const WidgetPicker = ({ open, onClose, onAdd }) => {
 
   const handleAddSaved = (report) => {
     onAdd(createSavedReportWidget(report))
+    onClose()
+  }
+
+  const handleAddAnalytics = (item) => {
+    onAdd(createAnalyticsReportWidget(item, language))
     onClose()
   }
 
@@ -127,7 +207,37 @@ const WidgetPicker = ({ open, onClose, onAdd }) => {
           >
             <FiDatabase /> {t('customDashboard.tabSaved')}
           </button>
+          <button
+            type="button"
+            className={tab === 'analytics' ? 'active' : ''}
+            onClick={() => setTab('analytics')}
+          >
+            <FiLayers /> {t('customDashboard.tabAnalytics')}
+          </button>
         </div>
+
+        {tab === 'analytics' && analyticsEntities.length > 0 && (
+          <div className="widget-picker-entity-filter">
+            <select
+              className="filter-select"
+              value={analyticsEntityId}
+              onChange={(e) => setAnalyticsEntityId(e.target.value)}
+            >
+              {analyticsEntities.map((entity) => {
+                const id = entity.entityId || entity.id
+                const label =
+                  language === 'ar'
+                    ? entity.nameAr || entity.titleAr || id
+                    : entity.nameEn || entity.titleEn || id
+                return (
+                  <option key={id} value={id}>
+                    {label}
+                  </option>
+                )
+              })}
+            </select>
+          </div>
+        )}
 
         <div className="widget-picker-list">
           {tab === 'builtin' &&
@@ -143,7 +253,16 @@ const WidgetPicker = ({ open, onClose, onAdd }) => {
               </button>
             ))}
 
+          {tab === 'reports' && !canAddPredefined && (
+            <p className="widget-picker-empty">{t('customDashboard.noReportPermission')}</p>
+          )}
+
+          {tab === 'reports' && canAddPredefined && reportItems.length === 0 && (
+            <p className="widget-picker-empty">{t('customDashboard.noPredefinedReports')}</p>
+          )}
+
           {tab === 'reports' &&
+            canAddPredefined &&
             reportItems.map((item) => (
               <button
                 key={`${item.categoryId}-${item.reportId}`}
@@ -175,6 +294,47 @@ const WidgetPicker = ({ open, onClose, onAdd }) => {
               >
                 <FiPlus />
                 <span>{report.name}</span>
+              </button>
+            ))}
+
+          {tab === 'saved' && !canAddSaved && (
+            <p className="widget-picker-empty">{t('customDashboard.noSavedPermission')}</p>
+          )}
+
+          {tab === 'analytics' && !canAddAnalytics && (
+            <p className="widget-picker-empty">{t('customDashboard.noAnalyticsPermission')}</p>
+          )}
+
+          {tab === 'analytics' && canAddAnalytics && analyticsError && (
+            <p className="widget-picker-empty widget-picker-error">{analyticsError}</p>
+          )}
+
+          {tab === 'analytics' && loadingAnalytics && (
+            <p className="widget-picker-empty">{t('common.loading')}</p>
+          )}
+
+          {tab === 'analytics' &&
+            canAddAnalytics &&
+            !loadingAnalytics &&
+            !analyticsError &&
+            filteredAnalytics.length === 0 && (
+            <p className="widget-picker-empty">{t('govAnalytics.noReports')}</p>
+          )}
+
+          {tab === 'analytics' &&
+            canAddAnalytics &&
+            !loadingAnalytics &&
+            filteredAnalytics.map((item) => (
+              <button
+                key={item.reportId}
+                type="button"
+                className="widget-picker-item"
+                onClick={() => handleAddAnalytics(item)}
+              >
+                <FiPlus />
+                <span>
+                  {language === 'ar' ? item.titleAr || item.titleEn : item.titleEn || item.titleAr}
+                </span>
               </button>
             ))}
         </div>

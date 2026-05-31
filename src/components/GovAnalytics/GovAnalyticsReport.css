@@ -1,0 +1,79 @@
+.gov-analytics-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--on-surface-variant);
+  font-size: 0.9rem;
+}
+
+.gov-analytics-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.gov-analytics-kpi-items {
+  list-style: none;
+  margin: 0;
+  padding: 0.75rem 1rem;
+  background: var(--surface-container);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.gov-analytics-kpi-items li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.35rem 0;
+  font-size: 0.85rem;
+  color: var(--on-surface-variant);
+}
+
+.gov-analytics-kpi-items strong {
+  color: var(--on-surface);
+}
+
+.gov-analytics-table-wrap .chart-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.gov-analytics-map {
+  padding: 1rem;
+}
+
+.gov-analytics-map-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.gov-analytics-map-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  background: var(--surface-container);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.map-point-name {
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.map-point-value {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.gov-analytics-combo {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}

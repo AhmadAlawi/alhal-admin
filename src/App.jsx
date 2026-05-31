@@ -26,6 +26,8 @@ import TransportPriceLines from './pages/TransportPriceLines'
 import TransportVehicles from './pages/TransportVehicles'
 import Ads from './pages/Ads'
 import MobileAnalytics from './pages/MobileAnalytics'
+import GovEntityAnalytics from './pages/GovEntityAnalytics'
+import EntityAnalyticsRedirect from './pages/EntityAnalyticsRedirect'
 import GovPlaceholder from './pages/GovPlaceholder'
 import RbacLayout from './pages/rbac/RbacLayout'
 import RbacPermissions from './pages/rbac/RbacPermissions'
@@ -93,6 +95,22 @@ function App() {
               element={
                 <GuardedPage permission={PERMISSIONS.GOV_DASHBOARD}>
                   <CustomDashboardPage mode="view" />
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/gov/entity-analytics"
+              element={
+                <GuardedPage permission={PERMISSIONS.GOV_DASHBOARD}>
+                  <EntityAnalyticsRedirect />
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/gov/entity-analytics/:entityId"
+              element={
+                <GuardedPage permission={PERMISSIONS.GOV_DASHBOARD}>
+                  <GovEntityAnalytics />
                 </GuardedPage>
               }
             />

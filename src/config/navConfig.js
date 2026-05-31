@@ -1,4 +1,5 @@
 import { PERMISSIONS, canSeeNavItem } from '../utils/accessControl'
+import { ENTITY_ANALYTICS_NAV } from './entityAnalyticsNav'
 
 /**
  * Sidebar navigation — each item declares how access is checked.
@@ -15,6 +16,7 @@ export const NAV_ITEMS = [
     labelKey: 'nav.govDashboard',
     permission: PERMISSIONS.GOV_DASHBOARD,
   },
+  ENTITY_ANALYTICS_NAV,
   {
     path: '/reports/saved',
     labelKey: 'nav.savedReports',
@@ -87,7 +89,12 @@ export const NAV_ITEMS = [
 ]
 
 export function getVisibleNavItems(roles, permissions) {
-  return NAV_ITEMS.filter((item) => canSeeNavItem(item, roles, permissions))
+  return NAV_ITEMS.filter((item) => {
+    if (item.type === 'entity-analytics-group') {
+      return canSeeNavItem({ permission: item.permission }, roles, permissions)
+    }
+    return canSeeNavItem(item, roles, permissions)
+  })
 }
 
 export function getDefaultRoute(roles, permissions) {

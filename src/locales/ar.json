@@ -902,7 +902,12 @@
     "tabBuiltin": "مؤشرات النظام",
     "tabReports": "تقارير جاهزة",
     "tabSaved": "تقارير محفوظة",
+    "tabAnalytics": "تحليلات الجهات",
     "noSavedReports": "لا توجد تقارير محفوظة — أنشئ تقريراً من منشئ التقارير",
+    "noReportPermission": "تحتاج صلاحية gov.reports.view لإضافة التقارير الجاهزة",
+    "noSavedPermission": "تحتاج صلاحية gov.reports.build لإضافة التقارير المحفوظة",
+    "noAnalyticsPermission": "تحتاج صلاحية gov.dashboard.view لإضافة تحليلات الجهات",
+    "noPredefinedReports": "لا توجد تقارير جاهزة متاحة",
     "saved": "تم الحفظ",
     "setPrimary": "تعيين كأساسية",
     "primary": "أساسية",
@@ -955,6 +960,7 @@
   "nav": {
     "govDashboard": "لوحة الحكومة",
     "myDashboards": "لوحاتي المخصصة",
+    "entityAnalytics": "تحليلات الجهات",
     "govReports": "التقارير",
     "reportBuilder": "منشئ التقارير",
     "savedReports": "التقارير المحفوظة",
@@ -1182,6 +1188,42 @@
   },
   "chart": {
     "changeType": "تغيير نوع الرسم"
+  },
+  "reportActions": {
+    "showData": "عرض البيانات",
+    "hideData": "إخفاء البيانات",
+    "print": "طباعة",
+    "includeChart": "تضمين الرسم",
+    "noTableData": "لا توجد بيانات جدولية لهذا التقرير",
+    "useShowData": "استخدم «عرض البيانات» لرؤية الجدول",
+    "showingRows": "عرض {{shown}} من {{total}} صف",
+    "value": "القيمة",
+    "change": "التغيير"
+  },
+  "govAnalytics": {
+    "title": "تحليلات الجهات",
+    "subtitle": "تقارير حسب الجهة الحكومية — الوزارات، المحافظات، النقل، وغيرها",
+    "entitySubtitle": "تقارير وتحليلات هذه الجهة",
+    "selectEntity": "اختر جهة من القائمة الجانبية",
+    "noEntities": "لا توجد جهات متاحة",
+    "reportCatalog": "فهرس التقارير",
+    "selectReport": "اختر تقريراً من القائمة",
+    "noReports": "لا توجد تقارير لهذه الجهة",
+    "period": "الفترة",
+    "shared": "مشترك",
+    "last7Days": "آخر 7 أيام",
+    "last30Days": "آخر 30 يوماً",
+    "last90Days": "آخر 90 يوماً",
+    "lastYear": "آخر سنة",
+    "vizTypes": {
+      "kpi": "مؤشر",
+      "column": "أعمدة",
+      "line": "خطي",
+      "donut": "دائري",
+      "table": "جدول",
+      "map": "خريطة",
+      "combo": "مركّب"
+    }
   },
   "savedReports": {
     "title": "التقارير المحفوظة",

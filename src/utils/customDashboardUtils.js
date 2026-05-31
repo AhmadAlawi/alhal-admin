@@ -1,4 +1,4 @@
-import { canAccessGov, isSuperAdmin } from './accessControl'
+import { canAccessGov, isSuperAdmin, PERMISSIONS } from './accessControl'
 
 export function generateId() {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -75,11 +75,34 @@ export function createSavedReportWidget(savedReport) {
   return {
     id: generateId(),
     type: 'saved-report',
-    permission: 'gov.reports.build',
+    permission: PERMISSIONS.GOV_REPORTS_BUILD,
     title: savedReport.name,
     config: {
       savedReportId: savedReport.id,
       savedReportName: savedReport.name,
+    },
+    layout: { colSpan: 6, rowSpan: 2 },
+  }
+}
+
+export function createAnalyticsReportWidget(catalogItem, language = 'ar') {
+  const title =
+    language === 'ar'
+      ? catalogItem.titleAr || catalogItem.titleEn
+      : catalogItem.titleEn || catalogItem.titleAr
+
+  return {
+    id: generateId(),
+    type: 'analytics-report',
+    permission: PERMISSIONS.GOV_DASHBOARD,
+    title,
+    config: {
+      reportId: catalogItem.reportId,
+      endpoint: catalogItem.endpoint,
+      visualizationType: catalogItem.visualizationType,
+      filters: {},
+      titleAr: catalogItem.titleAr,
+      titleEn: catalogItem.titleEn,
     },
     layout: { colSpan: 6, rowSpan: 2 },
   }

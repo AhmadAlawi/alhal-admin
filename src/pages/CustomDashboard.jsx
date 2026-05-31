@@ -13,6 +13,8 @@ import DashboardWidget from '../components/CustomDashboard/DashboardWidget'
 import WidgetPicker from '../components/CustomDashboard/WidgetPicker'
 import ShareDashboardModal from '../components/CustomDashboard/ShareDashboardModal'
 import customDashboardService from '../services/customDashboardService'
+import { clearDashboardDataCache } from '../services/dashboardDataCache'
+import { clearAnalyticsReportCache } from '../services/govAnalyticsCache'
 import governoratesService from '../services/governoratesService'
 import { filterWidgetsByPermission, collectWidgetPermissions } from '../utils/customDashboardUtils'
 import { useTranslation } from '../hooks/useTranslation'
@@ -95,10 +97,10 @@ const CustomDashboardPage = ({ mode: modeProp, overrideId }) => {
     }
   }, [id, isNew, t])
 
-  const visibleWidgets = useMemo(
-    () => filterWidgetsByPermission(widgets, permissions, roles),
-    [widgets, permissions, roles]
-  )
+  const visibleWidgets = useMemo(() => {
+    if (isEdit && !readOnly) return widgets
+    return filterWidgetsByPermission(widgets, permissions, roles)
+  }, [widgets, permissions, roles, isEdit, readOnly])
 
   const handleAddWidget = (widget) => {
     setWidgets((prev) => [...prev, widget])
@@ -216,9 +218,11 @@ const CustomDashboardPage = ({ mode: modeProp, overrideId }) => {
           <select
             className="filter-select"
             value={globalFilters.governorateId || ''}
-            onChange={(e) =>
+            onChange={(e) => {
+              clearDashboardDataCache()
+              clearAnalyticsReportCache()
               setGlobalFilters((f) => ({ ...f, governorateId: e.target.value }))
-            }
+            }}
           >
             <option value="">{t('dashboard.allGovernorates')}</option>
             {governorateOptions.map((g) => (
@@ -230,9 +234,11 @@ const CustomDashboardPage = ({ mode: modeProp, overrideId }) => {
           <select
             className="filter-select"
             value={globalFilters.days ?? 30}
-            onChange={(e) =>
+            onChange={(e) => {
+              clearDashboardDataCache()
+              clearAnalyticsReportCache()
               setGlobalFilters((f) => ({ ...f, days: Number(e.target.value) }))
-            }
+            }}
           >
             <option value={7}>{t('dashboard.last7Days')}</option>
             <option value={30}>{t('dashboard.last30Days')}</option>

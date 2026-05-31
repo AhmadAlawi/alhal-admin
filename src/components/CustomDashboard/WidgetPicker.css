@@ -26,6 +26,10 @@
   margin-bottom: 1rem;
 }
 
+.widget-picker-entity-filter {
+  margin-bottom: 0.75rem;
+}
+
 .widget-picker-header h3 {
   margin: 0;
   font-size: 1.25rem;
@@ -120,4 +124,8 @@
   text-align: center;
   color: var(--text-muted);
   padding: 2rem 1rem;
+}
+
+.widget-picker-error {
+  color: #b91c1c;
 }

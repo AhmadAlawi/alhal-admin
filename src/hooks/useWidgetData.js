@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import dashboardService from '../services/dashboardService'
 import reportsService from '../services/reportsService'
 import reportBuilderService from '../services/reportBuilderService'
-import { unwrapDashboardPayload } from '../utils/dashboardNormalize'
+import { getSharedAutoFillData, getSharedProductionByCategory } from '../services/dashboardDataCache'
+import { getCachedAnalyticsReport } from '../services/govAnalyticsCache'
 import { buildReportChartConfig } from '../utils/reportChartNormalize'
+import { mergeAnalyticsFilters, normalizeGovAnalyticsPayload } from '../utils/govAnalyticsNormalize'
 import {
   buildChartPropsFromResults,
   extractVisualization,
@@ -11,6 +12,13 @@ import {
 } from '../utils/reportBuilderUtils'
 import { getNestedValue, safeNum, globalFiltersToQueryParams } from '../utils/customDashboardUtils'
 import { fmtNum } from '../utils/dashboardNormalize'
+
+const UNKNOWN_LABEL = { ar: 'غير معروف', en: 'Unknown' }
+
+const TX_LABELS = {
+  ar: { direct: 'مبيعات مباشرة', auction: 'مزادات', tender: 'مناقصات' },
+  en: { direct: 'Direct sales', auction: 'Auctions', tender: 'Tenders' },
+}
 
 const formatShortDate = (iso, locale = 'ar') => {
   if (!iso) return ''
@@ -44,37 +52,32 @@ function formatKpiValue(value, format) {
   }
 }
 
-async function fetchBuiltinDashboardData(globalFilters, language, t) {
+async function fetchBuiltinDashboardData(globalFilters, language) {
   const params = buildGovParams(globalFilters)
-  const res = await dashboardService.getAutoFillData(params)
-  const dashboard = unwrapDashboardPayload(res)
+  const dashboard = await getSharedAutoFillData(params)
   const year = dashboard?.period?.endDate
     ? new Date(dashboard.period.endDate).getFullYear()
     : new Date().getFullYear()
 
-  let productionByCategory = []
+  let productionSlices = []
   try {
-    const catRes = await dashboardService.getProductionByCategory({ year })
-    const data = catRes?.data?.data ?? catRes?.data ?? catRes
-    const slices = Array.isArray(data?.slices) ? data.slices : []
-    productionByCategory = slices.map((slice) => ({
-      name:
-        (language === 'ar' ? slice.nameAr : slice.nameEn) ||
-        slice.nameAr ||
-        slice.nameEn ||
-        t('dashboard.unknown'),
-      value: safeNum(slice.value),
-    }))
+    productionSlices = await getSharedProductionByCategory(year)
   } catch {
-    productionByCategory = []
+    productionSlices = []
   }
 
   const locale = language === 'ar' ? 'ar' : 'en-US'
-  const txLabels = {
-    direct: t('dashboard.directSales'),
-    auction: t('dashboard.auctions'),
-    tender: t('dashboard.tenders'),
-  }
+  const unknown = UNKNOWN_LABEL[language] || UNKNOWN_LABEL.ar
+  const txLabels = TX_LABELS[language] || TX_LABELS.ar
+
+  const productionByCategory = productionSlices.map((slice) => ({
+    name:
+      (language === 'ar' ? slice.nameAr : slice.nameEn) ||
+      slice.nameAr ||
+      slice.nameEn ||
+      unknown,
+    value: slice.value,
+  }))
 
   return {
     raw: dashboard,
@@ -98,14 +101,36 @@ async function fetchBuiltinDashboardData(globalFilters, language, t) {
   }
 }
 
-export function useWidgetData(widget, globalFilters, { language, t, enabled = true }) {
+const OVERVIEW_DETAIL_KEYS = {
+  'overview-users': 'dashboard.active30d',
+  'overview-farms': 'dashboard.inventory',
+}
+
+const OVERVIEW_DETAIL_FALLBACK = {
+  ar: { 'dashboard.active30d': 'نشط 30 يوم', 'dashboard.inventory': 'المخزون' },
+  en: { 'dashboard.active30d': 'Active 30d', 'dashboard.inventory': 'Inventory' },
+}
+
+function overviewDetailLabel(key, language) {
+  const map = OVERVIEW_DETAIL_FALLBACK[language] || OVERVIEW_DETAIL_FALLBACK.ar
+  return map[key] || key
+}
+
+export function useWidgetData(widget, globalFilters, { language, enabled = true } = {}) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
   const widgetKey = useMemo(
-    () => JSON.stringify({ widget, globalFilters }),
-    [widget, globalFilters]
+    () =>
+      JSON.stringify({
+        id: widget?.id,
+        type: widget?.type,
+        config: widget?.config,
+        globalFilters,
+        language,
+      }),
+    [widget?.id, widget?.type, widget?.config, globalFilters, language]
   )
 
   useEffect(() => {
@@ -121,7 +146,7 @@ export function useWidgetData(widget, globalFilters, { language, t, enabled = tr
           widget.type === 'builtin-chart' ||
           widget.type === 'builtin-overview'
         ) {
-          const gov = await fetchBuiltinDashboardData(globalFilters, language, t)
+          const gov = await fetchBuiltinDashboardData(globalFilters, language)
           if (cancelled) return
 
           if (widget.type === 'builtin-kpi') {
@@ -134,10 +159,11 @@ export function useWidgetData(widget, globalFilters, { language, t, enabled = tr
           } else if (widget.type === 'builtin-overview') {
             const val = gov.overview?.[widget.config.field]
             const detail = gov.overview?.[widget.config.detailField]
+            const detailLabel = overviewDetailLabel(widget.config.detailLabelKey, language)
             setData({
               kind: 'overview',
               value: fmtNum(val),
-              detail: `${t(widget.config.detailLabelKey)}: ${fmtNum(detail)}${widget.config.suffix || ''}`,
+              detail: `${detailLabel}: ${fmtNum(detail)}${widget.config.suffix || ''}`,
             })
           } else {
             const chartData = gov.charts[widget.config.chartKey] || []
@@ -163,7 +189,9 @@ export function useWidgetData(widget, globalFilters, { language, t, enabled = tr
           }
           const res = await fn(filters)
           const payload = res?.data ?? res
-          const chartConfig = buildReportChartConfig(payload, { locale: language === 'ar' ? 'ar-SY' : 'en-US' })
+          const chartConfig = buildReportChartConfig(payload, {
+            locale: language === 'ar' ? 'ar-SY' : 'en-US',
+          })
           if (cancelled) return
           setData({
             kind: 'report',
@@ -190,6 +218,21 @@ export function useWidgetData(widget, globalFilters, { language, t, enabled = tr
             results,
             visualization,
           })
+          return
+        }
+
+        if (widget.type === 'analytics-report') {
+          const reportId = widget.config.reportId
+          if (!reportId) throw new Error('Analytics report ID missing')
+          const filters = mergeAnalyticsFilters(globalFilters, widget.config.filters || {})
+          const payload = await getCachedAnalyticsReport(reportId, filters)
+          const normalized = normalizeGovAnalyticsPayload(payload, language)
+          if (cancelled) return
+          setData({
+            ...normalized,
+            reportId,
+            visualizationType: widget.config.visualizationType,
+          })
         }
       } catch (e) {
         if (!cancelled) {
@@ -205,7 +248,7 @@ export function useWidgetData(widget, globalFilters, { language, t, enabled = tr
     return () => {
       cancelled = true
     }
-  }, [widgetKey, enabled, widget, globalFilters, language, t])
+  }, [widgetKey, enabled, widget, globalFilters, language])
 
   return { data, loading, error }
 }
