@@ -86,27 +86,15 @@ export default defineConfig(({ mode }) => {
             }
             return 'assets/[name]-[hash][extname]';
           },
-          // Ensure React and React-DOM are in a single chunk to prevent multiple instances
+          // Split only heavy, non-React libraries. Do NOT isolate react into its own
+          // chunk — vendor packages (echarts-for-react, react-leaflet, etc.) must share
+          // the same React instance or createContext fails at runtime (blank screen).
           manualChunks: (id) => {
-            // More aggressive matching for React packages - must come first
-            if (
-              id.includes('node_modules/react/') || 
-              id.includes('node_modules/react-dom/') ||
-              id.includes('node_modules/react/jsx-runtime') ||
-              id.includes('node_modules/react/jsx-dev-runtime') ||
-              id.includes('node_modules/react/index') ||
-              id.includes('node_modules/react-dom/index')
-            ) {
-              return 'react-vendor';
+            if (id.includes('node_modules/echarts')) return 'echarts'
+            if (id.includes('node_modules/leaflet') || id.includes('node_modules/react-leaflet')) {
+              return 'maps'
             }
-            // Put react-router-dom with React to ensure compatibility
-            if (id.includes('node_modules/react-router-dom/')) {
-              return 'react-vendor';
-            }
-            // Put other node_modules in separate chunks
-            if (id.includes('node_modules/')) {
-              return 'vendor';
-            }
+            if (id.includes('node_modules/firebase')) return 'firebase'
           },
           // Ensure proper chunk format for better module sharing
           format: 'es',
