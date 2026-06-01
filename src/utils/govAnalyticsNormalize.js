@@ -70,7 +70,8 @@ function normalizeSeriesChart(data, language, chartType) {
   const xAxisKey = '__category'
 
   const chartRows = categories.map((cat, idx) => {
-    const row = { [xAxisKey]: String(cat) }
+    const label = String(cat ?? '')
+    const row = { [xAxisKey]: label, name: label }
     series.forEach((s, si) => {
       const key = s.key || `series_${si}`
       row[key] = s.data?.[idx] ?? null

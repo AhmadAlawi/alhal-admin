@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { LocaleProvider } from '../../contexts/LocaleContext'
 import Chart from './Chart'
-import { getCompatibleChartTypes } from './chartTypeUtils'
+import { getCompatibleChartTypes, resolveChartKeys } from './chartTypeUtils'
 
 const renderChart = (ui) => render(<LocaleProvider>{ui}</LocaleProvider>)
 
@@ -106,5 +106,19 @@ describe('getCompatibleChartTypes', () => {
         dataKey: 'value',
       })
     ).toContain('pie')
+  })
+
+  it('resolveChartKeys uses xAxisKey for pie slice names when nameKey is default', () => {
+    expect(
+      resolveChartKeys('pie', {
+        xAxisKey: '__category',
+        nameKey: 'name',
+        dataKey: 'series_0',
+      })
+    ).toEqual({
+      xAxisKey: undefined,
+      nameKey: '__category',
+      dataKey: 'series_0',
+    })
   })
 })

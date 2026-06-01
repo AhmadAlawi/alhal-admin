@@ -39,7 +39,7 @@ const GovAnalyticsReport = ({ data, title, height = 280 }) => {
         dataKey={data.dataKey}
         dataKeys={data.dataKeys}
         xAxisKey={data.xAxisKey}
-        nameKey={data.nameKey}
+        nameKey={data.nameKey || data.xAxisKey}
         title={title}
         height={height}
         scrollable={data.scrollable !== false && data.chartType !== 'pie'}

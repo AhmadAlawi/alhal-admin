@@ -28,9 +28,10 @@ export function resolveChartKeys(activeType, { xAxisKey, nameKey, dataKey }) {
   const categoryKey = xAxisKey || nameKey
 
   if (activeType === 'pie') {
+    // Category labels live on xAxisKey (e.g. gov analytics __category); default nameKey is "name"
     return {
       xAxisKey: undefined,
-      nameKey: nameKey || xAxisKey || 'name',
+      nameKey: xAxisKey || nameKey || 'name',
       dataKey,
     }
   }
