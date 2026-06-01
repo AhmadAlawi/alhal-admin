@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { FiPackage, FiSearch, FiRefreshCw, FiEye, FiTrash2, FiBell, FiX, FiPlus } from 'react-icons/fi'
 import transportService from '../services/transportService'
 import { useTranslation } from '../hooks/useTranslation'
+import { useCurrency } from '../contexts/CurrencyContext'
 import { parsePaginatedList } from '../utils/apiNormalize'
 import './TransportRequests.css'
 import './transport-shared.css'
@@ -9,6 +10,7 @@ import { isAccessDeniedError } from '../services/transportApiPaths'
 
 const TransportRequests = () => {
   const { t } = useTranslation()
+  const { formatMoney } = useCurrency()
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -533,7 +535,7 @@ const TransportRequests = () => {
                           </span>
                         </div>
                         <div className="offer-details">
-                          <span>{t('transport.offers.price')}: {offer.offeredPrice} {t('transport.currency')}</span>
+                          <span>{t('transport.offers.price')}: {formatMoney(offer.offeredPrice)}</span>
                           <span>{t('transport.offers.transporterId')}: {offer.transporterId}</span>
                         </div>
                         {offer.notes && (

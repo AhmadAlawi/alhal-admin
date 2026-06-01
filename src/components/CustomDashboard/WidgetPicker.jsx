@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { FiBarChart2, FiDatabase, FiGrid, FiLayers, FiPlus, FiSearch } from 'react-icons/fi'
 import { BUILTIN_WIDGETS, PREDEFINED_REPORT_WIDGETS } from '../../config/builtinWidgets'
+import { SYRIA_MAP_WIDGETS } from '../../config/syriaMapWidgets'
 import reportBuilderService from '../../services/reportBuilderService'
 import govAnalyticsService from '../../services/govAnalyticsService'
 import {
@@ -108,7 +109,7 @@ const WidgetPicker = ({ open, onClose, onAdd }) => {
 
   const builtinItems = useMemo(
     () =>
-      BUILTIN_WIDGETS.filter(
+      [...BUILTIN_WIDGETS, ...SYRIA_MAP_WIDGETS].filter(
         (w) =>
           userHasWidgetPermission(w.permission, permissions, roles) &&
           t(w.labelKey).toLowerCase().includes(search.toLowerCase())

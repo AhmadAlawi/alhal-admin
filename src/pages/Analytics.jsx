@@ -7,6 +7,7 @@ import marketAnalysisService from '../services/marketAnalysisService'
 import adminService from '../services/adminService'
 import governoratesService from '../services/governoratesService'
 import { useTranslation } from '../hooks/useTranslation'
+import { useCurrency } from '../contexts/CurrencyContext'
 import {
   buildGovernorateLookup,
   resolveGovernorateLabel,
@@ -22,6 +23,7 @@ import './Analytics.css'
 
 const Analytics = () => {
   const { t, language } = useTranslation()
+  const { formatMoney, formatQty } = useCurrency()
   const chartLocale = language === 'ar' ? 'ar' : 'en-US'
   // Filter states
   const [products, setProducts] = useState([])
@@ -60,8 +62,8 @@ const Analytics = () => {
   useEffect(() => {
     fetchProducts()
     fetchAvailableFilters()
-    governoratesService.getOptions().then(setGovernorateOptions)
-  }, [])
+    governoratesService.getOptions(language).then(setGovernorateOptions)
+  }, [language])
 
   const governorateLookup = useMemo(
     () => buildGovernorateLookup(governorateOptions),
@@ -467,16 +469,26 @@ const Analytics = () => {
       {/* KPI Cards */}
       {dashboardSummary?.kpis && (
         <div className="stats-grid">
-          {dashboardSummary.kpis.slice(0, 4).map((kpi, index) => (
+          {dashboardSummary.kpis.slice(0, 4).map((kpi, index) => {
+            const titleLower = String(kpi.title || '').toLowerCase()
+            const isMoney =
+              titleLower.includes('revenue') ||
+              titleLower.includes('price') ||
+              titleLower.includes('إيراد') ||
+              titleLower.includes('سعر')
+            const displayValue = isMoney
+              ? formatMoney(Number(kpi.value) || 0)
+              : formatQty(Number(kpi.value) || kpi.value)
+            return (
             <StatCard
               key={index}
               title={kpi.title}
-              value={kpi.value?.toLocaleString ? kpi.value.toLocaleString() : kpi.value}
+              value={displayValue}
               change={kpi.change}
               icon={<FiTrendingUp />}
               color={index === 0 ? 'success' : index === 1 ? 'primary' : index === 2 ? 'warning' : 'danger'}
             />
-          ))}
+          )})}
         </div>
       )}
 

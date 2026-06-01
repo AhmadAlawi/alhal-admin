@@ -2,6 +2,8 @@
  * Resolve governorate IDs or codes to display names (Arabic / English).
  */
 
+import { cleanLocationName } from './locationNormalize'
+
 export function buildGovernorateLookup(options = []) {
   const byId = new Map()
   const byKey = new Map()
@@ -9,8 +11,8 @@ export function buildGovernorateLookup(options = []) {
   for (const g of options) {
     if (g?.id == null) continue
     const id = String(g.id)
-    const nameAr = g.nameAr ?? g.name ?? ''
-    const nameEn = g.nameEn ?? g.name ?? nameAr
+    const nameAr = cleanLocationName(g.nameAr ?? g.name ?? '')
+    const nameEn = cleanLocationName(g.nameEn ?? g.name ?? nameAr)
     const entry = { id: g.id, nameAr, nameEn }
     byId.set(id, entry)
     if (nameAr) byKey.set(normalizeKey(nameAr), entry)

@@ -5,12 +5,27 @@ import StatCard from '../components/StatCard/StatCard'
 import Chart from '../components/Chart/Chart'
 import reportsService from '../services/reportsService'
 import adminService from '../services/adminService'
+import governoratesService from '../services/governoratesService'
 import { useTranslation } from '../hooks/useTranslation'
 import { useLocale } from '../contexts/LocaleContext'
+import { useCurrency } from '../contexts/CurrencyContext'
 import { buildReportChartConfig } from '../utils/reportChartNormalize'
 import './Reports.css'
 
 const SUMMARY_SKIP = new Set(['page', 'pageSize', 'totalPages', 'totalCount', 'success', 'message', 'data'])
+
+function isCurrencyMetricKey(key) {
+  const lower = key.toLowerCase()
+  return (
+    lower.includes('revenue') ||
+    lower.includes('sales') ||
+    lower.includes('profit') ||
+    lower.includes('loss') ||
+    lower.includes('expense') ||
+    lower.includes('amount') ||
+    lower.includes('price')
+  )
+}
 
 function formatMetricLabel(key) {
   return key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')
@@ -19,6 +34,7 @@ function formatMetricLabel(key) {
 const Reports = () => {
   const { t } = useTranslation()
   const { language } = useLocale()
+  const { formatMoney, formatQty } = useCurrency()
   const chartLocale = language === 'ar' ? 'ar-SY' : 'en-US'
   
   // Report categories (names from t via nameKey)
@@ -152,7 +168,7 @@ const Reports = () => {
   // Fetch filters on mount
   useEffect(() => {
     fetchFilters()
-  }, [])
+  }, [language])
 
   // Fetch report data when filters or report change
   useEffect(() => {
@@ -174,14 +190,12 @@ const Reports = () => {
       setProductCategories(Array.isArray(categoriesRes.data) ? categoriesRes.data : [])
       setUsers(Array.isArray(usersRes.data) ? usersRes.data : [])
       
-      // Try to get governorates
       try {
-        const marketAnalysisService = await import('../services/marketAnalysisService')
-        const filtersRes = await marketAnalysisService.default.getAvailableFilters()
-        const govs = filtersRes.data?.governorates || filtersRes.governorates || []
+        const govs = await governoratesService.getOptions(language)
         setGovernorates(govs)
       } catch (e) {
         console.warn('Could not fetch governorates:', e)
+        setGovernorates([])
       }
     } catch (error) {
       console.error('Failed to fetch filters:', error)
@@ -253,7 +267,11 @@ const Reports = () => {
           <StatCard
             key={key}
             title={formatMetricLabel(key)}
-            value={value.toLocaleString(chartLocale)}
+            value={
+              isCurrencyMetricKey(key)
+                ? formatMoney(value)
+                : formatQty(value)
+            }
             icon={<FiBarChart2 />}
             color="primary"
           />
@@ -288,6 +306,7 @@ const Reports = () => {
             xAxisKey={config.periodKey}
             title={title}
             height={400}
+            scrollable
           />
         </div>
       )
@@ -306,6 +325,7 @@ const Reports = () => {
             xAxisKey={config.periodKey}
             title={title}
             height={400}
+            scrollable
           />
         </div>
       )
@@ -498,13 +518,19 @@ const Reports = () => {
                 <label>{t('reports.governorate')}</label>
                 <select
                   className="filter-select"
-                  value={filters.governorate || ''}
-                  onChange={(e) => handleFilterChange('governorate', e.target.value || null)}
+                  value={filters.governorateId || ''}
+                  onChange={(e) => {
+                    const id = e.target.value
+                    handleFilterChange('governorateId', id ? Number(id) : null)
+                    handleFilterChange('governorate', null)
+                  }}
                   disabled={loadingFilters}
                 >
                   <option value="">{t('reports.allGovernorates')}</option>
-                  {governorates.map(gov => (
-                    <option key={gov} value={gov}>{gov}</option>
+                  {governorates.map((gov) => (
+                    <option key={gov.id} value={gov.id}>
+                      {gov.name}
+                    </option>
                   ))}
                 </select>
               </div>

@@ -18,6 +18,16 @@ export const NAV_ITEMS = [
   },
   ENTITY_ANALYTICS_NAV,
   {
+    path: '/gov/maps/farms',
+    labelKey: 'nav.farmsMap',
+    permission: PERMISSIONS.GOV_DASHBOARD,
+  },
+  {
+    path: '/gov/maps/products',
+    labelKey: 'nav.productsMap',
+    permission: PERMISSIONS.GOV_DASHBOARD,
+  },
+  {
     path: '/reports/saved',
     labelKey: 'nav.savedReports',
     permission: PERMISSIONS.GOV_REPORTS_BUILD,
@@ -44,7 +54,7 @@ export const NAV_ITEMS = [
   },
   {
     path: '/gov/market-control',
-    labelKey: 'nav.marketControl',
+    labelKey: 'nav.halMarketCenters',
     permission: PERMISSIONS.GOV_MARKET_CONTROL,
   },
   {
@@ -85,6 +95,8 @@ export const NAV_ITEMS = [
   },
   { path: '/ads', labelKey: 'common.ads', legacyAdmin: true },
   { path: '/mobile-analytics', labelKey: 'common.mobileAnalytics', legacyAdmin: true },
+  { path: '/settings/localization', labelKey: 'nav.localization', legacyAdmin: true },
+  { path: '/settings/currency', labelKey: 'nav.currencySettings', legacyAdmin: true },
   { path: '/settings', labelKey: 'common.settings', legacyAdmin: true },
 ]
 

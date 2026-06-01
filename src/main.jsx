@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import { LocaleProvider } from './contexts/LocaleContext'
+import { CurrencyProvider } from './contexts/CurrencyContext'
 import './index.css'
 
 // Service Worker Management - COMPLETELY DISABLED to prevent refresh loops
@@ -31,7 +32,9 @@ const root = ReactDOM.createRoot(document.getElementById('root'))
 // No StrictMode in any environment to prevent refresh issues
 root.render(
   <LocaleProvider>
-    <App />
+    <CurrencyProvider>
+      <App />
+    </CurrencyProvider>
   </LocaleProvider>
 )
 

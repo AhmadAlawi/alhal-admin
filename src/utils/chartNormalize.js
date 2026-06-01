@@ -94,9 +94,12 @@ export function formatPriceVolatilityChart(raw, locale = 'en-US') {
 }
 
 /** Pie / bar distribution rows */
-export function formatDistributionChart(rows, nameKeys = ['name', 'label', 'category', 'type']) {
+export function formatDistributionChart(
+  rows,
+  nameKeys = ['name', 'nameAr', 'nameEn', 'label', 'category', 'type', 'userType', 'status']
+) {
   if (!Array.isArray(rows)) return { data: [], nameKey: 'name', valueKey: 'value' }
-  const data = rows.map((item) => {
+  const data = rows.map((item, index) => {
     const nameKey = nameKeys.find((k) => item[k] != null) || 'name'
     const valueKey =
       item.value != null
@@ -106,8 +109,17 @@ export function formatDistributionChart(rows, nameKeys = ['name', 'label', 'cate
           : item.revenue != null
             ? 'revenue'
             : 'value'
+    const label =
+      item[nameKey] ??
+      item.nameAr ??
+      item.nameEn ??
+      item.name ??
+      item.label ??
+      item.userType ??
+      item.status ??
+      `—`
     return {
-      name: String(item[nameKey] ?? item.name ?? item.label ?? '—'),
+      name: String(label).trim() || `#${index + 1}`,
       value: safeChartNumber(item[valueKey] ?? item.value ?? item.count),
     }
   })

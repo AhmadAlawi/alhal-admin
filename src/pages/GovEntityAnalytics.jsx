@@ -21,6 +21,7 @@ import { useLocale } from '../contexts/LocaleContext'
 import './GovEntityAnalytics.css'
 
 const PERIOD_OPTIONS = [
+  { value: 0, labelKey: 'dashboard.allTimes' },
   { value: 7, labelKey: 'govAnalytics.last7Days' },
   { value: 30, labelKey: 'govAnalytics.last30Days' },
   { value: 90, labelKey: 'govAnalytics.last90Days' },
@@ -59,8 +60,8 @@ const GovEntityAnalytics = () => {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    governoratesService.getOptions().then(setGovernorateOptions).catch(() => {})
-  }, [])
+    governoratesService.getOptions(language).then(setGovernorateOptions).catch(() => {})
+  }, [language])
 
   useEffect(() => {
     if (!activeEntityId) return undefined
@@ -118,9 +119,20 @@ const GovEntityAnalytics = () => {
     [catalog, activeReportId]
   )
 
+  const governorateLookup = useMemo(() => {
+    const byId = new Map()
+    governorateOptions.forEach((g) => {
+      if (g.id != null) byId.set(String(g.id), g)
+    })
+    return byId
+  }, [governorateOptions])
+
   const normalizedReport = useMemo(
-    () => (reportData ? normalizeGovAnalyticsPayload(reportData, language) : null),
-    [reportData, language]
+    () =>
+      reportData
+        ? normalizeGovAnalyticsPayload(reportData, language, { governorateLookup })
+        : null,
+    [reportData, language, governorateLookup]
   )
 
   const reportTitle = useMemo(() => {
@@ -140,11 +152,17 @@ const GovEntityAnalytics = () => {
   const entityTitle = getEntityLabel(activeEntity, language)
 
   const showGovernorateFilter =
-    activeCatalogItem?.supportedFilters?.includes('governorateId') ||
-    activeEntityId === 'governorate'
+    activeEntityId !== 'governorate' &&
+    (activeCatalogItem?.supportedFilters?.includes('governorateId') ||
+      governorateOptions.length > 0)
+
+  const governorateFilterRequired =
+    activeEntityId === 'governorate' &&
+    (activeCatalogItem?.reportId?.includes('summary') ||
+      activeCatalogItem?.supportedFilters?.includes('governorateId'))
 
   const showGranularityFilter =
-    activeCatalogItem?.visualizationType === 'line' ||
+    ['line', 'column'].includes(activeCatalogItem?.visualizationType) ||
     activeCatalogItem?.supportedFilters?.includes('granularity')
 
   if (loadingEntities) {
@@ -255,6 +273,27 @@ const GovEntityAnalytics = () => {
                   </select>
                 </div>
 
+                {governorateFilterRequired && (
+                  <div className="filter-group">
+                    <label>{t('dashboard.governorate')} *</label>
+                    <select
+                      className="filter-select"
+                      required
+                      value={filters.governorateId}
+                      onChange={(e) =>
+                        setFilters((prev) => ({ ...prev, governorateId: e.target.value }))
+                      }
+                    >
+                      <option value="">{t('govAnalytics.selectGovernorate')}</option>
+                      {governorateOptions.map((g) => (
+                        <option key={g.id} value={String(g.id)}>
+                          {g.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
                 {showGovernorateFilter && (
                   <div className="filter-group">
                     <label>{t('dashboard.governorate')}</label>
@@ -267,8 +306,8 @@ const GovEntityAnalytics = () => {
                     >
                       <option value="">{t('common.all')}</option>
                       {governorateOptions.map((g) => (
-                        <option key={g.value} value={g.value}>
-                          {g.label}
+                        <option key={g.id} value={String(g.id)}>
+                          {g.name}
                         </option>
                       ))}
                     </select>
@@ -293,6 +332,12 @@ const GovEntityAnalytics = () => {
                 )}
               </div>
 
+              {governorateFilterRequired && !filters.governorateId && (
+                <div className="report-error">
+                  <p>{t('govAnalytics.governorateRequired')}</p>
+                </div>
+              )}
+
               {error && (
                 <div className="report-error">
                   <p>{error}</p>
@@ -308,7 +353,10 @@ const GovEntityAnalytics = () => {
                 </div>
               )}
 
-              {!loadingReport && !error && normalizedReport && (
+              {!loadingReport &&
+                !error &&
+                normalizedReport &&
+                !(governorateFilterRequired && !filters.governorateId) && (
                 <ReportWidgetActions
                   title={reportTitle}
                   data={normalizedReport}

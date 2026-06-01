@@ -27,7 +27,7 @@ const CustomDashboardPage = ({ mode: modeProp, overrideId }) => {
   const location = useLocation()
   const id = overrideId || paramId
   const navigate = useNavigate()
-  const { t } = useTranslation()
+  const { t, language } = useTranslation()
   const { permissions, roles } = useAccess()
   const isNew = !overrideId && location.pathname.includes('/custom/new/')
   const isEdit = modeProp === 'edit' || isNew
@@ -47,8 +47,8 @@ const CustomDashboardPage = ({ mode: modeProp, overrideId }) => {
   const [isPrimary, setIsPrimary] = useState(false)
 
   useEffect(() => {
-    governoratesService.getOptions().then(setGovernorateOptions).catch(() => {})
-  }, [])
+    governoratesService.getOptions(language).then(setGovernorateOptions).catch(() => {})
+  }, [language])
 
   useEffect(() => {
     if (isNew) {

@@ -42,8 +42,8 @@ const GovAnalyticsReport = ({ data, title, height = 280 }) => {
         nameKey={data.nameKey}
         title={title}
         height={height}
-        scrollable={data.scrollable}
-        pieLabel={data.chartType === 'pie'}
+        scrollable={data.scrollable !== false && data.chartType !== 'pie'}
+        pieLabel={data.pieLabel !== false && data.chartType === 'pie'}
       />
     )
   }

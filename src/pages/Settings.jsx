@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { FiUser, FiBell, FiLock, FiGlobe, FiSave, FiCheckCircle, FiXCircle, FiLoader } from 'react-icons/fi'
+import { Link } from 'react-router-dom'
+import { FiUser, FiBell, FiLock, FiGlobe, FiSave, FiCheckCircle, FiXCircle, FiLoader, FiDollarSign, FiChevronRight } from 'react-icons/fi'
 import { useNotifications } from '../contexts/NotificationContext'
 import { useLocale } from '../contexts/LocaleContext'
 import { useTranslation } from '../hooks/useTranslation'
@@ -72,6 +73,25 @@ const Settings = () => {
       <div className="page-header">
         <h1 className="page-title">{t('settings.title')}</h1>
         <p className="page-subtitle">{t('settings.subtitleExtended')}</p>
+      </div>
+
+      <div className="settings-admin-links card">
+        <Link to="/settings/localization" className="settings-admin-link">
+          <FiGlobe />
+          <div>
+            <strong>{t('settings.localizationLink')}</strong>
+            <span>{t('settings.localizationLinkDesc')}</span>
+          </div>
+          <FiChevronRight />
+        </Link>
+        <Link to="/settings/currency" className="settings-admin-link">
+          <FiDollarSign />
+          <div>
+            <strong>{t('settings.currencyLink')}</strong>
+            <span>{t('settings.currencyLinkDesc')}</span>
+          </div>
+          <FiChevronRight />
+        </Link>
       </div>
 
       <div className="settings-container">

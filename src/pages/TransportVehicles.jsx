@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react'
 import { FiTruck, FiSearch, FiRefreshCw, FiPlus, FiEdit, FiTrash2, FiX, FiEye } from 'react-icons/fi'
 import transportService from '../services/transportService'
 import { useTranslation } from '../hooks/useTranslation'
+import { useCurrency } from '../contexts/CurrencyContext'
 import './TransportVehicles.css'
 import './transport-shared.css'
 
 const TransportVehicles = () => {
   const { t } = useTranslation()
+  const { formatMoneyPerUnit } = useCurrency()
   const [providers, setProviders] = useState([])
   const [selectedProvider, setSelectedProvider] = useState(null)
   const [vehicles, setVehicles] = useState([])
@@ -284,7 +286,7 @@ const TransportVehicles = () => {
                           <td>{vehicle.storageType || 'N/A'}</td>
                           <td>
                             {vehicle.pricePerKm 
-                              ? `${vehicle.pricePerKm} ${t('transport.currency')}`
+                              ? formatMoneyPerUnit(vehicle.pricePerKm, 'km')
                               : 'N/A'}
                           </td>
                           <td>

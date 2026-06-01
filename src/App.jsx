@@ -17,6 +17,8 @@ import Products from './pages/Products'
 import Categories from './pages/Categories'
 import Orders from './pages/Orders'
 import Settings from './pages/Settings'
+import Localization from './pages/Localization'
+import CurrencySettings from './pages/CurrencySettings'
 import ChatReports from './pages/ChatReports'
 import Tickets from './pages/Tickets'
 import Feedback from './pages/Feedback'
@@ -28,6 +30,9 @@ import Ads from './pages/Ads'
 import MobileAnalytics from './pages/MobileAnalytics'
 import GovEntityAnalytics from './pages/GovEntityAnalytics'
 import EntityAnalyticsRedirect from './pages/EntityAnalyticsRedirect'
+import SyriaFarmsMap from './pages/SyriaFarmsMap'
+import SyriaProductsMap from './pages/SyriaProductsMap'
+import HalMarketCenters from './pages/HalMarketCenters'
 import GovPlaceholder from './pages/GovPlaceholder'
 import RbacLayout from './pages/rbac/RbacLayout'
 import RbacPermissions from './pages/rbac/RbacPermissions'
@@ -155,10 +160,26 @@ function App() {
               }
             />
             <Route
+              path="/gov/maps/farms"
+              element={
+                <GuardedPage permission={PERMISSIONS.GOV_DASHBOARD}>
+                  <SyriaFarmsMap />
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/gov/maps/products"
+              element={
+                <GuardedPage permission={PERMISSIONS.GOV_DASHBOARD}>
+                  <SyriaProductsMap />
+                </GuardedPage>
+              }
+            />
+            <Route
               path="/gov/market-control"
               element={
                 <GuardedPage permission={PERMISSIONS.GOV_MARKET_CONTROL}>
-                  <GovPlaceholder titleKey="nav.marketControl" />
+                  <HalMarketCenters />
                 </GuardedPage>
               }
             />
@@ -278,6 +299,22 @@ function App() {
               element={
                 <GuardedPage legacyAdmin>
                   <MobileAnalytics />
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/settings/localization"
+              element={
+                <GuardedPage legacyAdmin>
+                  <Localization />
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/settings/currency"
+              element={
+                <GuardedPage legacyAdmin>
+                  <CurrencySettings />
                 </GuardedPage>
               }
             />

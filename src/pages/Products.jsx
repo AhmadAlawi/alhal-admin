@@ -3,10 +3,12 @@ import { FiPlus, FiPackage, FiEdit2, FiTrash2, FiDollarSign, FiSearch, FiRefresh
 import StatCard from '../components/StatCard/StatCard'
 import productsService, { getProductId } from '../services/productsService'
 import { useTranslation } from '../hooks/useTranslation'
+import { useCurrency } from '../contexts/CurrencyContext'
 import './Products.css'
 
 const Products = () => {
   const { t, language } = useTranslation()
+  const { formatMoneyPerUnit } = useCurrency()
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
   const [subCategories, setSubCategories] = useState([])
@@ -289,7 +291,7 @@ const Products = () => {
   const formatGovPrice = (productId) => {
     const price = govPriceByProduct.get(Number(productId))
     if (price == null || !Number.isFinite(price)) return t('products.noGovPrice')
-    return `${price.toLocaleString()} ${t('products.priceUnit')}`
+    return formatMoneyPerUnit(price, 'kg')
   }
 
   const openEditModal = async (product) => {
@@ -833,7 +835,7 @@ const Products = () => {
               <div className="product-detail-gov-price card">
                 <strong>{t('products.countryPrice')}:</strong>{' '}
                 {detailGovPrice != null
-                  ? `${Number(detailGovPrice).toLocaleString()} ${t('products.priceUnit')}`
+                  ? formatMoneyPerUnit(Number(detailGovPrice), 'kg')
                   : t('products.noGovPrice')}
               </div>
               <div className="form-grid">

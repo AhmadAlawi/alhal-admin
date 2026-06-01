@@ -46,13 +46,13 @@ const DashboardContent = () => {
 
   useEffect(() => {
     let cancelled = false
-    governoratesService.getOptions().then((opts) => {
+    governoratesService.getOptions(language).then((opts) => {
       if (!cancelled) setGovernorateOptions(opts)
     })
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [language])
 
   const governorateLookup = useMemo(
     () => buildGovernorateLookup(governorateOptions),

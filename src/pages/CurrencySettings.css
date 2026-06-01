@@ -1,0 +1,171 @@
+.currency-settings-page {
+  animation: fadeIn 0.3s ease-in;
+}
+
+.save-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.875rem;
+  border-radius: 0.5rem;
+  background: rgba(34, 197, 94, 0.12);
+  color: rgb(34, 197, 94);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.currency-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+
+.currency-card {
+  padding: 1.5rem;
+}
+
+.currency-card h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.125rem;
+}
+
+.card-desc {
+  margin: 0 0 1.25rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.base-currency-card {
+  border-color: rgba(22, 163, 74, 0.35);
+}
+
+.currency-highlight {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1.25rem;
+  border-radius: 0.75rem;
+  background: rgba(22, 163, 74, 0.08);
+  margin-bottom: 1rem;
+}
+
+.currency-code {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.currency-name {
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.currency-symbol {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.rate-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.rate-input-row input {
+  flex: 1;
+  min-width: 120px;
+}
+
+.rate-prefix,
+.rate-suffix {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.field-hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.currency-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 1.25rem;
+}
+
+.preview-card {
+  grid-column: span 1;
+}
+
+.current-display {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.875rem 1rem;
+  background: rgba(99, 102, 241, 0.08);
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.current-display .label {
+  color: var(--text-muted);
+}
+
+.preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.preview-table th,
+.preview-table td {
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+  text-align: start;
+}
+
+.preview-table th {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.preview-table .converted {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.info-card {
+  grid-column: span 2;
+}
+
+.info-list {
+  margin: 0 0 1rem;
+  padding-inline-start: 1.25rem;
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
+  line-height: 1.7;
+}
+
+.info-note {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  padding: 0.75rem;
+  background: rgba(148, 163, 184, 0.08);
+  border-radius: 0.5rem;
+}
+
+@media (max-width: 960px) {
+  .currency-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .info-card {
+    grid-column: span 1;
+  }
+}

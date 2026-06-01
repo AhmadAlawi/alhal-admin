@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react'
 import { FiTruck, FiSearch, FiRefreshCw, FiCheck, FiX, FiEye, FiMapPin, FiPlus, FiEdit } from 'react-icons/fi'
 import transportService from '../services/transportService'
 import { useTranslation } from '../hooks/useTranslation'
+import { useCurrency } from '../contexts/CurrencyContext'
 import './TransportProviders.css'
 import './transport-shared.css'
 
 const TransportProviders = () => {
   const { t } = useTranslation()
+  const { formatMoneyPerUnit } = useCurrency()
   const [providers, setProviders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -367,7 +369,7 @@ const TransportProviders = () => {
                   {selectedProvider.estimatedPricePerKm && (
                     <div className="detail-item">
                       <label>{t('transport.providers.estimatedPricePerKm')}</label>
-                      <span>{selectedProvider.estimatedPricePerKm} {t('transport.currency')}</span>
+                      <span>{formatMoneyPerUnit(selectedProvider.estimatedPricePerKm, 'km')}</span>
                     </div>
                   )}
                 </div>

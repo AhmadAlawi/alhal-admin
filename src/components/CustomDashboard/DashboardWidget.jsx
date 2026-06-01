@@ -8,6 +8,8 @@ import Chart from '../Chart/Chart'
 
 import GovAnalyticsReport from '../GovAnalytics/GovAnalyticsReport'
 
+import SyriaMap from '../SyriaMap/SyriaMap'
+
 import ReportWidgetActions from '../ReportActions/ReportWidgetActions'
 
 import { useWidgetData } from '../../hooks/useWidgetData'
@@ -201,6 +203,28 @@ const DashboardWidget = ({
 
 
 
+    if (widget.type === 'syria-map' && data?.kind === 'syria-map') {
+
+      return (
+
+        <SyriaMap
+
+          data={data.payload}
+
+          mapKind={data.mapKind}
+
+          height={rowSpan > 2 ? 360 : 280}
+
+          language={language}
+
+        />
+
+      )
+
+    }
+
+
+
     if (isReportWidget && data) {
 
       const reportContent = (
@@ -351,7 +375,7 @@ const DashboardWidget = ({
 
       <div className="widget-body card">
 
-        {!editable && displayTitle && !isReportWidget && (
+        {!editable && displayTitle && !isReportWidget && widget.type !== 'syria-map' && (
 
           <h4 className="widget-title">{displayTitle}</h4>
 

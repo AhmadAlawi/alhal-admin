@@ -3,11 +3,13 @@ import { FiDollarSign, FiSearch, FiRefreshCw, FiPlus, FiEdit, FiTrash2, FiX, FiC
 import transportService from '../services/transportService'
 import citiesService from '../services/citiesService'
 import { useTranslation } from '../hooks/useTranslation'
+import { useCurrency } from '../contexts/CurrencyContext'
 import './TransportPriceLines.css'
 import './transport-shared.css'
 
 const TransportPriceLines = () => {
   const { t } = useTranslation()
+  const { formatMoney, formatMoneyPerUnit } = useCurrency()
   const [providers, setProviders] = useState([])
   const [selectedProvider, setSelectedProvider] = useState(null)
   const [priceLines, setPriceLines] = useState([])
@@ -162,7 +164,7 @@ const TransportPriceLines = () => {
         const entered = latestPriceRef.current
         if (entered && Number(entered) > response.totalPrice) {
           setPriceError(
-            `${t('transport.priceLines.priceExceedsGovMax')} ${response.totalPrice} ${t('transport.currency')}`
+            `${t('transport.priceLines.priceExceedsGovMax')} ${formatMoney(response.totalPrice)}`
           )
         } else {
           setPriceError(null)
@@ -242,7 +244,7 @@ const TransportPriceLines = () => {
 
     if (govPriceInfo && Number(formData.price) > govPriceInfo.totalPrice) {
       setPriceError(
-        `${t('transport.priceLines.priceExceedsGovMax')} ${govPriceInfo.totalPrice} ${t('transport.currency')}`
+        `${t('transport.priceLines.priceExceedsGovMax')} ${formatMoney(govPriceInfo.totalPrice)}`
       )
       return
     }
@@ -428,11 +430,11 @@ const TransportPriceLines = () => {
                           <td>{routeCellText(priceLine, 'from')}</td>
                           <td>{routeCellText(priceLine, 'to')}</td>
                           <td>
-                            {priceLine.price} {t('transport.currency')}
+                            {formatMoney(priceLine.price)}
                           </td>
                           <td>
                             {priceLine.governmentMaxPrice
-                              ? `${priceLine.governmentMaxPrice} ${t('transport.currency')}`
+                              ? formatMoney(priceLine.governmentMaxPrice)
                               : 'N/A'}
                           </td>
                           <td>
@@ -561,11 +563,11 @@ const TransportPriceLines = () => {
                   <div>
                     <strong>{t('transport.priceLines.govPrice')}:</strong>
                     <span>
-                      {govPriceInfo.totalPrice} {t('transport.currency')}
+                      {formatMoney(govPriceInfo.totalPrice)}
                     </span>
                     {govPriceInfo.distanceKm ? (
                       <span className="gov-price-detail">
-                        ({govPriceInfo.distanceKm} km × {govPriceInfo.pricePerKm} {t('transport.currency')}/km)
+                        ({govPriceInfo.distanceKm} km × {formatMoneyPerUnit(govPriceInfo.pricePerKm, 'km')})
                       </span>
                     ) : null}
                   </div>
@@ -582,7 +584,7 @@ const TransportPriceLines = () => {
                     setFormData({ ...formData, price: e.target.value })
                     if (govPriceInfo && Number(e.target.value) > govPriceInfo.totalPrice) {
                       setPriceError(
-                        `${t('transport.priceLines.priceExceedsGovMax')} ${govPriceInfo.totalPrice} ${t('transport.currency')}`
+                        `${t('transport.priceLines.priceExceedsGovMax')} ${formatMoney(govPriceInfo.totalPrice)}`
                       )
                     } else {
                       setPriceError(null)

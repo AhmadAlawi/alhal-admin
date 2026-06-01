@@ -19,12 +19,16 @@ const DATE_KEYS = new Set([
 
 const NAME_KEYS = [
   'name',
+  'nameAr',
+  'nameEn',
   'label',
   'category',
   'type',
   'productName',
   'product',
   'governorate',
+  'governorateNameAr',
+  'governorateNameEn',
   'location',
   'method',
   'status',
@@ -297,11 +301,25 @@ function normalizeBarRows(rows) {
 
   const data = rows.map((row, index) => {
     const label =
-      row[nameKey] ??
-      row.productName ??
-      row.label ??
-      row.name ??
-      row.title ??
+      row.governorateNameAr ||
+      row.governorateNameEn ||
+      row.governorateName ||
+      row[nameKey] ||
+      row.productName ||
+      row.productNameAr ||
+      row.productNameEn ||
+      row.userTypeNameAr ||
+      row.userTypeNameEn ||
+      row.label ||
+      row.name ||
+      row.nameAr ||
+      row.nameEn ||
+      row.title ||
+      row.type ||
+      row.status ||
+      (nameKey === 'governorateId' && row.governorateId != null
+        ? `محافظة ${row.governorateId}`
+        : null) ||
       `#${index + 1}`
     return {
       name: String(label),

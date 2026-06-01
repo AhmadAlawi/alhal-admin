@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useCurrency } from '../contexts/CurrencyContext'
 import reportsService from '../services/reportsService'
 import reportBuilderService from '../services/reportBuilderService'
 import { getSharedAutoFillData, getSharedProductionByCategory } from '../services/dashboardDataCache'
 import { getCachedAnalyticsReport } from '../services/govAnalyticsCache'
 import { buildReportChartConfig } from '../utils/reportChartNormalize'
+import govMapsService from '../services/govMapsService'
 import { mergeAnalyticsFilters, normalizeGovAnalyticsPayload } from '../utils/govAnalyticsNormalize'
+import { unwrapMapPayload } from '../utils/govMapsUtils'
 import {
   buildChartPropsFromResults,
   extractVisualization,
@@ -38,17 +41,17 @@ function buildGovParams(globalFilters) {
   }
 }
 
-function formatKpiValue(value, format) {
+function formatKpiValue(value, format, formatMoney, formatQty) {
   const n = safeNum(value?.value ?? value)
   switch (format) {
     case 'currency':
-      return `$${fmtNum(n)}`
+      return formatMoney(n)
     case 'price':
-      return `$${fmtNum(n)}/kg`
+      return formatMoney(n) + '/kg'
     case 'volume':
-      return `${fmtNum(n)} kg`
+      return `${formatQty(n)} kg`
     default:
-      return fmtNum(n)
+      return formatQty(n)
   }
 }
 
@@ -117,6 +120,7 @@ function overviewDetailLabel(key, language) {
 }
 
 export function useWidgetData(widget, globalFilters, { language, enabled = true } = {}) {
+  const { formatMoney, formatQty, displayCode, exchangeRate } = useCurrency()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -129,8 +133,10 @@ export function useWidgetData(widget, globalFilters, { language, enabled = true 
         config: widget?.config,
         globalFilters,
         language,
+        displayCode,
+        exchangeRate,
       }),
-    [widget?.id, widget?.type, widget?.config, globalFilters, language]
+    [widget?.id, widget?.type, widget?.config, globalFilters, language, displayCode, exchangeRate]
   )
 
   useEffect(() => {
@@ -153,7 +159,7 @@ export function useWidgetData(widget, globalFilters, { language, enabled = true 
             const metric = getNestedValue(gov.raw, widget.config.metric)
             setData({
               kind: 'kpi',
-              value: formatKpiValue(metric, widget.config.format),
+              value: formatKpiValue(metric, widget.config.format, formatMoney, formatQty),
               change: metric?.changePercentage,
             })
           } else if (widget.type === 'builtin-overview') {
@@ -232,6 +238,21 @@ export function useWidgetData(widget, globalFilters, { language, enabled = true 
             ...normalized,
             reportId,
             visualizationType: widget.config.visualizationType,
+          })
+          return
+        }
+
+        if (widget.type === 'syria-map') {
+          const mapKind = widget.config.mapKind || 'farms'
+          const filters = mergeAnalyticsFilters(globalFilters, widget.config.filters || {})
+          const fn = mapKind === 'products' ? govMapsService.getProductsMap : govMapsService.getFarmsMap
+          const includeMarkers = widget.config.filters?.includeMarkers !== false
+          const res = await fn(filters, { includeMarkers })
+          if (cancelled) return
+          setData({
+            kind: 'syria-map',
+            mapKind,
+            payload: unwrapMapPayload(res),
           })
         }
       } catch (e) {

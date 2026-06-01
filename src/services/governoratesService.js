@@ -1,47 +1,52 @@
 import apiClient from './api'
+import {
+  normalizeGovernorate,
+  sortByLocalizedName,
+  unwrapLocationList,
+} from '../utils/locationNormalize'
 
-function unwrapList(response) {
-  const data = response?.data?.data ?? response?.data ?? response
-  if (Array.isArray(data)) return data
-  if (Array.isArray(data?.governorates)) return data.governorates
-  if (Array.isArray(data?.items)) return data.items
-  return []
+function resolveOptionsArg(arg) {
+  if (typeof arg === 'string') return { language: arg }
+  if (arg && typeof arg === 'object') return arg
+  return {}
 }
 
 export const governoratesService = {
-  /** Preferred: MarketAnalysis filter list */
+  /** GET /api/governorates?isActive=true */
+  getAll: async ({ isActive = true } = {}) => {
+    try {
+      const params = isActive != null ? { isActive } : {}
+      const res = await apiClient.get('/api/governorates', params)
+      return unwrapLocationList(res)
+    } catch {
+      return []
+    }
+  },
+
+  /** Legacy fallback — MarketAnalysis filter list */
   getFromMarketFilters: async () => {
     try {
       const res = await apiClient.get('/api/MarketAnalysis/filters/governorates')
-      return unwrapList(res)
+      return unwrapLocationList(res)
     } catch {
       return []
     }
   },
 
-  /** Fallback: general governorates API */
-  getAll: async () => {
-    try {
-      const res = await apiClient.get('/api/governorates')
-      return unwrapList(res)
-    } catch {
-      return []
-    }
-  },
+  /**
+   * Dropdown options: `{ id, name, nameAr, nameEn }`
+   * @param {string|{ language?: string, isActive?: boolean }} opts
+   */
+  async getOptions(opts) {
+    const { language = 'ar', isActive = true } = resolveOptionsArg(opts)
 
-  async getOptions() {
-    let list = await this.getFromMarketFilters()
-    if (!list.length) list = await this.getAll()
-    return list.map((g) => {
-      const nameAr = g.nameAr ?? g.name ?? g.governorate ?? g.label
-      const nameEn = g.nameEn ?? nameAr
-      return {
-        id: g.governorateId ?? g.id ?? g.GovernorateId,
-        name: nameAr,
-        nameAr,
-        nameEn,
-      }
-    }).filter((g) => g.id != null && g.name)
+    let list = await this.getAll({ isActive })
+    if (!list.length) list = await this.getFromMarketFilters()
+
+    return sortByLocalizedName(
+      list.map((g) => normalizeGovernorate(g, language)).filter(Boolean),
+      language
+    )
   },
 }
 

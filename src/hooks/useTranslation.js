@@ -1,38 +1,60 @@
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocale } from '../contexts/LocaleContext'
 import enTranslations from '../locales/en.json'
 import arTranslations from '../locales/ar.json'
+import { deepMergeTranslations } from '../utils/translationUtils'
 
-const translations = {
+const baseTranslations = {
   en: enTranslations,
-  ar: arTranslations
+  ar: arTranslations,
+}
+
+function buildMerged(language, overrides) {
+  const base = baseTranslations[language] || baseTranslations.ar
+  const langOverrides = overrides?.[language] || {}
+  return deepMergeTranslations(base, langOverrides)
 }
 
 export const useTranslation = () => {
-  const { language } = useLocale()
-  const t = useMemo(() => translations[language] || translations.ar, [language])
+  const { language, translationOverrides } = useLocale()
+  const [revision, setRevision] = useState(0)
 
-  const translate = useCallback((key, params = {}) => {
-    const keys = key.split('.')
-    let value = t
+  useEffect(() => {
+    const handler = () => setRevision((r) => r + 1)
+    window.addEventListener('translation-overrides-changed', handler)
+    return () => window.removeEventListener('translation-overrides-changed', handler)
+  }, [])
 
-    for (const k of keys) {
-      if (value && typeof value === 'object' && k in value) {
-        value = value[k]
-      } else {
-        return key
+  const t = useMemo(
+    () => buildMerged(language, translationOverrides),
+    [language, translationOverrides, revision]
+  )
+
+  const translate = useCallback(
+    (key, params = {}) => {
+      const keys = key.split('.')
+      let value = t
+
+      for (const k of keys) {
+        if (value && typeof value === 'object' && k in value) {
+          value = value[k]
+        } else {
+          return key
+        }
       }
-    }
 
-    if (typeof value === 'string' && Object.keys(params).length > 0) {
-      return value.replace(/\{\{(\w+)\}\}/g, (match, paramKey) => {
-        return params[paramKey] !== undefined ? params[paramKey] : match
-      })
-    }
+      if (typeof value === 'string' && Object.keys(params).length > 0) {
+        return value.replace(/\{\{(\w+)\}\}/g, (match, paramKey) => {
+          return params[paramKey] !== undefined ? params[paramKey] : match
+        })
+      }
 
-    return value || key
-  }, [t])
+      return value || key
+    },
+    [t]
+  )
 
   return { t: translate, language }
 }
 
+export { baseTranslations, buildMerged }

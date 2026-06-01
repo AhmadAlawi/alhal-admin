@@ -22,6 +22,7 @@ import {
   FiShield,
   FiBell,
   FiEye,
+  FiMapPin,
   FiLogOut,
 } from 'react-icons/fi'
 import { GiWheat } from 'react-icons/gi'
@@ -54,6 +55,8 @@ const ICONS = {
   '/settings': <FiSettings />,
   '/rbac': <FiShield />,
   '/gov/alerts': <FiBell />,
+  '/gov/maps/farms': <FiMapPin />,
+  '/gov/maps/products': <FiMapPin />,
   '/gov/market-control': <FiEye />,
 }
 
