@@ -241,14 +241,33 @@ NOT:
 
 ## PM2 Deployment (Alternative)
 
-If using PM2 to serve the app:
+**Do not run `npm start` or `vite` under PM2 in production** — that is the dev server (compiles on the fly, wrong port hopping, blank UI risk).
+
+Use the included ecosystem file:
 
 ```bash
-# Install serve
-npm install -g serve
-
-# Serve production build
-serve -s dist -l 3000
+cd /var/www/alhal-admin
+git pull   # or deploy files
+chmod +x scripts/deploy-production.sh
+./scripts/deploy-production.sh
 ```
 
-But it's better to use a proper web server (nginx/Apache) for production.
+Or manually:
+
+```bash
+npm ci
+npm run build
+pm2 delete adminalhal 2>/dev/null || true
+pm2 start ecosystem.config.cjs
+pm2 save
+```
+
+This runs `vite preview` on port **3002** (set `VITE_PORT` in `ecosystem.config.cjs`). Point nginx `proxy_pass` to that port.
+
+**Development on the server** (optional, separate PM2 app or SSH tunnel only):
+
+```bash
+npm run dev   # NOT for public production traffic
+```
+
+But it's better to use nginx serving `dist/` directly, or nginx → `proxy_pass http://127.0.0.1:3002` for preview.

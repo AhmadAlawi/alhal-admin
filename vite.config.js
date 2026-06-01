@@ -75,6 +75,13 @@ export default defineConfig(({ mode }) => {
       strictPort: false, // Try next available port if port is in use
       allowedHosts: allowedHosts
     },
+    // Production: serve pre-built dist/ (use with PM2 start:prod, not npm start)
+    preview: {
+      port,
+      host: true,
+      strictPort: true,
+      allowedHosts,
+    },
     publicDir: 'public',
     build: {
       rollupOptions: {
