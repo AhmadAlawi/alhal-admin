@@ -60,9 +60,9 @@ function SyriaMapViewport({ bounds, fitBounds, pickMode }) {
 
     const apiBounds = getBoundsLatLng(bounds)
     if (apiBounds) {
-      map.fitBounds(apiBounds, { padding: [24, 24], maxZoom: 11 })
+      map.fitBounds(apiBounds, { padding: [40, 40], maxZoom: 10 })
     } else {
-      map.fitBounds(syriaBounds, { padding: [12, 12], maxZoom: 8 })
+      map.fitBounds(syriaBounds, { padding: [20, 20], maxZoom: 8 })
     }
   }, [bounds, fitBounds, pickMode, map, syriaBounds])
 

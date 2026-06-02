@@ -1324,6 +1324,23 @@
     "last30Days": "Last 30 days",
     "last90Days": "Last 90 days",
     "lastYear": "Last year",
+    "fromGovernorate": "Source governorate",
+    "toGovernorate": "Destination governorate",
+    "area": "Area / district",
+    "productCategory": "Product category",
+    "product": "Product",
+    "userRole": "User type",
+    "saleType": "Sale type",
+    "roles": {
+      "farmer": "Farmer",
+      "trader": "Trader",
+      "transporter": "Transporter"
+    },
+    "saleTypes": {
+      "auction": "Auction",
+      "tender": "Tender",
+      "direct": "Direct sale"
+    },
     "vizTypes": {
       "kpi": "KPI",
       "column": "Column",

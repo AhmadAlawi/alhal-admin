@@ -1325,6 +1325,23 @@
     "last30Days": "آخر 30 يوماً",
     "last90Days": "آخر 90 يوماً",
     "lastYear": "آخر سنة",
+    "fromGovernorate": "محافظة المصدر",
+    "toGovernorate": "محافظة الوجهة",
+    "area": "المنطقة",
+    "productCategory": "صنف المنتج (خضار / فواكه)",
+    "product": "المنتج",
+    "userRole": "نوع المستخدم",
+    "saleType": "نوع العملية",
+    "roles": {
+      "farmer": "مزارع",
+      "trader": "تاجر",
+      "transporter": "ناقل"
+    },
+    "saleTypes": {
+      "auction": "مزاد",
+      "tender": "مناقصة",
+      "direct": "بيع مباشر"
+    },
     "vizTypes": {
       "kpi": "مؤشر",
       "column": "أعمدة",

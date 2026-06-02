@@ -49,10 +49,14 @@ const ReportWidgetActions = ({
     setLoadingDetail(true)
     setDetailError(null)
     try {
-      const filters = mergeAnalyticsFilters(globalFilters, {
-        ...(widget.config?.filters || {}),
-        includeDetail: true,
-      })
+      const filters = mergeAnalyticsFilters(
+        globalFilters,
+        {
+          ...(widget.config?.filters || {}),
+          includeDetail: true,
+        },
+        { reportId }
+      )
       const payload = await getCachedAnalyticsReport(reportId, filters)
       const normalized = normalizeGovAnalyticsPayload(payload, language)
       setDetailData(normalized)

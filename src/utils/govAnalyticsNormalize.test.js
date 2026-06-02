@@ -68,6 +68,15 @@ describe('govAnalyticsNormalize', () => {
     })
   })
 
+  it('defaults topN to 70 for product ranking reports', () => {
+    expect(
+      mergeAnalyticsFilters({ days: 30 }, {}, { reportId: 'most-demanded-products' })
+    ).toEqual({
+      days: 30,
+      topN: 70,
+    })
+  })
+
   it('attaches detailTable when includeDetail=true', () => {
     const result = normalizeGovAnalyticsPayload(
       {

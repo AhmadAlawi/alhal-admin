@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 import { FiBarChart2, FiLoader, FiRefreshCw } from 'react-icons/fi'
 import GovAnalyticsReport from '../components/GovAnalytics/GovAnalyticsReport'
+import GovAnalyticsFilterBar from '../components/GovAnalytics/GovAnalyticsFilterBar'
+import { resolveReportTitle } from '../utils/govAnalyticsFilterConfig'
 import ReportWidgetActions from '../components/ReportActions/ReportWidgetActions'
 import govAnalyticsService from '../services/govAnalyticsService'
 import governoratesService from '../services/governoratesService'
@@ -20,13 +22,18 @@ import { useTranslation } from '../hooks/useTranslation'
 import { useLocale } from '../contexts/LocaleContext'
 import './GovEntityAnalytics.css'
 
-const PERIOD_OPTIONS = [
-  { value: 0, labelKey: 'dashboard.allTimes' },
-  { value: 7, labelKey: 'govAnalytics.last7Days' },
-  { value: 30, labelKey: 'govAnalytics.last30Days' },
-  { value: 90, labelKey: 'govAnalytics.last90Days' },
-  { value: 365, labelKey: 'govAnalytics.lastYear' },
-]
+const DEFAULT_FILTERS = {
+  days: 30,
+  governorateId: '',
+  fromGovernorateId: '',
+  toGovernorateId: '',
+  areaId: '',
+  categoryId: '',
+  productId: '',
+  granularity: 'day',
+  userRole: '',
+  saleType: '',
+}
 
 const VIZ_ICONS = {
   kpi: '📊',
@@ -53,7 +60,7 @@ const GovEntityAnalytics = () => {
   const [catalog, setCatalog] = useState([])
   const [activeReportId, setActiveReportId] = useState('')
   const [reportData, setReportData] = useState(null)
-  const [filters, setFilters] = useState({ days: 30, governorateId: '', granularity: 'day' })
+  const [filters, setFilters] = useState(DEFAULT_FILTERS)
   const [governorateOptions, setGovernorateOptions] = useState([])
   const [loadingCatalog, setLoadingCatalog] = useState(false)
   const [loadingReport, setLoadingReport] = useState(false)
@@ -99,7 +106,7 @@ const GovEntityAnalytics = () => {
     setLoadingReport(true)
     setError(null)
     try {
-      const query = mergeAnalyticsFilters(filters, {})
+      const query = mergeAnalyticsFilters(filters, {}, { reportId: activeReportId })
       const res = await govAnalyticsService.getReport(activeReportId, query)
       setReportData(unwrapAnalyticsReport(res))
     } catch (e) {
@@ -113,6 +120,15 @@ const GovEntityAnalytics = () => {
   useEffect(() => {
     loadReport()
   }, [loadReport])
+
+  useEffect(() => {
+    setFilters((prev) => ({
+      ...DEFAULT_FILTERS,
+      days: prev.days,
+      granularity: prev.granularity,
+      governorateId: activeEntityId === 'governorate' ? prev.governorateId : '',
+    }))
+  }, [activeReportId, activeEntityId])
 
   const activeCatalogItem = useMemo(
     () => catalog.find((item) => item.reportId === activeReportId),
@@ -135,35 +151,17 @@ const GovEntityAnalytics = () => {
     [reportData, language, governorateLookup]
   )
 
-  const reportTitle = useMemo(() => {
-    if (activeCatalogItem) {
-      return language === 'ar'
-        ? activeCatalogItem.titleAr || activeCatalogItem.titleEn
-        : activeCatalogItem.titleEn || activeCatalogItem.titleAr
-    }
-    if (reportData) {
-      return language === 'ar'
-        ? reportData.titleAr || reportData.titleEn
-        : reportData.titleEn || reportData.titleAr
-    }
-    return ''
-  }, [activeCatalogItem, reportData, language])
+  const reportTitle = useMemo(
+    () => resolveReportTitle(activeCatalogItem, reportData, language),
+    [activeCatalogItem, reportData, language]
+  )
 
   const entityTitle = getEntityLabel(activeEntity, language)
 
-  const showGovernorateFilter =
-    activeEntityId !== 'governorate' &&
-    (activeCatalogItem?.supportedFilters?.includes('governorateId') ||
-      governorateOptions.length > 0)
-
   const governorateFilterRequired =
     activeEntityId === 'governorate' &&
-    (activeCatalogItem?.reportId?.includes('summary') ||
+    (activeReportId?.includes('summary') ||
       activeCatalogItem?.supportedFilters?.includes('governorateId'))
-
-  const showGranularityFilter =
-    ['line', 'column'].includes(activeCatalogItem?.visualizationType) ||
-    activeCatalogItem?.supportedFilters?.includes('granularity')
 
   if (loadingEntities) {
     return (
@@ -255,82 +253,14 @@ const GovEntityAnalytics = () => {
                 )}
               </div>
 
-              <div className="report-filters">
-                <div className="filter-group">
-                  <label>{t('govAnalytics.period')}</label>
-                  <select
-                    className="filter-select"
-                    value={filters.days}
-                    onChange={(e) =>
-                      setFilters((prev) => ({ ...prev, days: Number(e.target.value) }))
-                    }
-                  >
-                    {PERIOD_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {t(opt.labelKey)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {governorateFilterRequired && (
-                  <div className="filter-group">
-                    <label>{t('dashboard.governorate')} *</label>
-                    <select
-                      className="filter-select"
-                      required
-                      value={filters.governorateId}
-                      onChange={(e) =>
-                        setFilters((prev) => ({ ...prev, governorateId: e.target.value }))
-                      }
-                    >
-                      <option value="">{t('govAnalytics.selectGovernorate')}</option>
-                      {governorateOptions.map((g) => (
-                        <option key={g.id} value={String(g.id)}>
-                          {g.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                {showGovernorateFilter && (
-                  <div className="filter-group">
-                    <label>{t('dashboard.governorate')}</label>
-                    <select
-                      className="filter-select"
-                      value={filters.governorateId}
-                      onChange={(e) =>
-                        setFilters((prev) => ({ ...prev, governorateId: e.target.value }))
-                      }
-                    >
-                      <option value="">{t('common.all')}</option>
-                      {governorateOptions.map((g) => (
-                        <option key={g.id} value={String(g.id)}>
-                          {g.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                {showGranularityFilter && (
-                  <div className="filter-group">
-                    <label>{t('analytics.groupBy')}</label>
-                    <select
-                      className="filter-select"
-                      value={filters.granularity}
-                      onChange={(e) =>
-                        setFilters((prev) => ({ ...prev, granularity: e.target.value }))
-                      }
-                    >
-                      <option value="day">{t('analytics.daily')}</option>
-                      <option value="week">{t('analytics.weekly')}</option>
-                      <option value="month">{t('analytics.monthly')}</option>
-                    </select>
-                  </div>
-                )}
-              </div>
+              <GovAnalyticsFilterBar
+                catalogItem={activeCatalogItem}
+                reportId={activeReportId}
+                entityId={activeEntityId}
+                filters={filters}
+                onChange={setFilters}
+                governorateOptions={governorateOptions}
+              />
 
               {governorateFilterRequired && !filters.governorateId && (
                 <div className="report-error">

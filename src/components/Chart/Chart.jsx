@@ -83,7 +83,7 @@ const Chart = ({
     [renderType, xAxisKey, nameKey, dataKey]
   )
 
-  const useScroll = scrollable && chartData.length > 8 && renderType !== 'pie'
+  const useScroll = scrollable && chartData.length > 4 && renderType !== 'pie'
   const innerMinWidth = useScroll
     ? Math.max(chartData.length * minPointWidth, 640)
     : undefined

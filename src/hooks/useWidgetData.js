@@ -230,7 +230,9 @@ export function useWidgetData(widget, globalFilters, { language, enabled = true 
         if (widget.type === 'analytics-report') {
           const reportId = widget.config.reportId
           if (!reportId) throw new Error('Analytics report ID missing')
-          const filters = mergeAnalyticsFilters(globalFilters, widget.config.filters || {})
+          const filters = mergeAnalyticsFilters(globalFilters, widget.config.filters || {}, {
+            reportId,
+          })
           const payload = await getCachedAnalyticsReport(reportId, filters)
           const normalized = normalizeGovAnalyticsPayload(payload, language)
           if (cancelled) return

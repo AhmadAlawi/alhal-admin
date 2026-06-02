@@ -132,7 +132,7 @@ function buildLegend(showLegend, legendPosition, isRtl) {
 }
 
 function buildDataZoom(dataLength, scrollable) {
-  if (!scrollable || dataLength <= 8) return undefined
+  if (!scrollable || dataLength <= 4) return undefined
   const endPercent = Math.min(100, Math.round((8 / dataLength) * 100))
   return [
     {
@@ -177,7 +177,7 @@ export function buildChartOption({
 }) {
   const chartData = Array.isArray(data) ? data : []
   const dense = chartData.length > 6
-  const hasDataZoom = scrollable && chartData.length > 8
+  const hasDataZoom = scrollable && chartData.length > 4
   const legend = buildLegend(showLegend, legendPosition, isRtl)
 
   if (type === 'pie') {

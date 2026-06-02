@@ -1,4 +1,6 @@
 import { fmtNum, safeNum } from './dashboardNormalize'
+import { isPriceTimeReport, isProductTopNReport, PRODUCT_TOP_N_DEFAULT } from './govAnalyticsFilterConfig'
+import { translateAnalyticsLabel, translateRowValues } from './govAnalyticsLabels'
 
 function pickLabel(item, language, arKey = 'nameAr', enKey = 'nameEn') {
   if (!item) return ''
@@ -22,7 +24,8 @@ function pickSliceLabel(slice, language, index) {
     slice?.landOwnershipType,
   ].filter(Boolean)
   const found = candidates.find((c) => !/^#\d+$/.test(String(c)))
-  return found || `#${index + 1}`
+  const label = found || `#${index + 1}`
+  return translateAnalyticsLabel(label, language)
 }
 
 function isGovernorateColumnKey(key) {
@@ -64,13 +67,13 @@ function normalizeKpi(data, language) {
   }
 }
 
-function normalizeSeriesChart(data, language, chartType) {
+function normalizeSeriesChart(data, language, chartType, reportId) {
   const categories = Array.isArray(data?.categories) ? data.categories : []
   const series = Array.isArray(data?.series) ? data.series : []
   const xAxisKey = '__category'
 
   const chartRows = categories.map((cat, idx) => {
-    const label = String(cat ?? '')
+    const label = translateAnalyticsLabel(String(cat ?? ''), language)
     const row = { [xAxisKey]: label, name: label }
     series.forEach((s, si) => {
       const key = s.key || `series_${si}`
@@ -91,7 +94,8 @@ function normalizeSeriesChart(data, language, chartType) {
     dataKeys: dataKeys.length > 0 ? dataKeys : undefined,
     dataKey: dataKeys[0]?.dataKey,
     xAxisKey,
-    scrollable: categories.length > 6,
+    scrollable:
+      categories.length > 4 || chartType === 'line' || isPriceTimeReport(reportId),
   }
 }
 
@@ -129,7 +133,7 @@ function normalizeTable(data, language, governorateLookup) {
         if (resolved) out[col.accessor] = resolved
       }
     })
-    return out
+    return translateRowValues(out, language)
   })
   return {
     kind: 'table',
@@ -151,12 +155,12 @@ function normalizeMap(data, language) {
   }
 }
 
-function normalizeCombo(data, language) {
+function normalizeCombo(data, language, reportId) {
   const tablePart = data?.table ? normalizeTable(data.table, language) : null
   const chartPart = data?.chart
-    ? normalizeSeriesChart(data.chart, language, 'bar')
+    ? normalizeSeriesChart(data.chart, language, 'bar', reportId)
     : data?.categories
-      ? normalizeSeriesChart(data, language, 'bar')
+      ? normalizeSeriesChart(data, language, 'bar', reportId)
       : null
 
   return {
@@ -198,6 +202,7 @@ export function normalizeGovAnalyticsPayload(envelope, language = 'ar', options 
 
   const inner = payload?.data
   const vizType = payload?.visualizationType
+  const reportId = payload?.reportId
 
   if (inner == null && vizType !== 'kpi') {
     return { kind: 'empty' }
@@ -209,10 +214,10 @@ export function normalizeGovAnalyticsPayload(envelope, language = 'ar', options 
       result = normalizeKpi(inner, language)
       break
     case 'column':
-      result = normalizeSeriesChart(inner, language, 'bar')
+      result = normalizeSeriesChart(inner, language, 'bar', reportId)
       break
     case 'line':
-      result = normalizeSeriesChart(inner, language, 'line')
+      result = normalizeSeriesChart(inner, language, 'line', reportId)
       break
     case 'donut':
       result = normalizeDonut(inner, language)
@@ -224,7 +229,7 @@ export function normalizeGovAnalyticsPayload(envelope, language = 'ar', options 
       result = normalizeMap(inner, language)
       break
     case 'combo':
-      result = normalizeCombo(inner, language)
+      result = normalizeCombo(inner, language, reportId)
       break
     default:
       result = { kind: 'empty' }
@@ -238,8 +243,13 @@ export function normalizeGovAnalyticsPayload(envelope, language = 'ar', options 
   return result
 }
 
-export function mergeAnalyticsFilters(globalFilters = {}, widgetFilters = {}) {
+function assignNumericFilter(merged, key, value) {
+  if (value != null && value !== '') merged[key] = Number(value)
+}
+
+export function mergeAnalyticsFilters(globalFilters = {}, widgetFilters = {}, options = {}) {
   const merged = { ...widgetFilters }
+  const reportId = options.reportId
 
   const days = globalFilters.days ?? widgetFilters.days
   if (days != null && Number(days) > 0) {
@@ -248,17 +258,31 @@ export function mergeAnalyticsFilters(globalFilters = {}, widgetFilters = {}) {
     delete merged.days
   }
 
-  if (globalFilters.governorateId != null && globalFilters.governorateId !== '') {
-    merged.governorateId = Number(globalFilters.governorateId)
-  }
-
-  if (widgetFilters.productId != null && widgetFilters.productId !== '') {
-    merged.productId = Number(widgetFilters.productId)
-  }
+  assignNumericFilter(merged, 'governorateId', globalFilters.governorateId ?? widgetFilters.governorateId)
+  assignNumericFilter(merged, 'fromGovernorateId', globalFilters.fromGovernorateId ?? widgetFilters.fromGovernorateId)
+  assignNumericFilter(merged, 'toGovernorateId', globalFilters.toGovernorateId ?? widgetFilters.toGovernorateId)
+  assignNumericFilter(merged, 'areaId', globalFilters.areaId ?? widgetFilters.areaId)
+  assignNumericFilter(merged, 'cityId', globalFilters.cityId ?? widgetFilters.cityId)
+  assignNumericFilter(merged, 'categoryId', globalFilters.categoryId ?? widgetFilters.categoryId)
+  assignNumericFilter(merged, 'productId', globalFilters.productId ?? widgetFilters.productId)
+  assignNumericFilter(merged, 'transportLineId', globalFilters.transportLineId ?? widgetFilters.transportLineId)
 
   const granularity = globalFilters.granularity ?? widgetFilters.granularity
   if (granularity) merged.granularity = granularity
-  if (widgetFilters.topN) merged.topN = widgetFilters.topN
+
+  const topN = globalFilters.topN ?? widgetFilters.topN
+  if (topN) {
+    merged.topN = Number(topN)
+  } else if (reportId && isProductTopNReport(reportId)) {
+    merged.topN = PRODUCT_TOP_N_DEFAULT
+  }
+
+  const userRole = globalFilters.userRole ?? widgetFilters.userRole
+  if (userRole) merged.userRole = userRole
+
+  const saleType = globalFilters.saleType ?? widgetFilters.saleType
+  if (saleType) merged.saleType = saleType
+
   if (widgetFilters.from) merged.from = widgetFilters.from
   if (widgetFilters.to) merged.to = widgetFilters.to
   if (widgetFilters.includeDetail != null) merged.includeDetail = widgetFilters.includeDetail
