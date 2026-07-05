@@ -4,6 +4,8 @@ import {
   buildProductPayload,
   extractImageUrl,
   getProductId,
+  normalizeCategory,
+  normalizeProduct,
   unwrapApiData,
   unwrapApiList,
 } from '../utils/apiNormalize'
@@ -11,12 +13,12 @@ import {
 export const productsService = {
   list: async () => {
     const res = await adminService.getProducts()
-    return unwrapApiList(res, ['products', 'items', 'data'])
+    return unwrapApiList(res, ['products', 'items', 'data']).map(normalizeProduct)
   },
 
   listCategories: async () => {
     const res = await adminService.getCategories({ isActive: true })
-    return unwrapApiList(res, ['categories', 'items', 'data'])
+    return unwrapApiList(res, ['categories', 'items', 'data']).map(normalizeCategory)
   },
 
   listSubCategories: async (categoryId) => {
@@ -24,7 +26,7 @@ export const productsService = {
       categoryId: Number(categoryId),
       isActive: true,
     })
-    return unwrapApiList(res, ['subCategories', 'items', 'data'])
+    return unwrapApiList(res, ['subCategories', 'items', 'data']).map(normalizeCategory)
   },
 
   uploadProductImage: async (file) => {

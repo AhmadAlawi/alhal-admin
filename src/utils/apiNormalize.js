@@ -159,6 +159,42 @@ export function getProductId(product) {
   return getEntityId(product, 'productId', 'id', 'ProductId')
 }
 
+/** API category/subcategory rows may come back PascalCase — normalize to camelCase used across the UI. */
+export function normalizeCategory(c) {
+  if (!c || typeof c !== 'object') return c
+  return {
+    ...c,
+    categoryId: c.categoryId ?? c.CategoryId,
+    subCategoryId: c.subCategoryId ?? c.SubCategoryId,
+    nameAr: c.nameAr ?? c.NameAr,
+    nameEn: c.nameEn ?? c.NameEn,
+    isActive: c.isActive ?? c.IsActive,
+  }
+}
+
+/** API product rows may come back PascalCase — normalize to camelCase used across the UI. */
+export function normalizeProduct(p) {
+  if (!p || typeof p !== 'object') return p
+  return {
+    ...p,
+    productId: p.productId ?? p.ProductId,
+    nameAr: p.nameAr ?? p.NameAr,
+    nameEn: p.nameEn ?? p.NameEn,
+    category: p.category ?? p.Category,
+    categoryId: p.categoryId ?? p.CategoryId,
+    subCategoryId: p.subCategoryId ?? p.SubCategoryId,
+    imageUrl: p.imageUrl ?? p.ImageUrl,
+    cardColor: p.cardColor ?? p.CardColor,
+    description: p.description ?? p.Description,
+    isActive: p.isActive ?? p.IsActive,
+    createdAt: p.createdAt ?? p.CreatedAt,
+    updatedAt: p.updatedAt ?? p.UpdatedAt,
+    productCategory: p.productCategory ?? p.ProductCategory,
+    productSubCategory: p.productSubCategory ?? p.ProductSubCategory,
+    governmentPrices: p.governmentPrices ?? p.GovernmentPrices,
+  }
+}
+
 export function extractImageUrl(uploadResponse) {
   const candidates = [
     uploadResponse?.data?.data?.url,
