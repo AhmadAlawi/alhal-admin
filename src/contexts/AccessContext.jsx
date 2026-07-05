@@ -1,11 +1,12 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import authService from '../services/authService'
-import rbacService, { unwrapData } from '../services/rbacService'
+import rbacService from '../services/rbacService'
 import {
   extractAccessFromToken,
   persistAccessToStorage,
   readStoredAccess,
 } from '../utils/jwtUtils'
+import { resolveUserAccess } from '../utils/resolveUserAccess'
 import {
   canAccessAdmin,
   canAccessGov,
@@ -21,6 +22,17 @@ function readInitialAccess() {
   if (!authService.isAuthenticated()) {
     return { roles: [], permissions: [], userId: null, hasCache: false }
   }
+
+  const stored = readStoredAccess()
+  if (stored.roles?.length || stored.permissions?.length) {
+    return {
+      roles: stored.roles || [],
+      permissions: stored.permissions || [],
+      userId: stored.userId ?? authService.getUserId(),
+      hasCache: true,
+    }
+  }
+
   const token = localStorage.getItem('authToken')
   if (token) {
     const fromJwt = extractAccessFromToken(token)
@@ -28,13 +40,12 @@ function readInitialAccess() {
       return { ...fromJwt, userId: authService.getUserId(), hasCache: true }
     }
   }
-  const stored = readStoredAccess()
-  const hasCache = !!(stored.roles?.length || stored.permissions?.length)
+
   return {
-    roles: stored.roles || [],
-    permissions: stored.permissions || [],
-    userId: stored.userId ?? authService.getUserId(),
-    hasCache,
+    roles: [],
+    permissions: [],
+    userId: authService.getUserId(),
+    hasCache: false,
   }
 }
 
@@ -78,23 +89,14 @@ export function AccessProvider({ children }) {
     let nextPerms = permissions
     let nextUserId = authService.getUserId()
 
-    if (token) {
-      const fromJwt = extractAccessFromToken(token)
-      if (fromJwt.roles.length) nextRoles = fromJwt.roles
-      if (fromJwt.permissions.length) nextPerms = fromJwt.permissions
-    }
-
-    try {
-      const response = await rbacService.getMyAccess()
-      const data = unwrapData(response)
-      if (data) {
-        if (data.userId != null) nextUserId = data.userId
-        if (Array.isArray(data.roles)) nextRoles = data.roles
-        if (Array.isArray(data.permissions)) nextPerms = data.permissions
-      }
-    } catch (err) {
-      console.warn('Could not refresh access from RBAC API, using JWT/localStorage', err)
-    }
+    const access = await resolveUserAccess({
+      token,
+      userId: nextUserId,
+      fetchRbac: () => rbacService.getMyAccess(),
+    })
+    if (access.userId != null) nextUserId = access.userId
+    if (access.roles.length) nextRoles = access.roles
+    if (access.permissions.length) nextPerms = access.permissions
 
     applyAccess(nextRoles, nextPerms, nextUserId)
     setLoading(false)

@@ -74,12 +74,12 @@ export function useGovAnalyticsEntities({ enabled = true } = {}) {
 }
 
 export function getEntityId(entity) {
-  return entity?.entityId || entity?.id || ''
+  return entity?.entityId || entity?.EntityId || entity?.id || entity?.Id || ''
 }
 
 export function getEntityLabel(entity, language = 'ar') {
   if (!entity) return ''
   return language === 'ar'
-    ? entity.nameAr || entity.titleAr || getEntityId(entity)
-    : entity.nameEn || entity.titleEn || getEntityId(entity)
+    ? entity.nameAr || entity.NameAr || entity.titleAr || getEntityId(entity)
+    : entity.nameEn || entity.NameEn || entity.titleEn || getEntityId(entity)
 }

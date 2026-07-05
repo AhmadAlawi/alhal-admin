@@ -7,7 +7,7 @@ export function unwrapData(response) {
 }
 
 export const rbacService = {
-  getMyAccess: () => apiClient.get(`${BASE}/me/access`),
+  getMyAccess: (opts) => apiClient.get(`${BASE}/me/access`, {}, opts),
 
   getPermissions: () => apiClient.get(`${BASE}/permissions`),
   createPermission: (body) => apiClient.post(`${BASE}/permissions`, body),

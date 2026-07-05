@@ -290,6 +290,23 @@ export function mergeAnalyticsFilters(globalFilters = {}, widgetFilters = {}, op
   return merged
 }
 
+/** API catalog items may come back PascalCase (ReportId, TitleAr, ...) — normalize to camelCase. */
+export function normalizeCatalogItem(item) {
+  if (!item) return item
+  return {
+    reportId: item.reportId ?? item.ReportId,
+    titleAr: item.titleAr ?? item.TitleAr,
+    titleEn: item.titleEn ?? item.TitleEn,
+    visualizationType: item.visualizationType ?? item.VisualizationType,
+    endpoint: item.endpoint ?? item.Endpoint,
+    entityIds: item.entityIds ?? item.EntityIds,
+    supportedFilters: item.supportedFilters ?? item.SupportedFilters,
+    descriptionAr: item.descriptionAr ?? item.DescriptionAr,
+    descriptionEn: item.descriptionEn ?? item.DescriptionEn,
+    isShared: item.isShared ?? item.IsShared,
+  }
+}
+
 export function unwrapAnalyticsList(response) {
   const payload = response?.data ?? response
   if (Array.isArray(payload)) return payload

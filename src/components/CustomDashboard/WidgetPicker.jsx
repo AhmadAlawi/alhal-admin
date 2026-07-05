@@ -12,7 +12,8 @@ import {
   userHasWidgetPermission,
 } from '../../utils/customDashboardUtils'
 import { PERMISSIONS } from '../../utils/accessControl'
-import { unwrapAnalyticsList } from '../../utils/govAnalyticsNormalize'
+import { normalizeCatalogItem, unwrapAnalyticsList } from '../../utils/govAnalyticsNormalize'
+import { getEntityId, getEntityLabel } from '../../hooks/useGovAnalyticsEntities'
 import { useTranslation } from '../../hooks/useTranslation'
 import { useAccess } from '../../contexts/AccessContext'
 import { useLocale } from '../../contexts/LocaleContext'
@@ -67,7 +68,7 @@ const WidgetPicker = ({ open, onClose, onAdd }) => {
         const entities = unwrapAnalyticsList(res)
         setAnalyticsEntities(entities)
         if (entities.length > 0) {
-          setAnalyticsEntityId((prev) => prev || entities[0].entityId || entities[0].id)
+          setAnalyticsEntityId((prev) => prev || getEntityId(entities[0]))
         }
       })
       .catch(() => {
@@ -90,7 +91,7 @@ const WidgetPicker = ({ open, onClose, onAdd }) => {
       .getCatalog(params)
       .then((res) => {
         if (cancelled) return
-        setAnalyticsCatalog(unwrapAnalyticsList(res))
+        setAnalyticsCatalog(unwrapAnalyticsList(res).map(normalizeCatalogItem))
       })
       .catch((e) => {
         if (!cancelled) {
@@ -225,11 +226,8 @@ const WidgetPicker = ({ open, onClose, onAdd }) => {
               onChange={(e) => setAnalyticsEntityId(e.target.value)}
             >
               {analyticsEntities.map((entity) => {
-                const id = entity.entityId || entity.id
-                const label =
-                  language === 'ar'
-                    ? entity.nameAr || entity.titleAr || id
-                    : entity.nameEn || entity.titleEn || id
+                const id = getEntityId(entity)
+                const label = getEntityLabel(entity, language)
                 return (
                   <option key={id} value={id}>
                     {label}

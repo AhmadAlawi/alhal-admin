@@ -14,6 +14,7 @@ class ApiClient {
   }
 
   async request(endpoint, options = {}) {
+    const { suppressAuthRedirect, ...fetchOptions } = options;
     const url = `${this.baseURL}${endpoint}`;
     let token = localStorage.getItem('authToken');
     
@@ -32,7 +33,7 @@ class ApiClient {
     const isFormData = options.body instanceof FormData;
     
     const config = {
-      ...options,
+      ...fetchOptions,
       headers: {
         ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
         'accept': '*/*',
@@ -46,6 +47,11 @@ class ApiClient {
       
       // Handle 401 Unauthorized - token expired or invalid
       if (response.status === 401) {
+        if (suppressAuthRedirect) {
+          const error = await response.json().catch(() => ({ message: 'Unauthorized.' }));
+          throw new Error(error.message || error.error?.detail || 'Unauthorized.');
+        }
+
         // Prevent multiple redirects
         const redirectKey = 'auth_redirect_in_progress';
         if (sessionStorage.getItem(redirectKey)) {
@@ -129,7 +135,7 @@ class ApiClient {
     }
   }
 
-  get(endpoint, params = {}) {
+  get(endpoint, params = {}, opts = {}) {
     // Filter out null, undefined, and empty string values
     const filteredParams = {};
     Object.keys(params).forEach(key => {
@@ -137,10 +143,10 @@ class ApiClient {
         filteredParams[key] = params[key];
       }
     });
-    
+
     const queryString = new URLSearchParams(filteredParams).toString();
     const url = queryString ? `${endpoint}?${queryString}` : endpoint;
-    return this.request(url, { method: 'GET' });
+    return this.request(url, { method: 'GET', ...opts });
   }
 
   post(endpoint, data) {

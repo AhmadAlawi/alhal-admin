@@ -54,7 +54,7 @@ export const NotificationProvider = ({ children }) => {
             if (!userId && authService.isAuthenticated()) {
               try {
                 const currentUser = await authService.getCurrentUser();
-                userId = currentUser?.userId || currentUser?.data?.userId || currentUser?.data?.id;
+                userId = currentUser?.userId;
                 if (userId) {
                   localStorage.setItem('userId', userId.toString());
                 }
@@ -125,7 +125,7 @@ export const NotificationProvider = ({ children }) => {
         if (!targetUserId && authService.isAuthenticated()) {
           try {
             const currentUser = await authService.getCurrentUser();
-            targetUserId = currentUser?.userId || currentUser?.data?.userId || currentUser?.data?.id;
+            targetUserId = currentUser?.userId;
             if (targetUserId) {
               localStorage.setItem('userId', targetUserId.toString());
             }

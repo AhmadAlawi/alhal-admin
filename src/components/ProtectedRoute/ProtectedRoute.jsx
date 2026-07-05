@@ -43,21 +43,17 @@ const ProtectedRoute = ({ children }) => {
         
         // Verify token by calling /api/auth/me (with timeout)
         try {
-          const userResponse = await Promise.race([
+          const user = await Promise.race([
             authService.getCurrentUser(),
-            new Promise((_, reject) => 
+            new Promise((_, reject) =>
               timeoutId = setTimeout(() => reject(new Error('Timeout')), 5000)
-            )
+            ),
           ])
-          
+
           if (timeoutId) clearTimeout(timeoutId)
-          
-          // Extract user info from response if needed
-          if (userResponse?.data?.userId || userResponse?.data?.data?.userId) {
-            const userId = userResponse.data.userId || userResponse.data.data.userId
-            if (userId && !localStorage.getItem('userId')) {
-              localStorage.setItem('userId', userId.toString())
-            }
+
+          if (user?.userId) {
+            localStorage.setItem('userId', String(user.userId))
           }
           
           sessionStorage.setItem('authLastCheck', now.toString())

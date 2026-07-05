@@ -9,6 +9,7 @@ import govAnalyticsService from '../services/govAnalyticsService'
 import governoratesService from '../services/governoratesService'
 import {
   mergeAnalyticsFilters,
+  normalizeCatalogItem,
   normalizeGovAnalyticsPayload,
   unwrapAnalyticsList,
   unwrapAnalyticsReport,
@@ -82,7 +83,7 @@ const GovEntityAnalytics = () => {
       .getCatalog({ entityId: activeEntityId })
       .then((res) => {
         if (cancelled) return
-        const list = unwrapAnalyticsList(res)
+        const list = unwrapAnalyticsList(res).map(normalizeCatalogItem)
         setCatalog(list)
         if (list.length > 0) setActiveReportId(list[0].reportId)
       })

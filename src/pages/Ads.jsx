@@ -10,6 +10,7 @@ import {
   FiX,
 } from 'react-icons/fi'
 import advertisementsService from '../services/advertisementsService'
+import adminService from '../services/adminService'
 import imageService from '../services/imageService'
 import { useTranslation } from '../hooks/useTranslation'
 import './Ads.css'
@@ -248,9 +249,16 @@ const AppAdPreviewByVariant = ({ variant, navigationType, navigationValue, ...re
   </>
 )
 
+const pickProductCategoryId = (ad) => {
+  const raw = ad?.productCategoryId ?? ad?.ProductCategoryId
+  if (raw == null || raw === '') return ''
+  return String(raw)
+}
+
 const createEmptyForm = () => ({
   title: '',
   description: '',
+  productCategoryId: '',
   platform: 'mobile',
   position: 'banner',
   isSlider: false,
@@ -345,7 +353,11 @@ const getThumbnailUrlsFromAd = (ad) => {
 const Ads = () => {
   const { t } = useTranslation()
   const [ads, setAds] = useState([])
+  const [productCategories, setProductCategories] = useState([])
   const [mobileAds, setMobileAds] = useState([])
+  const [mobileBottomAds, setMobileBottomAds] = useState([])
+  const [mobileHeaderAds, setMobileHeaderAds] = useState([])
+  const [previewCategoryId, setPreviewCategoryId] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -365,14 +377,39 @@ const Ads = () => {
     platform: 'all',
     position: 'all',
     active: 'all',
+    productCategoryId: 'all',
     from: '',
     to: '',
     search: '',
   })
 
+  const categoryNameById = useMemo(() => {
+    const map = new Map()
+    productCategories.forEach((c) => {
+      const id = c.categoryId ?? c.id
+      if (id != null) {
+        map.set(String(id), c.nameAr || c.nameEn || c.name || `#${id}`)
+      }
+    })
+    return map
+  }, [productCategories])
+
+  const categoryLabel = (categoryId) => {
+    if (categoryId == null || categoryId === '') return t('ads.globalAd')
+    return categoryNameById.get(String(categoryId)) || `#${categoryId}`
+  }
+
   useEffect(() => {
     fetchAll()
+    adminService
+      .getCategories({ isActive: true })
+      .then((res) => setProductCategories(Array.isArray(res.data) ? res.data : []))
+      .catch(() => setProductCategories([]))
   }, [])
+
+  useEffect(() => {
+    fetchMobilePreviews()
+  }, [previewCategoryId])
 
   useEffect(() => {
     if (!imageFiles.length) {
@@ -426,10 +463,7 @@ const Ads = () => {
       setError('')
       setPreviewError('')
 
-      const [adminAdsResult, mobileAdsResult] = await Promise.allSettled([
-        advertisementsService.getAdvertisements(),
-        advertisementsService.getAppAdvertisements(true),
-      ])
+      const [adminAdsResult] = await Promise.allSettled([advertisementsService.getAdvertisements()])
 
       if (adminAdsResult.status === 'fulfilled') {
         setAds(Array.isArray(adminAdsResult.value) ? adminAdsResult.value : [])
@@ -438,19 +472,43 @@ const Ads = () => {
         setError(adminAdsResult.reason?.message || 'Failed to load ads')
       }
 
-      if (mobileAdsResult.status === 'fulfilled') {
-        setMobileAds(Array.isArray(mobileAdsResult.value) ? mobileAdsResult.value : [])
-      } else {
-        setMobileAds([])
-        setPreviewError(
-          mobileAdsResult.reason?.message ||
-            'Mobile preview endpoint is unavailable (possibly blocked by browser extension).'
-        )
-      }
+      await fetchMobilePreviews()
     } catch (err) {
       setError(err.message || 'Failed to load ads')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchMobilePreviews = async () => {
+    const categoryParam = previewCategoryId || undefined
+    setPreviewError('')
+    const [appResult, bottomResult, headerResult] = await Promise.allSettled([
+      advertisementsService.getAppAdvertisements({
+        enabledOnly: true,
+        productCategoryId: categoryParam,
+      }),
+      advertisementsService.getAppBottomAdvertisements(categoryParam),
+      advertisementsService.getMobileHeaderAds(categoryParam),
+    ])
+
+    if (appResult.status === 'fulfilled') {
+      setMobileAds(Array.isArray(appResult.value) ? appResult.value : [])
+    } else {
+      setMobileAds([])
+      setPreviewError(appResult.reason?.message || 'Mobile app ads preview failed.')
+    }
+
+    if (bottomResult.status === 'fulfilled') {
+      setMobileBottomAds(Array.isArray(bottomResult.value) ? bottomResult.value : [])
+    } else {
+      setMobileBottomAds([])
+    }
+
+    if (headerResult.status === 'fulfilled') {
+      setMobileHeaderAds(Array.isArray(headerResult.value) ? headerResult.value : [])
+    } else {
+      setMobileHeaderAds([])
     }
   }
 
@@ -472,13 +530,15 @@ const Ads = () => {
 
     let imageUrls = getImageUrlsFromAd(ad)
     let thumbnailUrls = getThumbnailUrlsFromAd(ad)
+    let record = ad
     const adId = ad.advertisementId ?? ad.id
 
-    if ((!imageUrls.length || !thumbnailUrls.length) && adId != null) {
+    if (adId != null) {
       try {
         const detail = await advertisementsService.getAdvertisementById(adId)
-        const record =
-          detail && typeof detail === 'object' && !Array.isArray(detail) ? detail : ad
+        if (detail && typeof detail === 'object' && !Array.isArray(detail)) {
+          record = detail
+        }
         if (!imageUrls.length) imageUrls = getImageUrlsFromAd(record)
         if (!thumbnailUrls.length) thumbnailUrls = getThumbnailUrlsFromAd(record)
       } catch {
@@ -486,34 +546,34 @@ const Ads = () => {
       }
     }
 
-    // Keep resolved URLs on selectedAd so updates can reuse media without re-uploading
-    setSelectedAd({ ...ad, imageUrls, thumbnailUrls })
+    setSelectedAd({ ...record, imageUrls, thumbnailUrls })
 
     setFormData({
-      title: ad.title || '',
-      description: ad.description || '',
-      platform: ad.platform || 'mobile',
-      position: ad.position || 'banner',
-      isSlider: !!ad.isSlider,
-      displayOrder: Number(ad.displayOrder ?? 1),
-      clickAction: ad.clickAction || 'url',
-      clickUrl: ad.clickUrl || '',
-      clickTargetId: ad.clickTargetId ?? '',
-      startDate: toDateInputValue(ad.startDate),
-      endDate: toDateInputValue(ad.endDate),
-      isActive: ad.isActive ?? true,
+      title: record.title || '',
+      description: record.description || '',
+      productCategoryId: pickProductCategoryId(record),
+      platform: record.platform || 'mobile',
+      position: record.position || 'banner',
+      isSlider: !!record.isSlider,
+      displayOrder: Number(record.displayOrder ?? 1),
+      clickAction: record.clickAction || 'url',
+      clickUrl: record.clickUrl || '',
+      clickTargetId: record.clickTargetId ?? '',
+      startDate: toDateInputValue(record.startDate),
+      endDate: toDateInputValue(record.endDate),
+      isActive: record.isActive ?? true,
       imageUrlsText: imageUrls.join('\n'),
       thumbnailUrlsText: thumbnailUrls.join('\n'),
-      titleColor: pickAdColor(ad, 'titleColor', 'TitleColor', DEFAULT_TITLE_COLOR),
-      subtitleColor: pickAdColor(ad, 'subtitleColor', 'SubtitleColor', DEFAULT_SUBTITLE_COLOR),
+      titleColor: pickAdColor(record, 'titleColor', 'TitleColor', DEFAULT_TITLE_COLOR),
+      subtitleColor: pickAdColor(record, 'subtitleColor', 'SubtitleColor', DEFAULT_SUBTITLE_COLOR),
       ctaBackgroundColor: pickAdColor(
-        ad,
+        record,
         'ctaBackgroundColor',
         'CtaBackgroundColor',
         DEFAULT_CTA_BG
       ),
-      ctaTextColor: pickAdColor(ad, 'ctaTextColor', 'CtaTextColor', DEFAULT_CTA_TEXT),
-      buttonLabel: pickAdString(ad, 'buttonLabel', 'ButtonLabel', DEFAULT_BUTTON_LABEL),
+      ctaTextColor: pickAdColor(record, 'ctaTextColor', 'CtaTextColor', DEFAULT_CTA_TEXT),
+      buttonLabel: pickAdString(record, 'buttonLabel', 'ButtonLabel', DEFAULT_BUTTON_LABEL),
     })
     setShowModal(true)
   }
@@ -731,6 +791,10 @@ const Ads = () => {
       ctaBackgroundColor: optionalTrim(formData.ctaBackgroundColor),
       ctaTextColor: optionalTrim(formData.ctaTextColor),
       buttonLabel: optionalTrim(formData.buttonLabel),
+      productCategoryId:
+        formData.productCategoryId === '' || formData.productCategoryId == null
+          ? null
+          : Number(formData.productCategoryId),
     }
   }
 
@@ -850,6 +914,14 @@ const Ads = () => {
         if (filters.active === 'active' && !ad.isActive) return false
         if (filters.active === 'inactive' && ad.isActive) return false
 
+        if (filters.productCategoryId === 'global') {
+          const cid = ad.productCategoryId ?? ad.ProductCategoryId
+          if (cid != null && cid !== '') return false
+        } else if (filters.productCategoryId !== 'all') {
+          const cid = String(ad.productCategoryId ?? ad.ProductCategoryId ?? '')
+          if (cid !== String(filters.productCategoryId)) return false
+        }
+
         if (filters.from && ad.startDate && new Date(ad.startDate) < new Date(filters.from)) return false
         if (filters.to && ad.startDate && new Date(ad.startDate) > new Date(filters.to)) return false
 
@@ -916,6 +988,21 @@ const Ads = () => {
           <option value="active">{t('common.active')}</option>
           <option value="inactive">{t('common.inactive')}</option>
         </select>
+        <select
+          value={filters.productCategoryId}
+          onChange={(e) => setFilters((prev) => ({ ...prev, productCategoryId: e.target.value }))}
+        >
+          <option value="all">{t('ads.allCategories')}</option>
+          <option value="global">{t('ads.globalAd')}</option>
+          {productCategories.map((c) => {
+            const id = c.categoryId ?? c.id
+            return (
+              <option key={id} value={String(id)}>
+                {c.nameAr || c.nameEn || c.name}
+              </option>
+            )
+          })}
+        </select>
         <input
           type="date"
           value={filters.from}
@@ -940,6 +1027,7 @@ const Ads = () => {
                 <th>Order</th>
                 <th>Title</th>
                 <th>Platform</th>
+                <th>{t('ads.productCategory')}</th>
                 <th>Position</th>
                 <th>Schedule</th>
                 <th>Views</th>
@@ -951,7 +1039,7 @@ const Ads = () => {
             <tbody>
               {filteredAds.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="empty-row">
+                  <td colSpan={10} className="empty-row">
                     No ads found.
                   </td>
                 </tr>
@@ -966,6 +1054,7 @@ const Ads = () => {
                       </div>
                     </td>
                     <td>{ad.platform || '-'}</td>
+                    <td>{categoryLabel(ad.productCategoryId ?? ad.ProductCategoryId)}</td>
                     <td>{ad.position || '-'}</td>
                     <td>
                       <span>{ad.startDate ? new Date(ad.startDate).toLocaleDateString() : '-'}</span>
@@ -1007,11 +1096,33 @@ const Ads = () => {
       )}
 
       <div className="card mobile-preview-card">
-        <h2>Mobile app preview (`GET /api/Advertisement/app?enabledOnly=true`)</h2>
+        <div className="mobile-preview-card__header">
+          <h2>{t('ads.mobilePreviewTitle')}</h2>
+          <div className="mobile-preview-card__filter">
+            <label>{t('ads.previewCategoryFilter')}</label>
+            <select
+              value={previewCategoryId}
+              onChange={(e) => setPreviewCategoryId(e.target.value)}
+            >
+              <option value="">{t('ads.previewNoCategoryFilter')}</option>
+              {productCategories.map((c) => {
+                const id = c.categoryId ?? c.id
+                return (
+                  <option key={id} value={String(id)}>
+                    {c.nameAr || c.nameEn || c.name}
+                  </option>
+                )
+              })}
+            </select>
+          </div>
+        </div>
+        <p className="spec-note">{t('ads.productCategoryHint')}</p>
         {previewError && <div className="preview-error">{previewError}</div>}
+
+        <h3 className="preview-endpoint-title">{t('ads.previewAppCarousel')}</h3>
         <div className="mobile-preview-grid">
           {mobileAds.length === 0 ? (
-            <p>No enabled mobile ads returned.</p>
+            <p>{t('ads.previewEmpty')}</p>
           ) : (
             mobileAds.map((ad) => {
               const preview = toAppPreviewProps(ad)
@@ -1019,6 +1130,38 @@ const Ads = () => {
               return (
                 <div key={preview?.advertisementId ?? ad.advertisementId} className="mobile-ad-card">
                   <AppAdPreviewByVariant variant={variant} {...preview} />
+                </div>
+              )
+            })
+          )}
+        </div>
+
+        <h3 className="preview-endpoint-title">{t('ads.previewBottom')}</h3>
+        <div className="mobile-preview-grid">
+          {mobileBottomAds.length === 0 ? (
+            <p>{t('ads.previewEmpty')}</p>
+          ) : (
+            mobileBottomAds.map((ad) => {
+              const preview = toAppPreviewProps(ad)
+              return (
+                <div key={`bottom-${preview?.advertisementId ?? ad.advertisementId}`} className="mobile-ad-card">
+                  <AppAdPreviewByVariant variant="bottom" {...preview} />
+                </div>
+              )
+            })
+          )}
+        </div>
+
+        <h3 className="preview-endpoint-title">{t('ads.previewHeader')}</h3>
+        <div className="mobile-preview-grid">
+          {mobileHeaderAds.length === 0 ? (
+            <p>{t('ads.previewEmpty')}</p>
+          ) : (
+            mobileHeaderAds.map((ad) => {
+              const preview = toAppPreviewProps(ad)
+              return (
+                <div key={`header-${preview?.advertisementId ?? ad.advertisementId}`} className="mobile-ad-card">
+                  <AppAdPreviewByVariant variant="banner" {...preview} />
                 </div>
               )
             })
@@ -1061,6 +1204,26 @@ const Ads = () => {
 
               <h3>Placement</h3>
               <div className="form-grid">
+                <div className="form-group">
+                  <label>{t('ads.productCategory')}</label>
+                  <select
+                    value={formData.productCategoryId}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, productCategoryId: e.target.value }))
+                    }
+                  >
+                    <option value="">{t('ads.globalAd')}</option>
+                    {productCategories.map((c) => {
+                      const id = c.categoryId ?? c.id
+                      return (
+                        <option key={id} value={String(id)}>
+                          {c.nameAr || c.nameEn || c.name}
+                        </option>
+                      )
+                    })}
+                  </select>
+                  <small className="spec-note">{t('ads.productCategoryHint')}</small>
+                </div>
                 <div className="form-group">
                   <label>Platform *</label>
                   <select

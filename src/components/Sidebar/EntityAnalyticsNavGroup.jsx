@@ -40,8 +40,8 @@ const EntityAnalyticsNavGroup = () => {
                   }
                 >
                   <span className="menu-label">{getEntityLabel(entity, language)}</span>
-                  {entity.reportCount != null && (
-                    <span className="menu-sub-count">{entity.reportCount}</span>
+                  {(entity.reportCount ?? entity.ReportCount) != null && (
+                    <span className="menu-sub-count">{entity.reportCount ?? entity.ReportCount}</span>
                   )}
                 </NavLink>
               </li>

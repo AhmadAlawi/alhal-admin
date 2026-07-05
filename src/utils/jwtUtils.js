@@ -24,6 +24,86 @@ const ROLE_CLAIM_KEYS = [
 
 const PERM_CLAIM_KEYS = ['perm', 'permission', 'permissions']
 
+const ROLE_CLAIM_MATCHERS = [
+  'role',
+  'http://schemas.microsoft.com/ws/2008/06/identity/claims/role',
+]
+
+const NAME_ID_CLAIM_MATCHERS = [
+  'sub',
+  'nameidentifier',
+  'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier',
+]
+
+function isClaimType(type, matchers) {
+  const normalized = String(type || '').toLowerCase()
+  return matchers.some((matcher) => normalized.includes(String(matcher).toLowerCase()))
+}
+
+function pickField(obj, ...keys) {
+  for (const key of keys) {
+    if (obj?.[key] !== undefined && obj?.[key] !== null) return obj[key]
+  }
+  return undefined
+}
+
+/** Parse JWT claim objects returned by /api/auth/me when serialized as an array. */
+export function parseClaimsArray(claims) {
+  const roles = []
+  let userId = null
+
+  if (!Array.isArray(claims)) return { userId, roles: [] }
+
+  for (const claim of claims) {
+    const type = claim?.Type ?? claim?.type ?? ''
+    const value = claim?.Value ?? claim?.value
+    if (value == null || value === '') continue
+
+    if (isClaimType(type, ROLE_CLAIM_MATCHERS)) {
+      roles.push(String(value))
+    } else if (isClaimType(type, NAME_ID_CLAIM_MATCHERS) && userId == null) {
+      userId = String(value)
+    }
+  }
+
+  return { userId, roles: [...new Set(roles)] }
+}
+
+/**
+ * Normalize /api/auth/me — handles plain user objects and claim-array payloads.
+ */
+export function normalizeAuthMeResponse(response, token = null) {
+  const raw = response?.data ?? response
+  let userId = pickField(raw, 'userId', 'UserId', 'id', 'Id')
+  let roles = raw?.roles ?? raw?.Roles ?? []
+  let permissions = raw?.permissions ?? raw?.Permissions ?? []
+
+  if (Array.isArray(raw?.userId)) {
+    const parsed = parseClaimsArray(raw.userId)
+    userId = parsed.userId ?? userId
+    if (parsed.roles.length) roles = parsed.roles
+  }
+
+  if (token) {
+    const fromJwt = extractAccessFromToken(token)
+    if (userId == null) {
+      const payload = decodeJwtPayload(token)
+      userId = payload?.sub != null ? String(payload.sub) : null
+    }
+    if (!roles?.length && fromJwt.roles.length) roles = fromJwt.roles
+    if (!permissions?.length && fromJwt.permissions.length) permissions = fromJwt.permissions
+  }
+
+  return {
+    userId,
+    roles: Array.isArray(roles) ? roles : [],
+    permissions: Array.isArray(permissions) ? permissions : [],
+    fullName: pickField(raw, 'fullName', 'FullName', 'name', 'Name'),
+    email: pickField(raw, 'email', 'Email'),
+    phone: pickField(raw, 'phone', 'Phone'),
+  }
+}
+
 function collectClaimValues(payload, keys) {
   if (!payload) return []
   const values = []

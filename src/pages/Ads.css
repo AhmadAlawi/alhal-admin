@@ -126,6 +126,40 @@
   color: #f87171;
 }
 
+.mobile-preview-card__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.mobile-preview-card__header h2 {
+  margin: 0;
+}
+
+.mobile-preview-card__filter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 220px;
+}
+
+.mobile-preview-card__filter select {
+  padding: 0.45rem 0.6rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  font-family: inherit;
+}
+
+.preview-endpoint-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 1.25rem 0 0.5rem;
+  color: var(--on-surface);
+}
+
 .mobile-preview-card h2 {
   font-size: 1.05rem;
   margin-bottom: 0.75rem;
