@@ -4,6 +4,26 @@
 
 import { formatChartShortDate, formatDistributionChart, safeChartNumber } from './chartNormalize'
 
+/**
+ * The reports API returns PascalCase payloads ({ Data: [...], Summary, Period,
+ * ProductName, TotalSales, ... }) while this normalizer keys off camelCase. Deep
+ * camel-case the payload once so row extraction and field detection line up.
+ * Existing lowercase/camelCase payloads pass through unchanged.
+ */
+export function camelizeKeysDeep(value) {
+  if (Array.isArray(value)) return value.map(camelizeKeysDeep)
+  if (value && typeof value === 'object') {
+    const out = {}
+    for (const [key, val] of Object.entries(value)) {
+      const camel = /^[A-Z]/.test(key) ? key.charAt(0).toLowerCase() + key.slice(1) : key
+      const target = camel in out && camel !== key ? key : camel
+      out[target] = camelizeKeysDeep(val)
+    }
+    return out
+  }
+  return value
+}
+
 const DATE_KEYS = new Set([
   'date',
   'time',
@@ -213,7 +233,7 @@ export function extractReportSummary(raw, rows) {
 function inferChartKind(reportId, rows) {
   if (!rows.length) return 'empty'
 
-  const id = reportId || ''
+  const id = typeof reportId === 'string' ? reportId : ''
   const first = rows[0]
 
   if (typeof first !== 'object') {
@@ -332,6 +352,7 @@ function normalizeBarRows(rows) {
 
 /** Build chart props for Reports page. */
 export function buildReportChartConfig(raw, reportId, locale = 'en-US') {
+  raw = camelizeKeysDeep(raw)
   const rows = extractReportRows(raw)
   const kind = inferChartKind(reportId, rows)
   const summary = extractReportSummary(raw, rows)
