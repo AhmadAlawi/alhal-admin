@@ -32,8 +32,8 @@ export function normalizeGovernorate(raw, language = 'ar') {
   if (!raw || typeof raw !== 'object') return null
   const id = raw.governorateId ?? raw.id ?? raw.GovernorateId
   if (id == null) return null
-  const nameAr = cleanLocationName(raw.nameAr ?? raw.name ?? raw.governorate ?? raw.label)
-  const nameEn = cleanLocationName(raw.nameEn ?? nameAr)
+  const nameAr = cleanLocationName(raw.nameAr ?? raw.NameAr ?? raw.name ?? raw.governorate ?? raw.label)
+  const nameEn = cleanLocationName(raw.nameEn ?? raw.NameEn ?? nameAr)
   const name = language === 'ar' ? nameAr || nameEn : nameEn || nameAr
   if (!name) return null
   return {
@@ -42,8 +42,8 @@ export function normalizeGovernorate(raw, language = 'ar') {
     name,
     nameAr,
     nameEn,
-    isActive: raw.isActive !== false,
-    citiesCount: raw.citiesCount,
+    isActive: (raw.isActive ?? raw.IsActive) !== false,
+    citiesCount: raw.citiesCount ?? raw.CitiesCount,
   }
 }
 
@@ -52,8 +52,8 @@ export function normalizeCity(raw, language = 'ar') {
   const cityId = raw.cityId ?? raw.id ?? raw.CityId
   if (cityId == null) return null
   const governorateId = raw.governorateId ?? raw.GovernorateId ?? raw.governorateID
-  const nameAr = cleanLocationName(raw.nameAr ?? raw.name ?? raw.cityName)
-  const nameEn = cleanLocationName(raw.nameEn ?? nameAr)
+  const nameAr = cleanLocationName(raw.nameAr ?? raw.NameAr ?? raw.name ?? raw.cityName)
+  const nameEn = cleanLocationName(raw.nameEn ?? raw.NameEn ?? nameAr)
   const name = language === 'ar' ? nameAr || nameEn : nameEn || nameAr
   return {
     cityId,
@@ -61,10 +61,10 @@ export function normalizeCity(raw, language = 'ar') {
     nameAr,
     nameEn,
     governorateId: governorateId != null ? governorateId : undefined,
-    governorateNameAr: cleanLocationName(raw.governorateNameAr),
-    governorateNameEn: cleanLocationName(raw.governorateNameEn),
-    isActive: raw.isActive !== false,
-    areasCount: raw.areasCount,
+    governorateNameAr: cleanLocationName(raw.governorateNameAr ?? raw.GovernorateNameAr),
+    governorateNameEn: cleanLocationName(raw.governorateNameEn ?? raw.GovernorateNameEn),
+    isActive: (raw.isActive ?? raw.IsActive) !== false,
+    areasCount: raw.areasCount ?? raw.AreasCount,
   }
 }
 
@@ -74,8 +74,8 @@ export function normalizeArea(raw, language = 'ar') {
   if (areaId == null) return null
   const cityId = raw.cityId ?? raw.CityId
   const governorateId = raw.governorateId ?? raw.GovernorateId
-  const nameAr = cleanLocationName(raw.nameAr ?? raw.name)
-  const nameEn = cleanLocationName(raw.nameEn ?? nameAr)
+  const nameAr = cleanLocationName(raw.nameAr ?? raw.NameAr ?? raw.name)
+  const nameEn = cleanLocationName(raw.nameEn ?? raw.NameEn ?? nameAr)
   const name = language === 'ar' ? nameAr || nameEn : nameEn || nameAr
   return {
     areaId,
@@ -83,12 +83,12 @@ export function normalizeArea(raw, language = 'ar') {
     nameAr,
     nameEn,
     cityId,
-    cityNameAr: cleanLocationName(raw.cityNameAr),
-    cityNameEn: cleanLocationName(raw.cityNameEn),
+    cityNameAr: cleanLocationName(raw.cityNameAr ?? raw.CityNameAr),
+    cityNameEn: cleanLocationName(raw.cityNameEn ?? raw.CityNameEn),
     governorateId,
-    governorateNameAr: cleanLocationName(raw.governorateNameAr),
-    governorateNameEn: cleanLocationName(raw.governorateNameEn),
-    isActive: raw.isActive !== false,
+    governorateNameAr: cleanLocationName(raw.governorateNameAr ?? raw.GovernorateNameAr),
+    governorateNameEn: cleanLocationName(raw.governorateNameEn ?? raw.GovernorateNameEn),
+    isActive: (raw.isActive ?? raw.IsActive) !== false,
   }
 }
 
