@@ -1,6 +1,7 @@
 import { fmtNum, safeNum } from './dashboardNormalize'
 import { isPriceTimeReport, isProductTopNReport, PRODUCT_TOP_N_DEFAULT } from './govAnalyticsFilterConfig'
 import { translateAnalyticsLabel, translateRowValues } from './govAnalyticsLabels'
+import { camelizeKeysDeep } from './reportChartNormalize'
 
 function pickLabel(item, language, arKey = 'nameAr', enKey = 'nameEn') {
   if (!item) return ''
@@ -192,6 +193,10 @@ export function normalizeDetailTable(detailTable, language = 'ar') {
 
 /** Map API report envelope → widget render props */
 export function normalizeGovAnalyticsPayload(envelope, language = 'ar', options = {}) {
+  // API returns PascalCase (VisualizationType, Data, Value, Categories, Slices,
+  // Columns, Rows, DetailTable...). Camel-case the whole envelope so the
+  // camelCase-keyed logic below reads it. camelCase input is unchanged.
+  envelope = camelizeKeysDeep(envelope)
   const governorateLookup = options.governorateLookup
   const payload =
     envelope?.visualizationType != null

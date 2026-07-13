@@ -113,4 +113,75 @@ describe('govAnalyticsNormalize', () => {
     )
     expect(result.detailTable).toBeUndefined()
   })
+
+  describe('PascalCase API payloads (real backend shape)', () => {
+    it('KPI: VisualizationType/Data/Value -> kpi with value', () => {
+      const result = normalizeGovAnalyticsPayload(
+        {
+          ReportId: 'total-revenue',
+          VisualizationType: 'kpi',
+          Data: { Value: 2546684424403.0, UnitAr: 'ل.س', UnitEn: 'SYP', PreviousValue: 0, ChangePercent: null, Items: null },
+          DetailTable: null,
+        },
+        'ar'
+      )
+      expect(result.kind).toBe('kpi')
+      expect(result.value).not.toBe('—')
+      expect(result.value).toContain('ل.س')
+    })
+
+    it('column: PascalCase Categories/Series -> bar chart', () => {
+      const result = normalizeGovAnalyticsPayload(
+        {
+          VisualizationType: 'column',
+          Data: {
+            Categories: ['دمشق', 'حلب'],
+            Series: [{ Key: 'supply', NameAr: 'معروض', NameEn: 'Supply', Data: [5000, 3200] }],
+          },
+        },
+        'ar'
+      )
+      expect(result.kind).toBe('chart')
+      expect(result.data).toHaveLength(2)
+      expect(result.dataKeys).toHaveLength(1)
+      expect(result.data[0].supply).toBe(5000)
+    })
+
+    it('donut: PascalCase Slices -> pie', () => {
+      const result = normalizeGovAnalyticsPayload(
+        { VisualizationType: 'donut', Data: { Slices: [{ NameAr: 'مزادات', Value: 40 }, { NameAr: 'مباشر', Value: 60 }] } },
+        'ar'
+      )
+      expect(result.kind).toBe('chart')
+      expect(result.data[0].name).toBe('مزادات')
+      expect(result.data[0].value).toBe(40)
+    })
+
+    it('table: PascalCase Columns/Rows -> table', () => {
+      const result = normalizeGovAnalyticsPayload(
+        {
+          VisualizationType: 'table',
+          Data: {
+            Columns: [{ Key: 'productName', TitleAr: 'الصنف', TitleEn: 'Product' }, { Key: 'total', TitleAr: 'الإجمالي', TitleEn: 'Total' }],
+            Rows: [{ productName: 'بندورة', total: 500 }],
+            TotalRows: 1,
+          },
+        },
+        'ar'
+      )
+      expect(result.kind).toBe('table')
+      expect(result.columns).toHaveLength(2)
+      expect(result.rows).toHaveLength(1)
+      expect(result.columns[0].header).toBe('الصنف')
+    })
+
+    it('nested envelope: response.data with PascalCase', () => {
+      const result = normalizeGovAnalyticsPayload(
+        { Data: { VisualizationType: 'kpi', Data: { Value: 100, UnitAr: 'كغ' } } },
+        'ar'
+      )
+      expect(result.kind).toBe('kpi')
+      expect(result.value).toContain('100')
+    })
+  })
 })
