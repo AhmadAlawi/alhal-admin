@@ -6,6 +6,11 @@ import apiClient from './api';
  */
 
 export const auctionsService = {
+  // List auctions with filters/pagination (any status) — for admin management
+  listAuctions: async (params = {}) => {
+    return apiClient.get('/api/auctions', params);
+  },
+
   // Get all open auctions
   getOpenAuctions: async () => {
     return apiClient.get('/api/auctions/open');
@@ -54,6 +59,11 @@ export const auctionsService = {
   // Cancel auction
   cancelAuction: async (id, data) => {
     return apiClient.post(`/api/auctions/${id}/cancel`, data);
+  },
+
+  // Admin force-close (no winner assigned, even if bids exist)
+  forceCloseAuction: async (id) => {
+    return apiClient.post(`/api/admin/auctions/${id}/force-close`);
   },
 };
 

@@ -22,6 +22,7 @@ import CurrencySettings from './pages/CurrencySettings'
 import ChatReports from './pages/ChatReports'
 import Tickets from './pages/Tickets'
 import Feedback from './pages/Feedback'
+import Auctions from './pages/Auctions'
 import TransportProviders from './pages/TransportProviders'
 import TransportRequests from './pages/TransportRequests'
 import TransportPriceLines from './pages/TransportPriceLines'
@@ -235,6 +236,14 @@ function App() {
               element={
                 <GuardedPage legacyAdmin>
                   <Orders />
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/auctions"
+              element={
+                <GuardedPage legacyAdmin>
+                  <Auctions />
                 </GuardedPage>
               }
             />

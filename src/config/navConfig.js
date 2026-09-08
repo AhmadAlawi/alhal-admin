@@ -75,6 +75,7 @@ export const NAV_ITEMS = [
   { path: '/users', labelKey: 'common.users', legacyAdmin: true },
   { path: '/categories', labelKey: 'common.categories', legacyAdmin: true },
   { path: '/orders', labelKey: 'common.orders', legacyAdmin: true },
+  { path: '/auctions', labelKey: 'common.auctions', legacyAdmin: true },
   { path: '/chat-reports', labelKey: 'common.chatReports', legacyAdmin: true },
   { path: '/tickets', labelKey: 'common.tickets', legacyAdmin: true },
   { path: '/feedback', labelKey: 'common.feedback', legacyAdmin: true },

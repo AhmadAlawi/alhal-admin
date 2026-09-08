@@ -54,6 +54,7 @@
     "page": "صفحة",
     "of": "من",
     "show": "عرض",
+    "auctions": "المزادات",
     "transportProviders": "مزودو النقل",
     "transportVehicles": "المركبات",
     "transportRequests": "طلبات النقل",
@@ -786,6 +787,39 @@
     "delivery": "التسليم",
     "productQuality": "جودة المنتج",
     "service": "الخدمة"
+  },
+  "auctions": {
+    "title": "المزادات",
+    "subtitle": "إدارة ومتابعة جميع المزادات",
+    "searchPlaceholder": "ابحث بالعنوان...",
+    "id": "المعرّف",
+    "titleColumn": "العنوان",
+    "product": "المنتج",
+    "seller": "البائع",
+    "winner": "الفائز",
+    "noWinnerYet": "لا يوجد فائز بعد",
+    "startingPrice": "السعر الابتدائي",
+    "currentPrice": "السعر الحالي",
+    "bids": "المزايدات",
+    "bidder": "المزايد",
+    "noBids": "لا توجد مزايدات بعد",
+    "startTime": "وقت البدء",
+    "endTime": "وقت الانتهاء",
+    "details": "تفاصيل المزاد",
+    "basicInfo": "المعلومات الأساسية",
+    "forceClose": "إغلاق قسري",
+    "confirmForceClose": "إغلاق هذا المزاد قسرياً بدون فائز، حتى لو كانت هناك مزايدات؟ لا يمكن التراجع عن هذا الإجراء.",
+    "forceCloseSuccess": "تم إغلاق المزاد بنجاح",
+    "forceCloseError": "فشل إغلاق المزاد",
+    "status": {
+      "label": "الحالة",
+      "open": "مفتوح",
+      "closed": "مغلق",
+      "cancelled": "ملغى"
+    },
+    "error": {
+      "load": "فشل تحميل المزادات"
+    }
   },
   "transport": {
     "currency": "ل.س",

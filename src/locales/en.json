@@ -54,6 +54,7 @@
     "page": "Page",
     "of": "of",
     "show": "Show",
+    "auctions": "Auctions",
     "transportProviders": "Transport Providers",
     "transportVehicles": "Vehicles",
     "transportRequests": "Transport Requests",
@@ -785,6 +786,39 @@
     "delivery": "Delivery",
     "productQuality": "Product Quality",
     "service": "Service"
+  },
+  "auctions": {
+    "title": "Auctions",
+    "subtitle": "Manage and monitor all auctions",
+    "searchPlaceholder": "Search by title...",
+    "id": "ID",
+    "titleColumn": "Title",
+    "product": "Product",
+    "seller": "Seller",
+    "winner": "Winner",
+    "noWinnerYet": "No winner yet",
+    "startingPrice": "Starting Price",
+    "currentPrice": "Current Price",
+    "bids": "Bids",
+    "bidder": "Bidder",
+    "noBids": "No bids yet",
+    "startTime": "Start Time",
+    "endTime": "End Time",
+    "details": "Auction Details",
+    "basicInfo": "Basic Information",
+    "forceClose": "Force Close",
+    "confirmForceClose": "Force-close this auction with no winner, even if bids exist? This cannot be undone.",
+    "forceCloseSuccess": "Auction force-closed successfully",
+    "forceCloseError": "Failed to force-close auction",
+    "status": {
+      "label": "Status",
+      "open": "Open",
+      "closed": "Closed",
+      "cancelled": "Cancelled"
+    },
+    "error": {
+      "load": "Failed to load auctions"
+    }
   },
   "transport": {
     "currency": "SYP",

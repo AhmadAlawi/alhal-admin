@@ -24,6 +24,7 @@ import {
   FiEye,
   FiMapPin,
   FiLogOut,
+  FiTrendingUp,
 } from 'react-icons/fi'
 import { GiWheat } from 'react-icons/gi'
 import { useTranslation } from '../../hooks/useTranslation'
@@ -43,6 +44,7 @@ const ICONS = {
   '/products': <FiShoppingBag />,
   '/categories': <FiFolder />,
   '/orders': <FiShoppingCart />,
+  '/auctions': <FiTrendingUp />,
   '/chat-reports': <FiAlertCircle />,
   '/tickets': <FiMessageSquare />,
   '/feedback': <FiStar />,
