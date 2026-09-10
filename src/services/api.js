@@ -1,4 +1,6 @@
 // API Configuration and Base Setup
+import { camelizeKeysDeep } from '../utils/camelizeKeys';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://alhal.awnak.net';
 
 // Log API base URL for debugging (only in development)
@@ -125,7 +127,8 @@ class ApiClient {
         return { success: true };
       }
       try {
-        return JSON.parse(text);
+        // Backend responds in PascalCase; admin pages expect camelCase.
+        return camelizeKeysDeep(JSON.parse(text));
       } catch {
         return { success: true, data: text };
       }
