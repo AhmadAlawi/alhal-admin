@@ -23,6 +23,7 @@ import ChatReports from './pages/ChatReports'
 import Tickets from './pages/Tickets'
 import Feedback from './pages/Feedback'
 import Auctions from './pages/Auctions'
+import Locations from './pages/Locations'
 import TransportProviders from './pages/TransportProviders'
 import TransportRequests from './pages/TransportRequests'
 import TransportPriceLines from './pages/TransportPriceLines'
@@ -228,6 +229,14 @@ function App() {
               element={
                 <GuardedPage legacyAdmin>
                   <Categories />
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/locations"
+              element={
+                <GuardedPage legacyAdmin>
+                  <Locations />
                 </GuardedPage>
               }
             />

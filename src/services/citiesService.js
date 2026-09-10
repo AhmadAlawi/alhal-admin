@@ -28,6 +28,44 @@ const citiesService = {
     if (governorateId == null || governorateId === '') return []
     return this.getCities({ governorateId, isActive, language })
   },
+
+  /** All cities of a governorate incl. inactive — for the admin table. */
+  async getAllForAdmin(governorateId, { language = 'ar' } = {}) {
+    if (governorateId == null || governorateId === '') return []
+    const response = await apiClient.get('/api/cities', {
+      governorateId,
+      isActive: null,
+    })
+    return sortByLocalizedName(
+      unwrapLocationList(response).map((c) => normalizeCity(c, language)).filter(Boolean),
+      language
+    )
+  },
+
+  /** POST /api/cities */
+  create: (payload) =>
+    apiClient.post('/api/cities', {
+      governorateId: payload.governorateId,
+      nameAr: payload.nameAr,
+      nameEn: payload.nameEn,
+      description: payload.description ?? null,
+    }),
+
+  /** PUT /api/cities/{id} */
+  update: (id, payload) =>
+    apiClient.put(`/api/cities/${id}`, {
+      governorateId: payload.governorateId,
+      nameAr: payload.nameAr,
+      nameEn: payload.nameEn,
+      description: payload.description ?? null,
+      isActive: payload.isActive,
+    }),
+
+  /** DELETE /api/cities/{id} */
+  remove: (id) => apiClient.delete(`/api/cities/${id}`),
+
+  /** PATCH /api/cities/{id}/toggle-active */
+  toggleActive: (id) => apiClient.patch(`/api/cities/${id}/toggle-active`),
 }
 
 export default citiesService

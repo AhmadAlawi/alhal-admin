@@ -16,6 +16,7 @@ export const ADMIN_ROUTES = [
   '/rbac/users',
   '/users',
   '/categories',
+  '/locations',
   '/orders',
   '/chat-reports',
   '/tickets',

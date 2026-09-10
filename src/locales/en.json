@@ -91,7 +91,9 @@
     "allStatus": "All Status",
     "allTime": "All Time",
     "asc": "Ascending",
-    "desc": "Descending"
+    "desc": "Descending",
+    "locations": "Locations",
+    "saving": "Saving..."
   },
   "dashboard": {
     "title": "Dashboard",
@@ -146,11 +148,9 @@
     "last90Days": "Last 90 Days",
     "loadingData": "Loading dashboard data...",
     "fetchError": "Unable to fetch dashboard data. Please check your connection.",
-    "totalRevenue": "Total Revenue",
     "totalTransactions": "Total Transactions",
     "totalVolume": "Total Volume",
     "averagePrice": "Average Price",
-    "totalUsers": "Total Users",
     "active30d": "Active (30d)",
     "totalFarms": "Total Farms",
     "inventory": "Inventory",
@@ -322,7 +322,6 @@
     "year": "Year",
     "startDate": "Start Date",
     "endDate": "End Date",
-    "timeGroup": "Time Group",
     "minute": "Minute",
     "hour": "Hour",
     "day": "Day",
@@ -359,8 +358,6 @@
     "incoming": "Incoming",
     "outgoing": "Outgoing",
     "netFlow": "Net Flow",
-    "totalCapacity": "Total Capacity",
-    "actualUsage": "Actual Usage",
     "available": "Available",
     "tons": "tons",
     "transactions": "transactions",
@@ -520,7 +517,6 @@
     "noCategories": "No categories found",
     "titleExtended": "Categories & Subcategories",
     "addCategory": "Add Category",
-    "addCategory": "Add Category",
     "editCategory": "Edit Category",
     "deleteCategory": "Delete Category",
     "categoryName": "Category Name",
@@ -674,11 +670,10 @@
     "invalidCredentials": "Invalid email or password"
   },
   "chatReports": {
-    "title": "Chat Reports",
+    "title": "Title",
     "subtitle": "Manage and review chat reports",
     "reportId": "Report ID",
     "type": "Type",
-    "title": "Title",
     "reportedBy": "Reported By",
     "reportedUser": "Reported User",
     "status": "Status",
@@ -876,7 +871,13 @@
       "distance": "Distance",
       "weight": "Weight",
       "productType": "Product Type",
-      "status": "Status",
+      "status": {
+        "open": "Open",
+        "pending": "Pending",
+        "negotiating": "Negotiating",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      },
       "createdAt": "Created At",
       "offers": "Offers",
       "notify": "Notify Transporters",
@@ -902,14 +903,7 @@
       "contextTypeTender": "Tender",
       "contextTypeDirect": "Direct sale",
       "buyerUserIdPlaceholder": "Buyer User ID",
-      "specialRequirementsPlaceholder": "Special requirements...",
-      "status": {
-        "open": "Open",
-        "pending": "Pending",
-        "negotiating": "Negotiating",
-        "completed": "Completed",
-        "cancelled": "Cancelled"
-      }
+      "specialRequirementsPlaceholder": "Special requirements..."
     },
     "offers": {
       "offer": "Offer",
@@ -1417,6 +1411,33 @@
   "dashboardErrors": {
     "renderError": "A page error occurred",
     "renderHint": "Try refreshing or contact support if the problem persists."
+  },
+  "locations": {
+    "title": "Countries, Governorates & Cities",
+    "subtitle": "Manage governorates, their cities and areas",
+    "governorates": "Governorates",
+    "cities": "Cities",
+    "areas": "Areas",
+    "governorate": "Governorate",
+    "city": "City",
+    "area": "Area",
+    "citiesShort": "cities",
+    "areasShort": "areas",
+    "nameAr": "Name (Arabic)",
+    "nameEn": "Name (English)",
+    "description": "Description",
+    "inactive": "Inactive",
+    "activate": "Activate",
+    "deactivate": "Deactivate",
+    "pickGovernorate": "Select a governorate to see its cities",
+    "pickCity": "Select a city to see its areas",
+    "confirmDelete": "Delete this item?",
+    "errors": {
+      "loadGovernorates": "Failed to load governorates",
+      "nameRequired": "Arabic and English names are required",
+      "saveFailed": "Save failed",
+      "toggleFailed": "Failed to change status",
+      "deleteFailed": "Delete failed"
+    }
   }
 }
-

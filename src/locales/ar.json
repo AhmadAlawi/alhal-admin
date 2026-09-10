@@ -91,7 +91,9 @@
     "allStatus": "كل الحالات",
     "allTime": "كل الوقت",
     "asc": "تصاعدي",
-    "desc": "تنازلي"
+    "desc": "تنازلي",
+    "locations": "المواقع",
+    "saving": "جارٍ الحفظ..."
   },
   "dashboard": {
     "title": "لوحة التحكم",
@@ -146,11 +148,9 @@
     "last90Days": "آخر 90 يوماً",
     "loadingData": "جاري تحميل بيانات لوحة التحكم...",
     "fetchError": "تعذر تحميل بيانات لوحة التحكم. يرجى التحقق من الاتصال.",
-    "totalRevenue": "إجمالي الإيرادات",
     "totalTransactions": "إجمالي المعاملات",
     "totalVolume": "إجمالي الحجم",
     "averagePrice": "متوسط السعر",
-    "totalUsers": "إجمالي المستخدمين",
     "active30d": "النشطون (30 يوماً)",
     "totalFarms": "إجمالي المزارع",
     "inventory": "المخزون",
@@ -325,7 +325,6 @@
     "year": "السنة",
     "startDate": "تاريخ البداية",
     "endDate": "تاريخ النهاية",
-    "timeGroup": "مجموعة الوقت",
     "minute": "دقيقة",
     "hour": "ساعة",
     "day": "يوم",
@@ -362,8 +361,6 @@
     "incoming": "الوارد",
     "outgoing": "الصادر",
     "netFlow": "التدفق الصافي",
-    "totalCapacity": "إجمالي السعة",
-    "actualUsage": "الاستخدام الفعلي",
     "available": "متاح",
     "tons": "طن",
     "transactions": "معاملات",
@@ -521,7 +518,6 @@
     "noCategories": "لا توجد فئات",
     "titleExtended": "الفئات والفئات الفرعية",
     "addCategory": "إضافة فئة",
-    "addCategory": "إضافة فئة",
     "editCategory": "تعديل فئة",
     "deleteCategory": "حذف فئة",
     "categoryName": "اسم الفئة",
@@ -675,11 +671,10 @@
     "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة"
   },
   "chatReports": {
-    "title": "تقارير الدردشة",
+    "title": "العنوان",
     "subtitle": "إدارة ومراجعة تقارير الدردشة",
     "reportId": "رقم التقرير",
     "type": "النوع",
-    "title": "العنوان",
     "reportedBy": "تم الإبلاغ بواسطة",
     "reportedUser": "المستخدم المبلغ عنه",
     "status": "الحالة",
@@ -877,7 +872,13 @@
       "distance": "المسافة",
       "weight": "الوزن",
       "productType": "نوع المنتج",
-      "status": "الحالة",
+      "status": {
+        "open": "مفتوح",
+        "pending": "قيد الانتظار",
+        "negotiating": "قيد التفاوض",
+        "completed": "مكتمل",
+        "cancelled": "ملغي"
+      },
       "createdAt": "تاريخ الإنشاء",
       "offers": "العروض",
       "notify": "إشعار الناقلين",
@@ -903,14 +904,7 @@
       "contextTypeTender": "مناقصة",
       "contextTypeDirect": "بيع مباشر",
       "buyerUserIdPlaceholder": "معرف المشتري",
-      "specialRequirementsPlaceholder": "متطلبات خاصة...",
-      "status": {
-        "open": "مفتوح",
-        "pending": "قيد الانتظار",
-        "negotiating": "قيد التفاوض",
-        "completed": "مكتمل",
-        "cancelled": "ملغي"
-      }
+      "specialRequirementsPlaceholder": "متطلبات خاصة..."
     },
     "offers": {
       "offer": "عرض",
@@ -1418,6 +1412,33 @@
   "dashboardErrors": {
     "renderError": "حدث خطأ في الصفحة",
     "renderHint": "جرّب التحديث أو تواصل مع الدعم إذا استمرت المشكلة."
+  },
+  "locations": {
+    "title": "الدول والمحافظات والمدن",
+    "subtitle": "إدارة المحافظات ومدنها ومناطقها",
+    "governorates": "المحافظات",
+    "cities": "المدن",
+    "areas": "المناطق",
+    "governorate": "محافظة",
+    "city": "مدينة",
+    "area": "منطقة",
+    "citiesShort": "مدينة",
+    "areasShort": "منطقة",
+    "nameAr": "الاسم بالعربية",
+    "nameEn": "الاسم بالإنجليزية",
+    "description": "الوصف",
+    "inactive": "غير مفعّل",
+    "activate": "تفعيل",
+    "deactivate": "إلغاء التفعيل",
+    "pickGovernorate": "اختر محافظة لعرض مدنها",
+    "pickCity": "اختر مدينة لعرض مناطقها",
+    "confirmDelete": "هل تريد حذف هذا العنصر؟",
+    "errors": {
+      "loadGovernorates": "تعذّر تحميل المحافظات",
+      "nameRequired": "الاسم بالعربية والإنجليزية مطلوب",
+      "saveFailed": "فشل الحفظ",
+      "toggleFailed": "فشل تغيير الحالة",
+      "deleteFailed": "فشل الحذف"
+    }
   }
 }
-
