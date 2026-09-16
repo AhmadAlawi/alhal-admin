@@ -72,6 +72,32 @@ const Users = () => {
     }
   }
 
+  const handleVerifyUser = async (userId) => {
+    try {
+      await adminService.verifyUser(userId)
+      setUsers(users.map(user =>
+        user.userId === userId ? { ...user, isVerified: true, isActive: true } : user
+      ))
+      setSelectedUserDetail(prev => prev && prev.userId === userId ? { ...prev, isVerified: true, isActive: true } : prev)
+    } catch (err) {
+      console.error('Failed to verify user:', err)
+      alert(err.message || 'Failed to verify user')
+    }
+  }
+
+  const handleApproveDocuments = async (userId) => {
+    try {
+      await adminService.approveDocuments(userId)
+      setUsers(users.map(user =>
+        user.userId === userId ? { ...user, isDocumentsApproved: true } : user
+      ))
+      setSelectedUserDetail(prev => prev && prev.userId === userId ? { ...prev, isDocumentsApproved: true } : prev)
+    } catch (err) {
+      console.error('Failed to approve documents:', err)
+      alert(err.message || 'Failed to approve documents')
+    }
+  }
+
   const handleToggleActive = async (userId, currentStatus) => {
     try {
       await adminService.toggleUserActive({ userId, isActive: !currentStatus })
@@ -291,6 +317,15 @@ const Users = () => {
                           >
                             {user.isActive ? <FiUserX /> : <FiUserCheck />}
                           </button>
+                          {!user.isVerified && (
+                            <button
+                              className="btn-icon btn-success"
+                              onClick={() => handleVerifyUser(user.userId)}
+                              title="Verify user"
+                            >
+                              <FiShield />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -368,6 +403,15 @@ const Users = () => {
                     <span className={`status-badge ${selectedUserDetail.isVerified ? 'status-active' : 'status-inactive'}`}>
                       {selectedUserDetail.isVerified ? 'Yes' : 'No'}
                     </span>
+                    {!selectedUserDetail.isVerified && (
+                      <button
+                        className="btn btn-outline btn-sm"
+                        style={{ marginInlineStart: 8 }}
+                        onClick={() => handleVerifyUser(selectedUserDetail.userId)}
+                      >
+                        <FiUserCheck /> Verify
+                      </button>
+                    )}
                   </div>
                   <div className="detail-item">
                     <label>Blocked:</label>
@@ -392,6 +436,15 @@ const Users = () => {
                     <span className={`status-badge ${selectedUserDetail.isDocumentsApproved ? 'status-active' : 'status-inactive'}`}>
                       {selectedUserDetail.isDocumentsApproved ? 'Yes' : 'No'}
                     </span>
+                    {!selectedUserDetail.isDocumentsApproved && (
+                      <button
+                        className="btn btn-outline btn-sm"
+                        style={{ marginInlineStart: 8 }}
+                        onClick={() => handleApproveDocuments(selectedUserDetail.userId)}
+                      >
+                        <FiUserCheck /> Approve Documents
+                      </button>
+                    )}
                   </div>
                   <div className="detail-item">
                     <label>Created At:</label>
@@ -546,6 +599,14 @@ const Users = () => {
               {/* Action Buttons */}
               <div className="detail-section">
                 <div className="detail-actions">
+                  {!selectedUserDetail.isVerified && (
+                    <button
+                      className="btn btn-success"
+                      onClick={() => handleVerifyUser(selectedUserDetail.userId)}
+                    >
+                      <FiUserCheck /> Verify User
+                    </button>
+                  )}
                   <button
                     className={`btn ${selectedUserDetail.isActive ? 'btn-danger' : 'btn-success'}`}
                     onClick={() => {

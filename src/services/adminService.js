@@ -38,6 +38,14 @@ export const adminService = {
     return apiClient.post('/api/admin/users/toggle-active', data);
   },
 
+  verifyUser: async (userId, notes) => {
+    return apiClient.post(`/api/admin/users/${userId}/verify`, { notes: notes ?? null });
+  },
+
+  approveDocuments: async (userId) => {
+    return apiClient.post(`/api/admin/users/${userId}/approve-documents`, {});
+  },
+
   // User Dashboard & Activity
   getUserSummary: async (params = {}) => {
     const filteredParams = {};
