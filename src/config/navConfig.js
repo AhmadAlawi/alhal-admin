@@ -76,6 +76,7 @@ export const NAV_ITEMS = [
   { path: '/categories', labelKey: 'common.categories', legacyAdmin: true },
   { path: '/locations', labelKey: 'common.locations', legacyAdmin: true },
   { path: '/units', labelKey: 'common.units', legacyAdmin: true },
+  { path: '/market-limits', labelKey: 'common.marketLimits', legacyAdmin: true },
   { path: '/orders', labelKey: 'common.orders', legacyAdmin: true },
   { path: '/auctions', labelKey: 'common.auctions', legacyAdmin: true },
   { path: '/chat-reports', labelKey: 'common.chatReports', legacyAdmin: true },

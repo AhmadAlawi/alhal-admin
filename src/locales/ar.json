@@ -94,6 +94,7 @@
     "desc": "تنازلي",
     "locations": "المواقع",
     "units": "وحدات القياس",
+    "marketLimits": "حدود السوق",
     "saving": "جارٍ الحفظ..."
   },
   "dashboard": {
@@ -1470,6 +1471,27 @@
       "saveFailed": "فشل الحفظ",
       "toggleFailed": "فشل تغيير الحالة",
       "deleteFailed": "فشل الحذف"
+    }
+  },
+  "marketLimits": {
+    "title": "حدود السوق",
+    "subtitle": "الحد الأدنى والأقصى للسعر والكمية المسموح بهما عند الإنشاء لكل نوع صفقة",
+    "context": "نوع الصفقة",
+    "minPrice": "أدنى سعر",
+    "maxPrice": "أقصى سعر",
+    "minQuantity": "أدنى كمية",
+    "maxQuantity": "أقصى كمية",
+    "unrestricted": "بدون حد",
+    "contexts": {
+      "auction": "المزادات",
+      "tender": "المناقصات",
+      "direct": "البيع المباشر"
+    },
+    "errors": {
+      "load": "تعذّر تحميل حدود السوق",
+      "priceOrder": "أدنى سعر يجب أن يكون أقل من أو يساوي أقصى سعر",
+      "quantityOrder": "أدنى كمية يجب أن تكون أقل من أو تساوي أقصى كمية",
+      "saveFailed": "فشل الحفظ"
     }
   }
 }

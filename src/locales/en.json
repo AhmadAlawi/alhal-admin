@@ -94,6 +94,7 @@
     "desc": "Descending",
     "locations": "Locations",
     "units": "Measurement Units",
+    "marketLimits": "Market Limits",
     "saving": "Saving..."
   },
   "dashboard": {
@@ -1469,6 +1470,27 @@
       "saveFailed": "Save failed",
       "toggleFailed": "Failed to change status",
       "deleteFailed": "Delete failed"
+    }
+  },
+  "marketLimits": {
+    "title": "Market Limits",
+    "subtitle": "Min/max price and quantity allowed at creation time, per deal type",
+    "context": "Deal type",
+    "minPrice": "Min price",
+    "maxPrice": "Max price",
+    "minQuantity": "Min quantity",
+    "maxQuantity": "Max quantity",
+    "unrestricted": "Unrestricted",
+    "contexts": {
+      "auction": "Auctions",
+      "tender": "Tenders",
+      "direct": "Direct sale"
+    },
+    "errors": {
+      "load": "Failed to load market limits",
+      "priceOrder": "Min price must be less than or equal to max price",
+      "quantityOrder": "Min quantity must be less than or equal to max quantity",
+      "saveFailed": "Save failed"
     }
   }
 }

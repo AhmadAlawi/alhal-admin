@@ -25,6 +25,7 @@ import Feedback from './pages/Feedback'
 import Auctions from './pages/Auctions'
 import Locations from './pages/Locations'
 import Units from './pages/Units'
+import MarketLimits from './pages/MarketLimits'
 import TransportProviders from './pages/TransportProviders'
 import TransportRequests from './pages/TransportRequests'
 import TransportPriceLines from './pages/TransportPriceLines'
@@ -246,6 +247,14 @@ function App() {
               element={
                 <GuardedPage legacyAdmin>
                   <Units />
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/market-limits"
+              element={
+                <GuardedPage legacyAdmin>
+                  <MarketLimits />
                 </GuardedPage>
               }
             />
