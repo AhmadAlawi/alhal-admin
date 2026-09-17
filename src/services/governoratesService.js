@@ -50,8 +50,10 @@ export const governoratesService = {
   },
 
   /** Full list (active + inactive) for the admin management table. */
-  async getAllForAdmin({ language = 'ar' } = {}) {
-    const res = await apiClient.get('/api/governorates', { isActive: null })
+  async getAllForAdmin({ language = 'ar', countryId } = {}) {
+    const params = { isActive: null }
+    if (countryId != null) params.countryId = countryId
+    const res = await apiClient.get('/api/governorates', params)
     return sortByLocalizedName(
       unwrapLocationList(res).map((g) => normalizeGovernorate(g, language)).filter(Boolean),
       language
@@ -64,6 +66,7 @@ export const governoratesService = {
       nameAr: payload.nameAr,
       nameEn: payload.nameEn,
       description: payload.description ?? null,
+      countryId: payload.countryId ?? null,
     }),
 
   /** PUT /api/governorates/{id} */
@@ -73,6 +76,7 @@ export const governoratesService = {
       nameEn: payload.nameEn,
       description: payload.description ?? null,
       isActive: payload.isActive,
+      countryId: payload.countryId ?? null,
     }),
 
   /** DELETE /api/governorates/{id} */

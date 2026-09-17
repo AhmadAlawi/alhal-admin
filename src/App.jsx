@@ -24,6 +24,7 @@ import Tickets from './pages/Tickets'
 import Feedback from './pages/Feedback'
 import Auctions from './pages/Auctions'
 import Locations from './pages/Locations'
+import Units from './pages/Units'
 import TransportProviders from './pages/TransportProviders'
 import TransportRequests from './pages/TransportRequests'
 import TransportPriceLines from './pages/TransportPriceLines'
@@ -237,6 +238,14 @@ function App() {
               element={
                 <GuardedPage legacyAdmin>
                   <Locations />
+                </GuardedPage>
+              }
+            />
+            <Route
+              path="/units"
+              element={
+                <GuardedPage legacyAdmin>
+                  <Units />
                 </GuardedPage>
               }
             />

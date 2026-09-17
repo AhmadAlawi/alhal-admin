@@ -28,6 +28,29 @@ export function unwrapLocationList(response) {
   return []
 }
 
+export function normalizeCountry(raw, language = 'ar') {
+  if (!raw || typeof raw !== 'object') return null
+  const id = raw.countryId ?? raw.id ?? raw.CountryId
+  if (id == null) return null
+  const nameAr = cleanLocationName(raw.nameAr ?? raw.NameAr)
+  const nameEn = cleanLocationName(raw.nameEn ?? raw.NameEn ?? nameAr)
+  const name = language === 'ar' ? nameAr || nameEn : nameEn || nameAr
+  if (!name) return null
+  return {
+    id,
+    countryId: id,
+    name,
+    nameAr,
+    nameEn,
+    isoCode2: raw.isoCode2 ?? raw.IsoCode2 ?? '',
+    phoneCode: raw.phoneCode ?? raw.PhoneCode ?? '',
+    flagEmoji: raw.flagEmoji ?? raw.FlagEmoji ?? '',
+    sortOrder: raw.sortOrder ?? raw.SortOrder ?? 0,
+    isActive: (raw.isActive ?? raw.IsActive) !== false,
+    governoratesCount: raw.governoratesCount ?? raw.GovernoratesCount,
+  }
+}
+
 export function normalizeGovernorate(raw, language = 'ar') {
   if (!raw || typeof raw !== 'object') return null
   const id = raw.governorateId ?? raw.id ?? raw.GovernorateId
@@ -42,6 +65,9 @@ export function normalizeGovernorate(raw, language = 'ar') {
     name,
     nameAr,
     nameEn,
+    countryId: raw.countryId ?? raw.CountryId ?? null,
+    countryNameAr: cleanLocationName(raw.countryNameAr ?? raw.CountryNameAr),
+    countryNameEn: cleanLocationName(raw.countryNameEn ?? raw.CountryNameEn),
     isActive: (raw.isActive ?? raw.IsActive) !== false,
     citiesCount: raw.citiesCount ?? raw.CitiesCount,
   }

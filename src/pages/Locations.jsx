@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { FiMapPin, FiPlus, FiEdit2, FiTrash2, FiRefreshCw, FiX, FiEye, FiEyeOff } from 'react-icons/fi'
+import countriesService from '../services/countriesService'
 import governoratesService from '../services/governoratesService'
 import citiesService from '../services/citiesService'
 import areasService from '../services/areasService'
@@ -8,22 +9,25 @@ import { useLocale } from '../contexts/LocaleContext'
 import './TransportRequests.css'
 import './transport-shared.css'
 
-const LEVELS = ['governorate', 'city', 'area']
+const LEVELS = ['country', 'governorate', 'city', 'area']
 
-const emptyForm = { nameAr: '', nameEn: '', description: '' }
+const emptyForm = { nameAr: '', nameEn: '', description: '', isoCode2: '', phoneCode: '', flagEmoji: '' }
 
 const Locations = () => {
   const { t } = useTranslation()
   const { language } = useLocale()
 
+  const [countries, setCountries] = useState([])
   const [governorates, setGovernorates] = useState([])
   const [cities, setCities] = useState([])
   const [areas, setAreas] = useState([])
 
+  const [selectedCountry, setSelectedCountry] = useState(null)
   const [selectedGov, setSelectedGov] = useState(null)
   const [selectedCity, setSelectedCity] = useState(null)
 
-  const [loadingGov, setLoadingGov] = useState(true)
+  const [loadingCountries, setLoadingCountries] = useState(true)
+  const [loadingGov, setLoadingGov] = useState(false)
   const [loadingCities, setLoadingCities] = useState(false)
   const [loadingAreas, setLoadingAreas] = useState(false)
   const [error, setError] = useState(null)
@@ -34,20 +38,41 @@ const Locations = () => {
   const [saving, setSaving] = useState(false)
   const [busyId, setBusyId] = useState(null)
 
-  const loadGovernorates = useCallback(async () => {
+  const loadCountries = useCallback(async () => {
     try {
-      setLoadingGov(true)
+      setLoadingCountries(true)
       setError(null)
-      const list = await governoratesService.getAllForAdmin({ language })
-      setGovernorates(list)
+      const list = await countriesService.getAllForAdmin({ language })
+      setCountries(list)
     } catch (err) {
-      console.error('load governorates failed', err)
-      setError(err.message || t('locations.errors.loadGovernorates'))
-      setGovernorates([])
+      console.error('load countries failed', err)
+      setError(err.message || t('locations.errors.loadCountries'))
+      setCountries([])
     } finally {
-      setLoadingGov(false)
+      setLoadingCountries(false)
     }
   }, [language, t])
+
+  const loadGovernorates = useCallback(
+    async (countryId) => {
+      if (countryId == null) {
+        setGovernorates([])
+        return
+      }
+      try {
+        setLoadingGov(true)
+        const list = await governoratesService.getAllForAdmin({ language, countryId })
+        setGovernorates(list)
+      } catch (err) {
+        console.error('load governorates failed', err)
+        setError(err.message || t('locations.errors.loadGovernorates'))
+        setGovernorates([])
+      } finally {
+        setLoadingGov(false)
+      }
+    },
+    [language, t]
+  )
 
   const loadCities = useCallback(
     async (governorateId) => {
@@ -90,8 +115,16 @@ const Locations = () => {
   )
 
   useEffect(() => {
-    loadGovernorates()
-  }, [loadGovernorates])
+    loadCountries()
+  }, [loadCountries])
+
+  useEffect(() => {
+    setSelectedGov(null)
+    setSelectedCity(null)
+    setCities([])
+    setAreas([])
+    loadGovernorates(selectedCountry?.countryId ?? null)
+  }, [selectedCountry, loadGovernorates])
 
   useEffect(() => {
     setSelectedCity(null)
@@ -113,6 +146,9 @@ const Locations = () => {
       nameAr: row.nameAr || '',
       nameEn: row.nameEn || '',
       description: row.description || '',
+      isoCode2: row.isoCode2 || '',
+      phoneCode: row.phoneCode || '',
+      flagEmoji: row.flagEmoji || '',
     })
     setModal({ level, mode: 'edit', row })
   }
@@ -124,10 +160,17 @@ const Locations = () => {
   }
 
   const serviceFor = (level) =>
-    level === 'governorate' ? governoratesService : level === 'city' ? citiesService : areasService
+    level === 'country'
+      ? countriesService
+      : level === 'governorate'
+      ? governoratesService
+      : level === 'city'
+      ? citiesService
+      : areasService
 
   const refreshLevel = (level) => {
-    if (level === 'governorate') loadGovernorates()
+    if (level === 'country') loadCountries()
+    else if (level === 'governorate') loadGovernorates(selectedCountry?.countryId ?? null)
     else if (level === 'city') loadCities(selectedGov?.governorateId ?? null)
     else loadAreas(selectedCity?.cityId ?? null)
   }
@@ -140,11 +183,21 @@ const Locations = () => {
     }
     const { level, mode, row } = modal
     const svc = serviceFor(level)
-    const payload = {
-      nameAr: form.nameAr.trim(),
-      nameEn: form.nameEn.trim(),
-      description: form.description.trim() || null,
-    }
+    const payload =
+      level === 'country'
+        ? {
+            nameAr: form.nameAr.trim(),
+            nameEn: form.nameEn.trim(),
+            isoCode2: form.isoCode2.trim().toUpperCase(),
+            phoneCode: form.phoneCode.trim(),
+            flagEmoji: form.flagEmoji.trim() || null,
+          }
+        : {
+            nameAr: form.nameAr.trim(),
+            nameEn: form.nameEn.trim(),
+            description: form.description.trim() || null,
+          }
+    if (level === 'governorate') payload.countryId = selectedCountry?.countryId
     if (level === 'city') payload.governorateId = selectedGov?.governorateId
     if (level === 'area') payload.cityId = selectedCity?.cityId
 
@@ -186,6 +239,7 @@ const Locations = () => {
     try {
       setBusyId(`${level}-${id}`)
       await svc.remove(id)
+      if (level === 'country' && selectedCountry?.countryId === id) setSelectedCountry(null)
       if (level === 'governorate' && selectedGov?.governorateId === id) setSelectedGov(null)
       if (level === 'city' && selectedCity?.cityId === id) setSelectedCity(null)
       refreshLevel(level)
@@ -239,12 +293,15 @@ const Locations = () => {
                 >
                   <td>
                     <div style={{ fontWeight: 600 }}>
+                      {level === 'country' && row.flagEmoji ? `${row.flagEmoji} ` : ''}
                       {language === 'ar' ? row.nameAr : row.nameEn} {!row.isActive && (
                         <span className="badge badge-secondary">{t('locations.inactive')}</span>
                       )}
                     </div>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-muted, #888)' }}>
                       {language === 'ar' ? row.nameEn : row.nameAr}
+                      {level === 'country' ? ` · ${row.phoneCode} · ${row.isoCode2}` : ''}
+                      {level === 'country' && row.governoratesCount != null ? ` · ${row.governoratesCount} ${t('locations.governoratesShort')}` : ''}
                       {level === 'governorate' && row.citiesCount != null ? ` · ${row.citiesCount} ${t('locations.citiesShort')}` : ''}
                       {level === 'city' && row.areasCount != null ? ` · ${row.areasCount} ${t('locations.areasShort')}` : ''}
                     </div>
@@ -294,7 +351,7 @@ const Locations = () => {
           <p className="page-subtitle">{t('locations.subtitle')}</p>
         </div>
         <div className="header-actions">
-          <button className="btn btn-outline" onClick={loadGovernorates}>
+          <button className="btn btn-outline" onClick={loadCountries}>
             <FiRefreshCw /> {t('common.refresh')}
           </button>
         </div>
@@ -308,12 +365,24 @@ const Locations = () => {
 
       <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
         {renderColumn({
+          level: 'country',
+          title: t('locations.countries'),
+          rows: countries,
+          loading: loadingCountries,
+          selectedId: selectedCountry?.countryId,
+          onSelect: setSelectedCountry,
+        })}
+        {renderColumn({
           level: 'governorate',
-          title: t('locations.governorates'),
+          title: selectedCountry
+            ? `${t('locations.governorates')} — ${language === 'ar' ? selectedCountry.nameAr : selectedCountry.nameEn}`
+            : t('locations.governorates'),
           rows: governorates,
           loading: loadingGov,
           selectedId: selectedGov?.governorateId,
           onSelect: setSelectedGov,
+          disabled: !selectedCountry,
+          disabledHint: t('locations.pickCountry'),
         })}
         {renderColumn({
           level: 'city',
@@ -372,15 +441,54 @@ const Locations = () => {
                   dir="ltr"
                 />
               </div>
-              <div className="form-group">
-                <label>{t('locations.description')}</label>
-                <textarea
-                  value={form.description}
-                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                  className="form-input"
-                  rows={2}
-                />
-              </div>
+              {modal.level === 'country' ? (
+                <>
+                  <div className="form-group">
+                    <label>{t('locations.isoCode2')} *</label>
+                    <input
+                      type="text"
+                      value={form.isoCode2}
+                      onChange={(e) => setForm((f) => ({ ...f, isoCode2: e.target.value.toUpperCase() }))}
+                      className="form-input"
+                      dir="ltr"
+                      maxLength={2}
+                      placeholder="SY"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>{t('locations.phoneCode')} *</label>
+                    <input
+                      type="text"
+                      value={form.phoneCode}
+                      onChange={(e) => setForm((f) => ({ ...f, phoneCode: e.target.value }))}
+                      className="form-input"
+                      dir="ltr"
+                      placeholder="+963"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>{t('locations.flagEmoji')}</label>
+                    <input
+                      type="text"
+                      value={form.flagEmoji}
+                      onChange={(e) => setForm((f) => ({ ...f, flagEmoji: e.target.value }))}
+                      className="form-input"
+                      dir="ltr"
+                      placeholder="🇸🇾"
+                    />
+                  </div>
+                </>
+              ) : (
+                <div className="form-group">
+                  <label>{t('locations.description')}</label>
+                  <textarea
+                    value={form.description}
+                    onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                    className="form-input"
+                    rows={2}
+                  />
+                </div>
+              )}
               <div className="form-actions">
                 <button type="button" className="btn btn-outline" onClick={closeModal} disabled={saving}>
                   {t('common.cancel')}
